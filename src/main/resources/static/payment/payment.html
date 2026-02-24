@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pay | Secure Checkout</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <div class="brand-badge"><span>◆</span></div>
+            <div class="brand-text">
+                <div class="brand-name">JayaGems</div>
+                <div class="brand-sub">Payment Processing • Pay</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="form.html">Checkout</a>
+            <a href="payment.html" class="active">Pay</a>
+            <a href="receipt.html">Receipt</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <div>
+            <h1>Secure Payment</h1>
+            <p>
+                Enter payment details and complete your transaction securely
+            </p>
+        </div>
+
+        <div class="stepper">
+            <div class="step"><span class="step-dot"></span> 1. Checkout</div>
+            <div class="step active"><span class="step-dot"></span> 2. Payment</div>
+            <div class="step"><span class="step-dot"></span> 3. Receipt</div>
+        </div>
+    </section>
+
+    <section class="grid">
+        <!-- LEFT: PAYMENT FORM -->
+        <div class="card">
+            <div class="card-head">
+                <h2>Payment Method</h2>
+                <p class="sub">Choose a method and enter your details.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="pills" style="margin-bottom:10px;">
+                    <label class="pill">
+                        <input type="radio" name="method" value="CARD" checked>
+                        Card (Visa/Master)
+                    </label>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-grid">
+                    <div class="field" style="grid-column: 1 / -1;">
+                        <label for="cardName">Name on Card</label>
+                        <input id="cardName" type="text" placeholder="e.g., N.T.Y Cooray" maxlength="40" />
+                        <small class="error" id="errCardName"></small>
+                    </div>
+
+                    <div class="field" style="grid-column: 1 / -1;">
+                        <label for="cardNumber">Card Number</label>
+                        <input id="cardNumber" type="text" inputmode="numeric" placeholder="4135 4100 4081 6226" maxlength="19" />
+                        <small class="error" id="errCardNumber"></small>
+                        <small class="hint">Validated using Luhn algorithm (realistic demo).</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="expiry">Expiry (MM/YY)</label>
+                        <input id="expiry" type="text" inputmode="numeric" placeholder="03/30" maxlength="5" />
+                        <small class="error" id="errExpiry"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="cvv">CVV</label>
+                        <input id="cvv" type="password" inputmode="numeric" placeholder="236" maxlength="4" />
+                        <small class="error" id="errCvv"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input id="email" type="email" placeholder="name@email.com" maxlength="60" />
+                        <small class="error" id="errEmail"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="phone">Phone (10 digits)</label>
+                        <input id="phone" type="text" inputmode="numeric" placeholder="0718938029" maxlength="10" />
+                        <small class="error" id="errPhone"></small>
+                    </div>
+                </div>
+
+                <div class="notice" id="payNotice" style="margin-top:14px;">
+                    Your final amount will be taken from Checkout calculation.
+                </div>
+
+                <div class="actions">
+                    <button class="btn wide" id="btnPayNow">Pay Now</button>
+                    <a class="btn ghost" href="form.html">Back to Checkout</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: PAYMENT PREVIEW + CARD MOCK -->
+        <aside class="card accent sticky">
+            <div class="card-head">
+                <h2>Payment Preview</h2>
+                <p class="sub">Order total and status.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="summary">
+                    <div class="row"><span>Order ID</span><strong id="pOrderId">ORD-—</strong></div>
+                    <div class="row"><span>Amount</span><strong id="pAmount">LKR 0.00</strong></div>
+                    <div class="row"><span>Status</span><strong id="pStatus">PENDING</strong></div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Visual "Card" preview (UI only) -->
+                <div class="pay-card">
+                    <div class="pay-card-top">
+                        <span class="chip"></span>
+                        <span class="visa">VISA</span>
+                    </div>
+                    <div class="pay-card-num" id="uiCardNumber">•••• •••• •••• ••••</div>
+                    <div class="pay-card-bottom">
+                        <div>
+                            <div class="pay-card-label">CARDHOLDER</div>
+                            <div class="pay-card-val" id="uiCardName">YOUR NAME</div>
+                        </div>
+                        <div>
+                            <div class="pay-card-label">EXPIRES</div>
+                            <div class="pay-card-val" id="uiExpiry">MM/YY</div>
+                        </div>
+                    </div>
+                </div>
+
+                <small class="hint" style="display:block; margin-top:10px;">
+                    This is a UI mock card preview (not real gateway).
+                </small>
+            </div>
+        </aside>
+    </section>
+</main>
+
+<footer class="footer">
+    <span>© 2026 Online Gem Buy & Selling System</span>
+    <span>Payment Processing</span>
+</footer>
+
+<script src="assets/js/app.js"></script>
+
+<!-- UI-only live preview (does not break your existing app.js) -->
+<script>
+    const cn = document.getElementById('cardNumber');
+    const nm = document.getElementById('cardName');
+    const ex = document.getElementById('expiry');
+
+    const uiNum = document.getElementById('uiCardNumber');
+    const uiName = document.getElementById('uiCardName');
+    const uiExp = document.getElementById('uiExpiry');
+
+    function safe(v){ return (v && v.trim()) ? v.trim() : ""; }
+
+    cn?.addEventListener('input', () => uiNum.textContent = safe(cn.value) || "•••• •••• •••• ••••");
+    nm?.addEventListener('input', () => uiName.textContent = safe(nm.value).toUpperCase() || "YOUR NAME");
+    ex?.addEventListener('input', () => uiExp.textContent = safe(ex.value) || "MM/YY");
+</script>
+</body>
+</html>

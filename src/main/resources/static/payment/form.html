@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Checkout | jayaGems</title>
+
+    <!-- If you kept style.css in same folder -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- If you used assets folder, use this instead:
+    <link rel="stylesheet" href="assets/css/style.css">
+    -->
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <div class="brand-badge"><span>◆</span></div>
+            <div class="brand-text">
+                <div class="brand-name">JayaGems</div>
+                <div class="brand-sub">Payment Processing • Checkout</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="index.html" class="active">Checkout</a>
+            <a href="payment.html">Pay</a>
+            <a href="receipt.html">Receipt</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <div>
+            <h1>Secure Checkout</h1>
+            <p>
+                Checkout: calculate gem value, add-ons, tax and discounts,
+                then proceed to payment with validations.
+            </p>
+        </div>
+
+        <div class="stepper">
+            <div class="step active"><span class="step-dot"></span> 1. Checkout</div>
+            <div class="step"><span class="step-dot"></span> 2. Payment</div>
+            <div class="step"><span class="step-dot"></span> 3. Receipt</div>
+        </div>
+    </section>
+
+    <section class="grid">
+        <!-- LEFT CARD -->
+        <div class="card">
+            <div class="card-head">
+                <h2>Gem Details</h2>
+                <p class="sub">Enter gem info to calculate total payable amount.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="gemName">Gem Name</label>
+                        <input id="gemName" type="text" placeholder="e.g., Blue Sapphire" maxlength="40" />
+                        <small class="error" id="errGemName"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="qualityGrade">Quality Grade</label>
+                        <select id="qualityGrade">
+                            <option value="A">A (Premium)</option>
+                            <option value="B">B (High)</option>
+                            <option value="C" selected>C (Standard)</option>
+                        </select>
+                        <small class="hint">A=1.25, B=1.10, C=1.00 multiplier</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="weightCarats">Weight (carats)</label>
+                        <input id="weightCarats" type="number" inputmode="decimal" placeholder="e.g., 1.25" min="0" step="0.01" />
+                        <small class="error" id="errWeight"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="pricePerCarat">Price per carat (LKR)</label>
+                        <input id="pricePerCarat" type="number" inputmode="decimal" placeholder="e.g., 35000" min="0" step="0.01" />
+                        <small class="error" id="errPpc"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="taxRate">Tax Rate (%)</label>
+                        <input id="taxRate" type="number" inputmode="decimal" value="8" min="0" max="25" step="0.01" />
+                        <small class="error" id="errTax"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="shippingFee">Shipping (LKR)</label>
+                        <input id="shippingFee" type="number" inputmode="decimal" value="1200" min="0" step="1" />
+                        <small class="error" id="errShip"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="discount">Discount (LKR)</label>
+                        <input id="discount" type="number" inputmode="decimal" value="0" min="0" step="1" />
+                        <small class="error" id="errDiscount"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="promo">Promo Code</label>
+                        <input id="promo" type="text" placeholder="Optional (e.g., GEM10)" maxlength="12" />
+                        <small class="hint">Try: GEM10 (10% off base only)</small>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top:14px;">
+                    <label>Add-ons</label>
+                    <div class="pills">
+                        <label class="pill">
+                            <input id="addonCert" type="checkbox" />
+                            Certification (+ LKR 2500)
+                        </label>
+                        <label class="pill">
+                            <input id="addonIns" type="checkbox" />
+                            Insurance (+ LKR 1500)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn" id="btnCalculate">Calculate Total</button>
+                    <button class="btn ghost" id="btnReset">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT CARD (STICKY SUMMARY) -->
+        <aside class="card accent sticky">
+            <div class="card-head">
+                <h2>Order Summary</h2>
+                <p class="sub">Summary. Stays visible while scrolling.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="summary">
+                    <div class="row"><span>Base (ppc × carats)</span><strong id="sumBase">LKR 0.00</strong></div>
+                    <div class="row"><span>Quality Multiplier</span><strong id="sumMul">× 1.00</strong></div>
+                    <div class="row"><span>Add-ons</span><strong id="sumAddons">LKR 0.00</strong></div>
+                    <div class="row"><span>Shipping</span><strong id="sumShip">LKR 0.00</strong></div>
+                    <div class="row"><span>Tax</span><strong id="sumTax">LKR 0.00</strong></div>
+                    <div class="row"><span>Discount</span><strong id="sumDisc">- LKR 0.00</strong></div>
+
+                    <div class="divider"></div>
+
+                    <div class="row total"><span>Total</span><strong id="sumTotal">LKR 0.00</strong></div>
+                </div>
+
+                <div class="notice" id="calcNotice">
+                    Click <b>Calculate Total</b> to preview final amount before payment.
+                </div>
+
+                <div class="actions">
+                    <a class="btn wide" href="payment.html" id="goPay" aria-disabled="true">Proceed to Pay</a>
+                </div>
+            </div>
+        </aside>
+    </section>
+</main>
+
+<footer class="footer">
+    <span>© 2026 Online Gem Buy & Selling System</span>
+    <span>Payment Processing</span>
+</footer>
+
+
+<script src="assets/js/app.js"></script>
+
+<!-- If you used assets folder, use this instead:
+<script src="assets/js/app.js"></script>
+-->
+</body>
+<html>

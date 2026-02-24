@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Receipt | Payment Status</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <div class="brand-badge"><span>◆</span></div>
+            <div class="brand-text">
+                <div class="brand-name">JayaGems</div>
+                <div class="brand-sub">Payment Processing • Receipt</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="form.html">Checkout</a>
+            <a href="payment.html">Pay</a>
+            <a href="receipt.html" class="active">Receipt</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <div>
+            <h1>Payment Receipt</h1>
+            <p>
+                Latest transaction summary
+            </p>
+        </div>
+
+        <div class="stepper">
+            <div class="step"><span class="step-dot"></span> 1. Checkout</div>
+            <div class="step"><span class="step-dot"></span> 2. Payment</div>
+            <div class="step active"><span class="step-dot"></span> 3. Receipt</div>
+        </div>
+    </section>
+
+    <section class="grid">
+        <!-- LEFT: Receipt -->
+        <div class="card accent">
+            <div class="card-head">
+                <h2 id="rTitle">No Payment Found</h2>
+                <p class="sub" id="rSub">Make a payment to generate a receipt.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="receipt-top">
+                    <div class="badge-pill" id="rBadge">—</div>
+                    <div class="muted small">Secure receipt record</div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="summary">
+                    <div class="row"><span>Payment ID</span><strong id="rPaymentId">—</strong></div>
+                    <div class="row"><span>Order ID</span><strong id="rOrderId">—</strong></div>
+                    <div class="row"><span>Method</span><strong id="rMethod">—</strong></div>
+                    <div class="row"><span>Amount</span><strong id="rAmount">—</strong></div>
+                    <div class="row"><span>Date/Time</span><strong id="rTime">—</strong></div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="notice">
+                    Thank you for your purchase. Your payment has been successfully processed and confirmed.
+                </div>
+
+                <div class="actions">
+                    <button class="btn" id="btnDownload">Download Invoice (Mock)</button>
+                    <a class="btn ghost" href="form.html">New Checkout</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Invoice style panel -->
+        <aside class="card sticky">
+            <div class="card-head">
+                <h2>Invoice Preview</h2>
+                <p class="sub">Invoice</p>
+            </div>
+
+            <div class="card-body">
+                <div class="invoice">
+                    <div class="invoice-row">
+                        <div>
+                            <div class="invoice-title">JayaGems</div>
+                            <div class="muted small">Online Gem Buy & Selling System</div>
+                        </div>
+                        <div class="invoice-right">
+                            <div class="muted small">Status</div>
+                            <div class="invoice-status" id="uiStatus">—</div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="invoice-row">
+                        <div class="muted small">Payment ID</div>
+                        <div class="invoice-right" id="uiPayId">—</div>
+                    </div>
+                    <div class="invoice-row">
+                        <div class="muted small">Order ID</div>
+                        <div class="invoice-right" id="uiOrdId">—</div>
+                    </div>
+                    <div class="invoice-row">
+                        <div class="muted small">Method</div>
+                        <div class="invoice-right" id="uiMethod">—</div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="invoice-row total">
+                        <div>Total</div>
+                        <div class="invoice-right" id="uiAmount">LKR 0.00</div>
+                    </div>
+
+                    <small class="hint" style="display:block; margin-top:10px;">
+                        ------------------------------------------------------
+                    </small>
+                </div>
+            </div>
+        </aside>
+    </section>
+</main>
+
+<footer class="footer">
+    <span>© 2026 Online Gem Buy & Selling System</span>
+    <span>Payment Processing</span>
+</footer>
+
+<script src="assets/js/app.js"></script>
+
+<!-- UI-only binding (does not break app.js) -->
+<script>
+    const raw = localStorage.getItem("lastPayment");
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+    if (raw){
+        const txn = JSON.parse(raw);
+        set("uiStatus", txn.status || "—");
+        set("uiPayId", txn.paymentId || "—");
+        set("uiOrdId", txn.orderId || "—");
+        set("uiMethod", txn.method || "—");
+        set("uiAmount", (txn.amount != null) ? `LKR ${Number(txn.amount).toFixed(2)}` : "LKR 0.00");
+    }
+</script>
+</body>
+</html>
