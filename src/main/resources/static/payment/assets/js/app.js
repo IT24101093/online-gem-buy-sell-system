@@ -199,6 +199,13 @@ function initPayment(){
 
         // Read values
         const method = document.querySelector('input[name="method"]:checked')?.value || "CARD";
+
+        if (method === "CASH") {
+            // Skip card validations
+            // Only validate email/phone (if you want)
+        } else {
+            // Existing card validations
+        }
         const name = (byId("cardName").value || "").trim();
         const number = (byId("cardNumber").value || "").trim();
         const expiry = (byId("expiry").value || "").trim();

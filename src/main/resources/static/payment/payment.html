@@ -56,34 +56,55 @@
                         <input type="radio" name="method" value="CARD" checked>
                         Card (Visa/Master)
                     </label>
+
+                    <label class="pill">
+                        <input type="radio" name="method" value="CASH">
+                        Cash (Pay on Delivery / Pickup)
+                    </label>
                 </div>
 
                 <div class="divider"></div>
 
                 <div class="form-grid">
-                    <div class="field" style="grid-column: 1 / -1;">
-                        <label for="cardName">Name on Card</label>
-                        <input id="cardName" type="text" placeholder="e.g., N.T.Y Cooray" maxlength="40" />
-                        <small class="error" id="errCardName"></small>
+                    <!-- CARD FIELDS (only for Card method) -->
+                    <div id="cardFields" style="grid-column: 1 / -1;">
+                        <div class="field" style="grid-column: 1 / -1;">
+                            <label for="cardName">Name on Card</label>
+                            <input id="cardName" type="text" placeholder="e.g., N.T.Y Cooray" maxlength="40" />
+                            <small class="error" id="errCardName"></small>
+                        </div>
+
+                        <div class="field" style="grid-column: 1 / -1;">
+                            <label for="cardNumber">Card Number</label>
+                            <input id="cardNumber" type="text" inputmode="numeric" placeholder="4135 4100 4081 6226" maxlength="19" />
+                            <small class="error" id="errCardNumber"></small>
+                            <small class="hint">Validated using Luhn algorithm (realistic demo).</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="expiry">Expiry (MM/YY)</label>
+                            <input id="expiry" type="text" inputmode="numeric" placeholder="03/30" maxlength="5" />
+                            <small class="error" id="errExpiry"></small>
+                        </div>
+
+                        <div class="field">
+                            <label for="cvv">CVV</label>
+                            <input id="cvv" type="password" inputmode="numeric" placeholder="236" maxlength="4" />
+                            <small class="error" id="errCvv"></small>
+                        </div>
                     </div>
 
-                    <div class="field" style="grid-column: 1 / -1;">
-                        <label for="cardNumber">Card Number</label>
-                        <input id="cardNumber" type="text" inputmode="numeric" placeholder="4135 4100 4081 6226" maxlength="19" />
-                        <small class="error" id="errCardNumber"></small>
-                        <small class="hint">Validated using Luhn algorithm (realistic demo).</small>
-                    </div>
+                    <!-- CASH FIELDS (only for Cash method) -->
+                    <div id="cashFields" style="grid-column: 1 / -1; display:none;">
+                        <div class="notice" style="margin-bottom:12px;">
+                            Cash Payment<br/>
+                            You will pay when you receive the item (delivery) or when you pick up.
+                        </div>
 
-                    <div class="field">
-                        <label for="expiry">Expiry (MM/YY)</label>
-                        <input id="expiry" type="text" inputmode="numeric" placeholder="03/30" maxlength="5" />
-                        <small class="error" id="errExpiry"></small>
-                    </div>
-
-                    <div class="field">
-                        <label for="cvv">CVV</label>
-                        <input id="cvv" type="password" inputmode="numeric" placeholder="236" maxlength="4" />
-                        <small class="error" id="errCvv"></small>
+                        <div class="field" style="grid-column: 1 / -1;">
+                            <label for="cashNote">Special Note (optional)</label>
+                            <input id="cashNote" type="text" placeholder="e.g., Call me before delivery" maxlength="80" />
+                        </div>
                     </div>
 
                     <div class="field">
@@ -130,9 +151,10 @@
                 <div class="pay-card">
                     <div class="pay-card-top">
                         <span class="chip"></span>
-                        <span class="visa">VISA</span>
+                        <span class="visa" id="uiPayType">VISA</span>
                     </div>
                     <div class="pay-card-num" id="uiCardNumber">•••• •••• •••• ••••</div>
+                    <div class="pay-card-num" id="uiCashText" style="display:none;">CASH PAYMENT</div>
                     <div class="pay-card-bottom">
                         <div>
                             <div class="pay-card-label">CARDHOLDER</div>
@@ -160,8 +182,7 @@
 
 <script src="assets/js/app.js"></script>
 
-<!-- UI-only live preview (does not break your existing app.js) -->
-<script>
+<!-- UI-only live preview (does not break your existing app.js) --><script>
     const cn = document.getElementById('cardNumber');
     const nm = document.getElementById('cardName');
     const ex = document.getElementById('expiry');
@@ -175,6 +196,39 @@
     cn?.addEventListener('input', () => uiNum.textContent = safe(cn.value) || "•••• •••• •••• ••••");
     nm?.addEventListener('input', () => uiName.textContent = safe(nm.value).toUpperCase() || "YOUR NAME");
     ex?.addEventListener('input', () => uiExp.textContent = safe(ex.value) || "MM/YY");
+
+    // NEW: Toggle Card/Cash UI
+    const methodRadios = document.querySelectorAll('input[name="method"]');
+    const cardFields = document.getElementById('cardFields');
+    const cashFields = document.getElementById('cashFields');
+
+    const uiPayType = document.getElementById('uiPayType');
+    const uiCashText = document.getElementById('uiCashText');
+
+    function setMethodUI() {
+        const method = document.querySelector('input[name="method"]:checked')?.value || "CARD";
+        const isCash = method === "CASH";
+
+        if (cardFields) cardFields.style.display = isCash ? "none" : "block";
+        if (cashFields) cashFields.style.display = isCash ? "block" : "none";
+
+        if (uiPayType) uiPayType.textContent = isCash ? "CASH" : "VISA";
+        if (uiCashText) uiCashText.style.display = isCash ? "block" : "none";
+        if (uiNum) uiNum.style.display = isCash ? "none" : "block";
+
+        // when switching to CASH, clear the card preview text nicely
+        if (isCash) {
+            if (uiName) uiName.textContent = "PAY ON DELIVERY";
+            if (uiExp) uiExp.textContent = "—";
+        } else {
+            if (uiName) uiName.textContent = safe(nm?.value).toUpperCase() || "YOUR NAME";
+            if (uiExp) uiExp.textContent = safe(ex?.value) || "MM/YY";
+            if (uiNum) uiNum.textContent = safe(cn?.value) || "•••• •••• •••• ••••";
+        }
+    }
+
+    methodRadios.forEach(r => r.addEventListener('change', setMethodUI));
+    setMethodUI();
 </script>
 </body>
 </html>
