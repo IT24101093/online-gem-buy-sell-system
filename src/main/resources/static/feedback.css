@@ -1,6 +1,4 @@
-/* =======================
-   Base Styles
-   ======================= */
+
 * {
     margin: 0;
     padding: 0;
@@ -21,9 +19,7 @@ body {
     padding: 5px;
 }
 
-/* =======================
-   Sidebar
-   ======================= */
+
 .sidebar {
     width: 3%;
     background: rgba(0, 0, 0, 0.8);
@@ -47,9 +43,7 @@ body {
     color: #00d4ff;
 }
 
-/* =======================
-   Main Content
-   ======================= */
+
 .main-content {
     width: 97%;
     display: flex;
@@ -58,9 +52,7 @@ body {
     height: 100vh;
 }
 
-/* =======================
-   Header
-   ======================= */
+
 .header {
     height: 10%;
     background: rgba(255,255,255,0.2);
@@ -102,9 +94,7 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* =======================
-   Top Section (Pending Feedback)
-   ======================= */
+
 .top-section {
     height: 20%;
     display: flex;
@@ -136,7 +126,7 @@ body {
     padding-right: 5px;
 }
 
-/* Optional: Custom Scrollbar */
+
 .card-body::-webkit-scrollbar {
     width: 5px;
 }
@@ -177,11 +167,9 @@ body {
     color: white;
 }
 
-/* =======================
-   Feedback Showcase
-   ======================= */
+
 .showcase {
-    flex: 1; /* takes remaining space */
+    flex: 1; 
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -194,7 +182,6 @@ body {
     gap: 15px;
 }
 
-/* Feedback Cards */
 .feedback-card {
     background: rgba(255,255,255,0.3);
     padding: 15px;
@@ -215,9 +202,7 @@ body {
     font-size: 20px;
 }
 
-/* =======================
-   Modal Overlay
-   ======================= */
+
 .modal {
     display: none;
     position: fixed;
@@ -231,9 +216,7 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* =======================
-   Modal Content
-   ======================= */
+
 .modal-content {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(20px);
@@ -279,9 +262,7 @@ body {
     margin-bottom: 10px;
 }
 
-/* =======================
-   Star & Emoji Rating
-   ======================= */
+
 .star-rating {
     display: flex;
     flex-direction: column;
@@ -328,9 +309,7 @@ body {
     transform: scale(1.3);
 }
 
-/* =======================
-   Textareas & File Input
-   ======================= */
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -363,7 +342,6 @@ input[type="file"] {
     cursor: pointer;
 }
 
-/* Submit Button */
 #modalSubmitBtn {
     padding: 10px 15px;
     border-radius: 12px;
@@ -382,9 +360,7 @@ input[type="file"] {
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
-/* =======================
-   Tabs
-   ======================= */
+
 .tab-buttons {
     display: flex;
     gap: 10px;
@@ -419,9 +395,7 @@ input[type="file"] {
     display: flex;
 }
 
-/* =======================
-   Profile / Login Modal
-   ======================= */
+
 #profilePopup .modal-content {
     width: 300px;
     max-width: 90%;
@@ -452,9 +426,7 @@ input[type="file"] {
     margin-top: 15px;
 }
 
-/* =======================
-   Feedback Analytics / AI Suggestions
-   ======================= */
+
 .analytics-container {
     display: flex;
     gap: 15px;
