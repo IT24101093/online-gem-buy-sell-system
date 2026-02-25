@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gem Management - Admin Orders</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ Order Management</h1>
+            <p>Real-time order processing dashboard</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">12</div>
+                <div>Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="processingOrders">4</div>
+                <div>Processing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="packedOrders">5</div>
+                <div>Packed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="deliveredOrders">3</div>
+                <div>Delivered</div>
+            </div>
+        </div>
+
+        <div class="orders-grid" id="ordersGrid">
+            <!-- Orders will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <p id="deleteMessage"></p>
+            <div class="modal-actions">
+                <button id="confirmDelete" class="btn btn-delete">Yes, Delete</button>
+                <button id="cancelDelete" class="btn btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html>
