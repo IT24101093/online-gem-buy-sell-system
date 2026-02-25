@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | JayaGems Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #f1d592 100%); }
+        .sidebar-link:hover { background: rgba(212, 175, 55, 0.1); border-left: 4px solid #d4af37; }
+    </style>
+</head>
+<body class="bg-slate-100 flex">
+
+<aside class="w-64 h-screen bg-slate-900 text-white p-6 sticky top-0 hidden md:block">
+    <div class="mb-10 text-xl font-bold tracking-widest text-amber-400">JAYAGEMS</div>
+    <nav class="space-y-4">
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-amber-400"><i data-lucide="layout-dashboard"></i> Marketplace</div>
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"><i data-lucide="package"></i> Inventory Logs</div>
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"><i data-lucide="users"></i> Customers</div>
+    </nav>
+</aside>
+
+<main class="flex-1 p-8">
+    <header class="flex justify-between items-center mb-10">
+        <div>
+            <h1 class="text-3xl font-serif font-bold text-slate-800">Marketplace Control</h1>
+            <p class="text-slate-500">Review inventory and update the storefront.</p>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1">
+            <h3 class="flex items-center gap-2 font-bold mb-4 text-slate-700">
+                <i data-lucide="bell" class="text-amber-500"></i> New from Inventory
+            </h3>
+            <div id="inventory-inbox" class="space-y-4">
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="font-bold">Active Listings</h3>
+                <button class="text-sm text-blue-600 font-semibold hover:underline">View Public Store</button>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-400 text-xs uppercase tracking-wider">
+                <tr>
+                    <th class="p-4">Image</th>
+                    <th class="p-4">Gemstone</th>
+                    <th class="p-4">Category</th>
+                    <th class="p-4">Price</th>
+                    <th class="p-4">Action</th>
+                </tr>
+                </thead>
+                <tbody id="active-listings">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div id="price-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full animate__animated animate__zoomIn">
+        <h2 class="text-2xl font-bold mb-2">Publish to Market</h2>
+        <p id="modal-gem-desc" class="text-slate-500 mb-6 text-sm">Reviewing details from inventory...</p>
+
+        <label class="block text-sm font-bold mb-2">Listing Price (LKR)</label>
+        <input type="number" id="market-price" class="w-full p-4 bg-slate-100 rounded-xl mb-6 outline-none focus:ring-2 focus:ring-amber-500" placeholder="0.00">
+
+        <div class="flex gap-3">
+            <button onclick="closeModal()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">Discard</button>
+            <button onclick="confirmPublish()" class="flex-1 py-3 gold-gradient text-white rounded-xl font-bold shadow-lg shadow-amber-200">Publish Listing</button>
+        </div>
+    </div>
+</div>
+
+<script src="marketplace_admin.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

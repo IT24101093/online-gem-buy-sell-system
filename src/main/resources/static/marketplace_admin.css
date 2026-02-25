@@ -1,0 +1,63 @@
+/* Custom Admin Styling */
+
+:root {
+    --gold: #d4af37;
+    --dark-slate: #0f172a;
+    --admin-bg: #f8fafc;
+}
+
+/* Custom Scrollbar for the Inbox */
+#inventory-inbox::-webkit-scrollbar {
+    width: 5px;
+}
+#inventory-inbox::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Sidebar Animation */
+.sidebar-link {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-link i {
+    transition: transform 0.3s ease;
+}
+
+.sidebar-link:hover i {
+    transform: scale(1.2) rotate(-10deg);
+}
+
+/* The "Pending" Cards pulse slightly to grab attention */
+.gem-card-pending {
+    border-left: 4px solid var(--gold);
+    transition: all 0.4s ease;
+}
+
+.gem-card-pending:hover {
+    transform: translateY(-3px) translateX(5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+/* Table Row Hover */
+#active-listings tr {
+    transition: background-color 0.2s ease;
+}
+
+/* Modal Blur Effect */
+#price-modal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.gold-gradient-btn {
+    background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+    transition: opacity 0.3s;
+}
+
+.gold-gradient-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}

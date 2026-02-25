@@ -1,0 +1,100 @@
+/* Custom User Storefront Styling */
+
+:root {
+    --royal-blue: #1e3a8a;
+    --luxury-gold: #d4af37;
+    --soft-white: #ffffff;
+}
+
+body {
+    scroll-behavior: smooth;
+}
+
+/* Luxury Font Setup */
+h1, h2, h3, .font-serif {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: -0.02em;
+}
+
+/* Gemstone Image Hover Effect */
+.gem-card .img-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.gem-card img {
+    transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.gem-card:hover img {
+    transform: scale(1.1);
+}
+
+/* Elegant "Add to Cart" Button overlay */
+.view-btn {
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    letter-spacing: 2px;
+}
+
+/* Floating Animation for Featured Items */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.featured-gem {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Search Bar Focus */
+#user-search {
+    transition: all 0.4s ease;
+}
+
+#user-search:focus {
+    width: 100%;
+    border-bottom-color: var(--luxury-gold);
+    padding-left: 10px;
+}
+
+/* Navigation Underline Effect */
+nav a {
+    position: relative;
+}
+
+nav a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--luxury-gold);
+    transition: width 0.3s ease;
+}
+
+nav a:hover::after {
+    width: 100%;
+}
+
+/* Gem Details Modal Styles */
+#gem-details-modal {
+    animation: fadeIn 0.3s ease-out;
+}
+
+#gem-details-modal .bg-white {
+    position: relative;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
