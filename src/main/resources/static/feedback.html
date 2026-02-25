@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Online Gem Marketplace</title>
+    <link rel="stylesheet" href="feedback.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <div class="menu-item"><i class="fas fa-store"></i></div>
+            <div class="menu-item"><i class="fas fa-gem"></i></div>
+            <div class="menu-item"><i class="fas fa-box"></i></div>
+            <div class="menu-item"><i class="fas fa-warehouse"></i></div>
+            <div class="menu-item active"><i class="fas fa-comment"></i></div>
+        </div>
+        <div class="bottom-menu">
+            <div class="menu-item profile-icon"><i class="fas fa-user-circle"></i></div>
+            <div class="menu-item"><i class="fas fa-headset"></i></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="title">
+                <h2>Online Gem Marketplace</h2>
+                <h3>Feedback Dashboard</h3>
+            </div>
+            <div class="profile">
+                <img src="image/profile1.png" alt="Profile" class="profile-img">
+            </div>
+        </div>
+    <!-- Pending Feedback Container -->
+    <div class="top-section" id="pendingFeedbackContainer">
+        <div class="card small-card" id="pendingFeedbackCard">
+            <h4>Pending Feedback</h4>
+            <div class="card-body" id="pendingFeedbackList">
+                <!-- Pending feedback buttons populated dynamically -->
+            </div>
+        </div>
+    </div>
+        <!-- Admin Tabs -->
+        <div class="tab-buttons" id="adminTabs">
+            <button class="tab-btn active" data-tab="feedback">Feedback</button>
+            <button class="tab-btn" data-tab="improvement">Improvement</button>
+            <button class="tab-btn" data-tab="analytics">Analytics</button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="tab-content active" id="feedback">
+            <!-- Feedback Cards -->
+            <div class="feedback-grid" id="feedbackGrid">
+                <!-- Cards populated dynamically -->
+            </div>
+        </div>
+
+        <div class="tab-content" id="improvement">
+            <div class="feedback-grid" id="improvementGrid">
+                <!-- Cards populated dynamically -->
+            </div>
+        </div>
+
+<div class="tab-content" id="analytics">
+    <div class="analytics" style="width: 100%; display: flex; gap: 5px; flex-wrap: wrap;">
+
+        <!-- Feedback Summary Container -->
+        <div style="flex: 1; min-width: 250px; background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); 
+                    border-radius: 15px; padding: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); color: #fff;">
+            <h4>Feedback Summary</h4>
+            <p>Total Feedbacks: 8</p>
+            <p>Good: 5 | Medium: 2 | Bad: 1</p>
+            <p>Average Rating: ⭐⭐⭐⭐☆</p>
+        </div>
+
+        <!-- AI Recommendations Container -->
+        <div style="flex: 1; min-width: 250px; background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); 
+                    border-radius: 15px; padding: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); color: #fff;">
+            <h4>AI Recommendations</h4>
+            <ul style="padding-left: 20px; line-height: 1.6;">
+                <li>1. Improve website speed (based on customer #1)</li>
+                <li>2. Better packaging (based on customer #2)</li>
+                <li>3. Add more gem types (based on customer #3)</li>
+                <li>4. Faster support response (based on customer #4)</li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+</div>
+
+
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Give Your Feedback</h2>
+        <p id="modal-order" style="font-weight:bold;"></p>
+        <div class="star-rating">
+            <label>Rating:</label>
+            <div class="stars">
+                <i class="fas fa-star" data-value="1"></i>
+                <i class="fas fa-star" data-value="2"></i>
+                <i class="fas fa-star" data-value="3"></i>
+                <i class="fas fa-star" data-value="4"></i>
+                <i class="fas fa-star" data-value="5"></i>
+            </div>
+        </div>
+        <div class="emoji-rating">
+            <label>How do you feel?</label>
+            <div class="emojis">
+                <span data-value="1">😞</span>
+                <span data-value="2">😐</span>
+                <span data-value="3">🙂</span>
+                <span data-value="4">😄</span>
+                <span data-value="5">😍</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Comment (optional):</label>
+            <textarea id="modal-comment" placeholder="Write your feedback..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>What can we improve?</label>
+            <textarea id="modal-improvement" placeholder="Service / Website improvement suggestions"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Upload Images (optional):</label>
+            <input type="file" id="modal-images" multiple accept="image/*">
+        </div>
+        <button id="modalSubmitBtn">Submit Feedback</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="loginClose">&times;</span>
+        <h2>Login</h2>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="loginUsername" placeholder="Username">
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            
+            <input type="password" id="loginPassword" placeholder="Password">
+        </div>
+        <button id="loginSubmitBtn">Login</button>
+    </div>
+</div>
+
+<!-- Profile Popup -->
+<div id="profilePopup" class="modal">
+    <div class="modal-content">
+        <span class="close" id="profileClose">&times;</span>
+        <h3 id="profileUsername"></h3>
+        <button id="logoutBtn" class="btn primary">Logout</button>
+    </div>
+</div>
+
+<script src="feedback.js"></script>
+</body>
+</html>
