@@ -1,0 +1,126 @@
+/* style.css */
+body {
+    background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 100%);
+    min-height: 100vh;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    
+}
+
+.dark body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); }
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.dark .glass-panel {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.verification-report-panel {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.verifying-glow {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.2);
+    backdrop-filter: blur(4px);
+    transform: scale(1.01);
+}
+
+.error-glow {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.animate-on-load {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.dark .status-item { background: rgba(0,0,0,0.2); }
+
+.status-success { border-color: #22c55e; color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+.status-warning { border-color: #eab308; color: #eab308; background: rgba(234, 179, 8, 0.1); }
+.status-error { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+/* --- SMOOTH MODAL ANIMATION START --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); 
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    
+    /* Animation Properties */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Layout */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.modal-overlay.active { 
+    opacity: 1; 
+    visibility: visible; 
+}
+
+.modal-content { 
+    width: 95%; max-width: 500px; padding: 2rem; border-radius: 24px;
+    
+    /* Pop Animation Properties */
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy effect */
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+/* --- SMOOTH MODAL ANIMATION END --- */
+
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; z-index: 0; }
+.orb-1 { width: 400px; height: 400px; background: #6366f1; top: -100px; left: -100px; }
+.orb-2 { width: 300px; height: 300px; background: #a855f7; bottom: -50px; right: -50px; }
+
+/* --- Visual Error Styles --- */
+.input-error {
+    border-color: #ef4444 !important; /* Red Border */
+    background-color: rgba(239, 68, 68, 0.05) !important; /* Soft Red Tint */
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.error-text {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dropdown fix for dark mode */
+.dark select option {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
