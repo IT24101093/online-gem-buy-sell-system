@@ -12,6 +12,8 @@ import com.gemtrade.onlinegembuysellsystem.inventory.repository.SellerRepository
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.gemtrade.onlinegembuysellsystem.inventory.dto.InventoryItemResponseDto;
+import java.util.List;
 
 import java.util.Optional;
 
@@ -102,4 +104,50 @@ public class CertifiedGemService {
         long count = inventoryItemRepository.count() + 1;
         return String.format("INV%05d", count);
     }
+    // Inventory read/list service method: fetch all saved inventory items and map them to response DTOs
+    public List<InventoryItemResponseDto> getAllInventoryItems() {
+        return inventoryItemRepository.findAll()
+                .stream()
+                .map(item -> new InventoryItemResponseDto(
+                        item.getInventoryItemId(),
+                        item.getInventoryCode(),
+                        item.getSource() != null ? item.getSource().name() : null,
+                        item.getGemType(),
+                        item.getCategory(),
+                        item.getWeightCt(),
+                        item.getEstimatedValueLkr(),
+                        item.getDescription(),
+                        item.getStatus() != null ? item.getStatus().name() : null,
+                        item.getSeller() != null ? item.getSeller().getName() : null
+                ))
+                .toList();
+    }
+    // Inventory read/list service: get all items, or filter items by source (CERTIFIED / ANALYSIS)
+    public List<InventoryItemResponseDto> getInventoryItemsBySource(String source) {
+        List<InventoryItem> items;
+
+        if (source == null || source.isBlank()) {
+            items = inventoryItemRepository.findAll();
+        } else {
+            InventoryItem.Source enumSource = InventoryItem.Source.valueOf(source.toUpperCase());
+            items = inventoryItemRepository.findBySource(enumSource);
+        }
+
+        return items.stream()
+                .map(item -> new InventoryItemResponseDto(
+                        item.getInventoryItemId(),
+                        item.getInventoryCode(),
+                        item.getSource() != null ? item.getSource().name() : null,
+                        item.getGemType(),
+                        item.getCategory(),
+                        item.getWeightCt(),
+                        item.getEstimatedValueLkr(),
+                        item.getDescription(),
+                        item.getStatus() != null ? item.getStatus().name() : null,
+                        item.getSeller() != null ? item.getSeller().getName() : null
+                ))
+                .toList();
+    }
+
+
 }

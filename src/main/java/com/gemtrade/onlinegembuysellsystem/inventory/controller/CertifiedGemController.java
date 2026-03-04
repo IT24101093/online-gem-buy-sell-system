@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.gemtrade.onlinegembuysellsystem.inventory.dto.InventoryItemResponseDto;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory/certified")
@@ -22,5 +24,13 @@ public class CertifiedGemController {
     ) {
         CertifiedGemResponseDto response = certifiedGemService.addCertifiedGem(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+    // Inventory read/list endpoint: returns all inventory items, or filters by source using ?source=CERTIFIED/ANALYSIS
+    @GetMapping("/all")
+    public ResponseEntity<List<InventoryItemResponseDto>> getAllInventoryItems(
+            @RequestParam(required = false) String source
+    ) {
+        List<InventoryItemResponseDto> items = certifiedGemService.getInventoryItemsBySource(source);
+        return ResponseEntity.ok(items);
     }
 }
