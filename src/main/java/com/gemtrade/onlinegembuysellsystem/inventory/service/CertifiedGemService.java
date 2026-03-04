@@ -25,6 +25,24 @@ public class CertifiedGemService {
 
     @Transactional
     public CertifiedGemResponseDto addCertifiedGem(CertifiedGemRequestDto requestDto) {
+        if (requestDto.getGemType() == null || requestDto.getGemType().isBlank()) {
+            throw new RuntimeException("Gem type is required");
+        }
+
+        if (requestDto.getCertificateNo() == null || requestDto.getCertificateNo().isBlank()) {
+            throw new RuntimeException("Certificate number is required");
+        }
+
+        if (requestDto.getSeller() == null) {
+            throw new RuntimeException("Seller details are required");
+        }
+
+        if (requestDto.getSeller().getNic() == null || requestDto.getSeller().getNic().isBlank()) {
+            throw new RuntimeException("Seller NIC is required");
+        }//checking any missing valueus before store in database
+        if (gemCertificateRepository.findByCertificateNo(requestDto.getCertificateNo()).isPresent()) {
+            throw new IllegalArgumentException("Certificate number already exists");//check duplicate in Certified gem db
+        }
         Seller seller = getOrCreateSeller(requestDto.getSeller());
 
         InventoryItem inventoryItem = new InventoryItem();
