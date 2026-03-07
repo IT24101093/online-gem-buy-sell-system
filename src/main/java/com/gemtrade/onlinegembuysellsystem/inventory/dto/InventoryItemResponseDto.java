@@ -20,4 +20,6 @@ public class InventoryItemResponseDto {
     private String description;
     private String status;
     private String sellerName;
+    private String primaryImageUrl; // primary image URL for this item (null if no image)
+
 }

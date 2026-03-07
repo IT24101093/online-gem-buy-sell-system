@@ -29,4 +29,7 @@ public interface InventoryImageRepository extends JpaRepository<InventoryImage, 
 
     // Gets the primary image record for an inventory item (empty if no image uploaded yet)
     Optional<InventoryImage> findFirstByInventoryItem_InventoryItemIdAndIsPrimaryTrue(Long inventoryItemId);
+
+    // Fetch primary images for multiple items in one query (efficient for listing)
+    List<InventoryImage> findByInventoryItem_InventoryItemIdInAndIsPrimaryTrue(List<Long> inventoryItemIds);
 }

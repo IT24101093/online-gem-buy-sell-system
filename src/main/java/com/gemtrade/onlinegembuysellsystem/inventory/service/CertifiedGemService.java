@@ -2,20 +2,27 @@ package com.gemtrade.onlinegembuysellsystem.inventory.service;
 
 import com.gemtrade.onlinegembuysellsystem.inventory.dto.CertifiedGemRequestDto;
 import com.gemtrade.onlinegembuysellsystem.inventory.dto.CertifiedGemResponseDto;
+import com.gemtrade.onlinegembuysellsystem.inventory.dto.InventoryItemResponseDto;
 import com.gemtrade.onlinegembuysellsystem.inventory.dto.SellerRequestDto;
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.GemCertificate;
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryImage;
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem;
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.Seller;
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.GemCertificateRepository;
+import com.gemtrade.onlinegembuysellsystem.inventory.repository.InventoryImageRepository;
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.InventoryItemRepository;
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.gemtrade.onlinegembuysellsystem.inventory.dto.InventoryItemResponseDto;
-import java.util.List;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +31,7 @@ public class CertifiedGemService {
     private final SellerRepository sellerRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final GemCertificateRepository gemCertificateRepository;
+    private final InventoryImageRepository inventoryImageRepository;
 
     @Transactional
     public CertifiedGemResponseDto addCertifiedGem(CertifiedGemRequestDto requestDto) {
@@ -104,35 +112,30 @@ public class CertifiedGemService {
         long count = inventoryItemRepository.count() + 1;
         return String.format("INV%05d", count);
     }
-    // Inventory read/list service method: fetch all saved inventory items and map them to response DTOs
+    // Inventory read/list service method: fetch all saved inventory items + attach primary image URL
     public List<InventoryItemResponseDto> getAllInventoryItems() {
-        return inventoryItemRepository.findAll()
-                .stream()
-                .map(item -> new InventoryItemResponseDto(
-                        item.getInventoryItemId(),
-                        item.getInventoryCode(),
-                        item.getSource() != null ? item.getSource().name() : null,
-                        item.getGemType(),
-                        item.getCategory(),
-                        item.getWeightCt(),
-                        item.getEstimatedValueLkr(),
-                        item.getDescription(),
-                        item.getStatus() != null ? item.getStatus().name() : null,
-                        item.getSeller() != null ? item.getSeller().getName() : null
-                ))
+
+        // 1) Load all inventory items from DB
+        List<InventoryItem> items = inventoryItemRepository.findAll();
+
+        if (items.isEmpty()) return List.of();
+
+        // 2) Collect item IDs so we can fetch all primary images in one query
+        List<Long> itemIds = items.stream()
+                .map(InventoryItem::getInventoryItemId)
                 .toList();
-    }
-    // Inventory read/list service: get all items, or filter items by source (CERTIFIED / ANALYSIS)
-    public List<InventoryItemResponseDto> getInventoryItemsBySource(String source) {
-        List<InventoryItem> items;
 
-        if (source == null || source.isBlank()) {
-            items = inventoryItemRepository.findAll();
-        } else {
-            InventoryItem.Source enumSource = InventoryItem.Source.valueOf(source.toUpperCase());
-            items = inventoryItemRepository.findBySource(enumSource);
-        }
+        // 3) Fetch primary images for these items and build a map: itemId -> imageUrl
+        Map<Long, String> primaryUrlMap = inventoryImageRepository
+                .findByInventoryItem_InventoryItemIdInAndIsPrimaryTrue(itemIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        img -> img.getInventoryItem().getInventoryItemId(),
+                        InventoryImage::getImageUrl,
+                        (a, b) -> a // keep first if duplicates
+                ));
 
+        // 4) Map items to DTOs and include primaryImageUrl
         return items.stream()
                 .map(item -> new InventoryItemResponseDto(
                         item.getInventoryItemId(),
@@ -144,7 +147,54 @@ public class CertifiedGemService {
                         item.getEstimatedValueLkr(),
                         item.getDescription(),
                         item.getStatus() != null ? item.getStatus().name() : null,
-                        item.getSeller() != null ? item.getSeller().getName() : null
+                        item.getSeller() != null ? item.getSeller().getName() : null,
+                        primaryUrlMap.get(item.getInventoryItemId()) // primaryImageUrl (nullable)
+                ))
+                .toList();
+    }
+    // Inventory read/list service: get all items, or filter items by source (CERTIFIED / ANALYSIS)
+    // Inventory read/list service: get all items, or filter items by source (CERTIFIED / ANALYSIS) + attach primary image URL
+    public List<InventoryItemResponseDto> getInventoryItemsBySource(String source) {
+        List<InventoryItem> items;
+
+        // 1) Load items (filtered or all)
+        if (source == null || source.isBlank()) {
+            items = inventoryItemRepository.findAll();
+        } else {
+            InventoryItem.Source enumSource = InventoryItem.Source.valueOf(source.toUpperCase());
+            items = inventoryItemRepository.findBySource(enumSource);
+        }
+        if (items.isEmpty()) return List.of();
+
+        // 2) Collect IDs to fetch primary images in one query
+        List<Long> itemIds = items.stream()
+                .map(InventoryItem::getInventoryItemId)
+                .toList();
+
+        // 3) Fetch primary images and build map: itemId -> imageUrl
+        Map<Long, String> primaryUrlMap = inventoryImageRepository
+                .findByInventoryItem_InventoryItemIdInAndIsPrimaryTrue(itemIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        img -> img.getInventoryItem().getInventoryItemId(),
+                        InventoryImage::getImageUrl,
+                        (a, b) -> a
+                ));
+
+        // 4) Map items to DTOs and include primaryImageUrl
+        return items.stream()
+                .map(item -> new InventoryItemResponseDto(
+                        item.getInventoryItemId(),
+                        item.getInventoryCode(),
+                        item.getSource() != null ? item.getSource().name() : null,
+                        item.getGemType(),
+                        item.getCategory(),
+                        item.getWeightCt(),
+                        item.getEstimatedValueLkr(),
+                        item.getDescription(),
+                        item.getStatus() != null ? item.getStatus().name() : null,
+                        item.getSeller() != null ? item.getSeller().getName() : null,
+                        primaryUrlMap.get(item.getInventoryItemId()) // primaryImageUrl
                 ))
                 .toList();
     }
