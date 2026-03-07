@@ -30,5 +30,11 @@ public class SmartAnalysisResponseDto {
     private String warningMessage;
     private BigDecimal differencePercent;
 
+    // URL to the primary image (null until an image is uploaded in step 2)
+    private String primaryImageUrl;
+
     private String message;
+
+
+
 }

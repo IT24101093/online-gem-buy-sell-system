@@ -34,6 +34,8 @@ public class SmartAnalysisService {
 
     private final SpecificGravityRepository specificGravityRepository;
     private final ShapeFactorRepository shapeFactorRepository;
+    // Used to read the primary image URL (if an image exists for this item)
+    private final InventoryImageRepository inventoryImageRepository;
 
     @Transactional
     public SmartAnalysisResponseDto addAnalysisGem(SmartAnalysisRequestDto dto) {
@@ -116,6 +118,12 @@ public class SmartAnalysisService {
 
         InventoryItem savedItem = inventoryItemRepository.save(item);
 
+        // Try to get the primary image URL. It will be empty (null) until the image upload step is done.
+        String primaryUrl = inventoryImageRepository
+                .findFirstByInventoryItem_InventoryItemIdAndIsPrimaryTrue(savedItem.getInventoryItemId())
+                .map(InventoryImage::getImageUrl)
+                .orElse(null);
+
         // ---- Save ValidationReport ----
         ValidationReport report = new ValidationReport();
         report.setInventoryItem(savedItem);
@@ -153,6 +161,7 @@ public class SmartAnalysisService {
                 warningTriggered,
                 warningMessage,
                 diffPercent,
+                primaryUrl,
                 "Smart analysis gem saved successfully"
         );
     }
@@ -211,4 +220,5 @@ public class SmartAnalysisService {
             return ValidationReport.ColorTone.OTHER;
         }
     }
+
 }

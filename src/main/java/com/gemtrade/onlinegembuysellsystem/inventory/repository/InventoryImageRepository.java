@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface InventoryImageRepository extends JpaRepository<InventoryImage, Long> {
 
@@ -25,4 +26,7 @@ public interface InventoryImageRepository extends JpaRepository<InventoryImage, 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update InventoryImage i set i.isPrimary = false where i.inventoryItem.inventoryItemId = :itemId and i.isPrimary = true")
     int unsetPrimaryForItem(@Param("itemId") Long itemId);
+
+    // Gets the primary image record for an inventory item (empty if no image uploaded yet)
+    Optional<InventoryImage> findFirstByInventoryItem_InventoryItemIdAndIsPrimaryTrue(Long inventoryItemId);
 }
