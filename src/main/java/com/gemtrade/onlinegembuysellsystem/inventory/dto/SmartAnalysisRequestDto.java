@@ -27,4 +27,11 @@ public class SmartAnalysisRequestDto {
 
     // --- Seller ---
     private SellerRequestDto seller;  // reuse NIC logic
+
+    // UI calculation inputs
+    private String shape;           // e.g., "Round", "Oval", "Emerald"
+    private BigDecimal lengthMm;
+    private BigDecimal widthMm;
+    private BigDecimal depthMm;
+    private BigDecimal manualWeightCt; // optional (if toggle ON)
 }

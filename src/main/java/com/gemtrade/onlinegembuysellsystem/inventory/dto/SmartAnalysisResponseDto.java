@@ -19,5 +19,16 @@ public class SmartAnalysisResponseDto {
     private String detectedGemType;
     private BigDecimal confidenceScore;
 
+    // Calculation outputs (Day 10)
+    private BigDecimal specificGravityUsed;
+    private BigDecimal shapeFactorUsed;
+    private BigDecimal volumeMm3;
+    private BigDecimal estimatedCarat;
+
+    // Warning outputs (Day 10)
+    private Boolean warningTriggered;
+    private String warningMessage;
+    private BigDecimal differencePercent;
+
     private String message;
 }
