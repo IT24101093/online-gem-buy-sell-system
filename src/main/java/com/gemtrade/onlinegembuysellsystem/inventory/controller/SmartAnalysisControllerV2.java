@@ -1,11 +1,14 @@
 package com.gemtrade.onlinegembuysellsystem.inventory.controller;
 
 import com.gemtrade.onlinegembuysellsystem.inventory.dto.*;
+import com.gemtrade.onlinegembuysellsystem.inventory.service.SmartAnalysisDetectService;
 import com.gemtrade.onlinegembuysellsystem.inventory.service.SmartAnalysisEngineService;
 import com.gemtrade.onlinegembuysellsystem.inventory.service.SmartAnalysisSaveService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/inventory/analysis")
@@ -15,6 +18,15 @@ public class SmartAnalysisControllerV2 {
 
     private final SmartAnalysisEngineService engine;
     private final SmartAnalysisSaveService saveService;
+    private final SmartAnalysisDetectService detectService;
+
+    @PostMapping(
+            value = "/detect",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<SmartAnalysisDetectResponseDto> detect(@RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(detectService.detect(file));
+    }
 
     @PostMapping("/run")
     public ResponseEntity<SmartAnalysisRunResponseDto> run(@RequestBody SmartAnalysisRunRequestDto dto) {
