@@ -8,84 +8,110 @@ const AUTH_RULES = {
     "local": { min: 4, label: "Local", error: "Local IDs must be at least 4 characters" }
 };
 
-const INVENTORY_STORAGE_KEY = 'gemvault_inventory';
-
-// --- Inventory Storage Helpers (shared with inventory.js) ---
-function loadInventory(){
-    try{
-        const raw = localStorage.getItem(INVENTORY_STORAGE_KEY);
-        const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-    }catch{
-        return [];
-    }
-}
-
-function saveInventory(items){
-    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(items));
-}
-
-function fileToDataUrl(file){
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
+// --- BACKEND API CALL (DEBUGGING VERSION) ---
 async function addCertifiedGemToInventory(){
     const authority = document.getElementById('issuingAuth').value;
     const certID = document.getElementById('certID').value.trim();
+    const issueDate = document.getElementById('issueDate').value;
 
     const gemType = document.getElementById('gemType').value;
     const weightCt = parseFloat(document.getElementById('gemWeight').value) || 0;
-
     const perCarat = parseFloat(document.getElementById('pricePerCarat').value) || 0;
-    const estimatedValue = weightCt * perCarat;
-
-    const vendor = {
-        name: document.getElementById('sellerName').value.trim(),
-        phone: document.getElementById('sellerPhone').value.trim(),
-        nic: document.getElementById('sellerNic').value.trim()
-    };
-
+    const estimatedValueLkr = weightCt * perCarat;
     const description = (document.getElementById('gemDescription')?.value || '').trim();
 
-    const gemFile = document.getElementById('gemPhoto')?.files?.[0] || null;
-    let imageDataUrl = '';
-    if (gemFile && gemFile.type && gemFile.type.startsWith('image/')) {
-        imageDataUrl = await fileToDataUrl(gemFile);
-    }
-
-    const item = {
-        id: 'GV-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6).toUpperCase(),
-        source: 'certified',
+    const requestData = {
         gemType: gemType || 'Unknown',
-        weightCt,
-        estimatedValue,
-        vendor,
-        certificate: { id: certID, issuer: authority },
-        description,
-        imageDataUrl,
-        createdAtISO: new Date().toISOString()
+        category: 'Uncategorized',
+        weightCt: weightCt,
+        estimatedValueLkr: estimatedValueLkr,
+        description: description,
+        certificateNo: certID,
+        labName: authority,
+        issueDate: issueDate,
+        reportUrl: null,
+        seller: {
+            name: document.getElementById('sellerName').value.trim(),
+            nic: document.getElementById('sellerNic').value.trim(),
+            phone: document.getElementById('sellerPhone').value.trim()
+        }
     };
 
-    const items = loadInventory();
-    items.unshift(item);
-    saveInventory(items);
-    return item.id;
+    console.log("STEP 1: Sending JSON data to create Gem...");
+    const response = await fetch('/api/inventory/certified', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+    });
+
+    if (!response.ok) {
+        console.error("FAILED AT STEP 1. Backend rejected the JSON.");
+        throw new Error('Failed to save JSON data.');
+    }
+
+    const responseData = await response.json();
+    const itemId = responseData.inventoryItemId;
+    console.log("STEP 2: Gem created successfully! Database gave us Item ID:", itemId);
+
+    // 3. Upload the Gem Photo
+    try {
+        const gemFile = document.getElementById('gemPhoto')?.files?.[0];
+        if (gemFile && itemId) {
+            console.log("STEP 3: Uploading the Gem Photo...");
+            const formData = new FormData();
+            formData.append('file', gemFile);
+            formData.append('isPrimary', true);
+
+            const imgRes = await fetch(`/api/inventory/items/${itemId}/images`, { method: 'POST', body: formData });
+            if (!imgRes.ok) console.error("FAILED AT STEP 3: Image endpoint returned an error.");
+            else console.log("STEP 3 SUCCESS: Gem Photo uploaded.");
+        }
+    } catch (e) { console.error("ERROR IN STEP 3:", e); }
+
+    // 4. Upload the Certificate File
+    try {
+        const certFile = document.getElementById('certFile')?.files?.[0];
+        if (certFile && itemId) {
+            console.log("STEP 4: Uploading the Certificate File...");
+            const certFormData = new FormData();
+            certFormData.append('file', certFile);
+            certFormData.append('isPrimary', false);
+
+            const certResponse = await fetch(`/api/inventory/items/${itemId}/images`, { method: 'POST', body: certFormData });
+
+            if (certResponse.ok) {
+                const certData = await certResponse.json();
+                const finalPath = certData.imageUrl || certData.imagePath;
+                console.log("STEP 4 SUCCESS: Certificate uploaded. Server saved it at:", finalPath);
+
+                console.log("STEP 5: Telling Java to update the reportUrl column...");
+                const putRes = await fetch(`/api/inventory/certified/${itemId}/report-url?reportUrl=${encodeURIComponent(finalPath)}`, {
+                    method: 'PUT'
+                });
+
+                if (!putRes.ok) console.error("FAILED AT STEP 5: Java rejected the PUT request.");
+                else console.log("STEP 5 SUCCESS: Database fully updated!");
+
+            } else {
+                console.error("FAILED AT STEP 4: Certificate endpoint returned an error.");
+            }
+        } else {
+            console.log("SKIPPED STEP 4: No certificate file was selected in the HTML.");
+        }
+    } catch (e) { console.error("ERROR IN STEP 4 or 5:", e); }
+
+    return itemId;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     // Entrance Animation
     gsap.to(".animate-on-load", { opacity: 1, y: 0, stagger: 0.2, duration: 0.8 });
-    
+
     setupFileInput('certFile', 'preview-cert', 'drop-cert');
     setupFileInput('gemPhoto', 'preview-gem', 'drop-gem');
 
     document.getElementById('btn-verify').addEventListener('click', startVerification);
-    
+
     const addInvBtn = document.getElementById('btn-add-inventory');
     if (addInvBtn) addInvBtn.addEventListener('click', openModal);
 
@@ -103,9 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- VISUAL ERROR HELPER ---
 function showFieldError(inputId, message) {
     const inputField = document.getElementById(inputId);
-    inputField.classList.add('input-error'); // Add red border
-    
-    // Create or update error message text
+    inputField.classList.add('input-error');
+
     let errorMsg = inputField.parentNode.querySelector('.error-text');
     if (!errorMsg) {
         errorMsg = document.createElement('p');
@@ -114,10 +139,8 @@ function showFieldError(inputId, message) {
     }
     errorMsg.textContent = message;
 
-    // Shake the input field
     gsap.fromTo(inputField, { x: -5 }, { x: 0, duration: 0.1, repeat: 3, yoyo: true });
 
-    // Remove error when user starts typing
     inputField.addEventListener('input', () => {
         inputField.classList.remove('input-error');
         if (errorMsg) errorMsg.remove();
@@ -146,6 +169,7 @@ async function submitFinal() {
     const phone = document.getElementById('sellerPhone');
     const nic = document.getElementById('sellerNic');
 
+    const nameRegex = /^[A-Za-z\s]+$/;
     const phoneRegex = /^(07[01245678]\d{7})$/;
     const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/;
 
@@ -153,6 +177,11 @@ async function submitFinal() {
 
     if (name.value.trim().length < 3) {
         showFieldError('sellerName', "Name too short");
+        isValid = false;
+    }
+    // 2. Check for characters only (No numbers or symbols)
+    else if (!nameRegex.test(name.value.trim())) {
+        showFieldError('sellerName', "Name can only contain letters");
         isValid = false;
     }
     if (!phoneRegex.test(phone.value.trim())) {
@@ -166,83 +195,125 @@ async function submitFinal() {
 
     if (!isValid) return;
 
-    // Save into Inventory (localStorage) after validation succeeds
-    try { await addCertifiedGemToInventory(); } catch (e) { console.error(e); }
+    // Send data to Backend
+    try {
+        await addCertifiedGemToInventory();
 
-    closeModal();
-    const toast = document.getElementById('toast');
-    toast.classList.remove('translate-y-20', 'opacity-0');
-    setTimeout(() => { window.location.href = 'inventory.html?added=1'; }, 2500);
+        // Only run these if the backend call succeeds!
+        closeModal();
+        const toast = document.getElementById('toast');
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => { window.location.href = 'inventory.html?added=1'; }, 250000000);
+
+    } catch (e) {
+        console.error(e);
+        alert("Server Error: Could not save to database. Please make sure your Java backend is running.");
+    }
 }
 
 // --- VERIFICATION LOGIC ---
 function startVerification() {
     const authority = document.getElementById('issuingAuth').value;
     const certID = document.getElementById('certID').value.trim();
-    const certFile = document.getElementById('certFile').files[0];
-    const gemFile = document.getElementById('gemPhoto').files[0];
+    const issueDateVal = document.getElementById('issueDate').value;
     const weight = parseFloat(document.getElementById('gemWeight').value);
     const btn = document.getElementById('btn-verify');
     const reportPanel = document.querySelector('.verification-report-panel');
+    const actionArea = document.getElementById('action-area');
 
-    // Visual cleanup
     if (!authority) { showFieldError('issuingAuth', "Select lab"); return; }
     if (!certID) { showFieldError('certID', "Enter ID"); return; }
+    if (!issueDateVal) { showFieldError('issueDate', "Select date"); return; }
     if (isNaN(weight) || weight <= 0) { showFieldError('gemWeight', "Enter weight"); return; }
 
+    // Start UI processing state
     reportPanel.classList.remove('error-glow');
     reportPanel.classList.add('verifying-glow');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
-    document.getElementById('action-area').classList.add('hidden');
+
+    // Ensure Action Area is HIDDEN at the start
+    actionArea.classList.add('hidden');
     resetChecklist();
 
     const delay = 700;
+    let verificationFailed = false; // Flag to track if any check fails
 
-    // 1. File Check
+    // 1. File Integrity Check
     setTimeout(() => {
-        const isCertOk = certFile?.type.startsWith('image/') || certFile?.type === 'application/pdf';
-        if (!certFile || !isCertOk) {
+        const gemFile = document.getElementById('gemPhoto')?.files?.[0];
+        const certFile = document.getElementById('certFile')?.files?.[0];
+
+        const isGemOk = gemFile && gemFile.type.startsWith('image/');
+        const isCertOk = certFile && (certFile.type.startsWith('image/') || certFile.type === 'application/pdf');
+
+        if (!isGemOk || !isCertOk) {
+            verificationFailed = true;
             updateCheckItem('check-file', 'error', 'INVALID');
-            failVerification('FILE REJECTED');
+            if (!isGemOk) failVerification('GEM IMAGE MUST BE JPG/PNG');
+            else if (!isCertOk) failVerification('CERTIFICATE MUST BE IMG OR PDF');
         } else {
             updateCheckItem('check-file', 'success', 'FORMAT OK');
         }
     }, delay);
 
-    // 2. ID Validation
+    // 2. ID, Alphanumeric, and Date Validation
     setTimeout(() => {
-        if (btn.disabled === false) return;
         const rule = AUTH_RULES[authority];
-        if (certID.length < rule.min) {
-            updateCheckItem('check-id', 'error', 'SHORT');
-            showFieldError('certID', rule.error);
-            failVerification('INVALID ID');
+        const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+
+        const isLengthOk = certID.length >= rule.min;
+        const isAlphanumeric = alphanumericRegex.test(certID);
+
+        const selectedDate = new Date(issueDateVal);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isDateValid = issueDateVal && selectedDate <= today;
+
+        // Check ID Logic
+        if (!isLengthOk || !isAlphanumeric) {
+            verificationFailed = true;
+            updateCheckItem('check-id', 'error', 'INVALID');
+            if (!isLengthOk) failVerification('ID TOO SHORT');
+            else failVerification('CERT ID: LETTERS & NUMBERS ONLY');
         } else {
             updateCheckItem('check-id', 'success', 'ID VALID');
         }
+
+        // Check Date Logic
+        if (!isDateValid) {
+            verificationFailed = true;
+            failVerification('DATE: FUTURE DATES NOT ALLOWED');
+        }
     }, delay * 2);
 
-    // 3. Success Sequence
+    // 3. Final Metadata & Final Decision
     setTimeout(() => {
-        if (btn.disabled === false) return;
+        // Update Weight/Carat Row
         updateCheckItem('check-meta', 'success', weight.toFixed(2) + ' cts');
-        
-        // --- NEW LOGIC FOR LOCAL LAB WARNING ---
+
+        // Update Authority Row
         if (authority === 'local') {
             updateCheckItem('check-auth', 'warning', 'PRIVATE LAB');
             setStatus('warning', 'CAUTION: LOCAL ORIGIN');
         } else {
             updateCheckItem('check-auth', 'success', 'TRUSTED');
-            setStatus('success', 'VERIFIED AUTHENTIC');
+            // If we haven't failed yet, set the main header to Success
+            if (!verificationFailed) setStatus('success', 'VERIFIED AUTHENTIC');
         }
 
+        // --- FINAL BUTTON LOGIC ---
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Validate';
         reportPanel.classList.remove('verifying-glow');
-        
-        // Show "Add to Inventory" button for BOTH success and warning
-        document.getElementById('action-area').classList.remove('hidden');
+
+        // Only show the "Add to Inventory" button if NOTHING failed
+        if (!verificationFailed) {
+            actionArea.classList.remove('hidden');
+        } else {
+            actionArea.classList.add('hidden');
+            reportPanel.classList.add('error-glow');
+        }
 
     }, delay * 4);
 }
@@ -260,8 +331,7 @@ function setStatus(type, title) {
     const mainText = document.getElementById('main-status-text');
     const icon = document.getElementById('status-icon-main');
     mainText.textContent = title;
-    
-    // Reset base classes
+
     mainText.className = 'text-3xl font-bold';
     icon.className = 'mt-4 w-12 h-12 rounded-full border-2 flex items-center justify-center';
 
@@ -270,12 +340,10 @@ function setStatus(type, title) {
         icon.classList.add('border-green-500', 'text-green-500');
         icon.innerHTML = '<i class="fas fa-check"></i>';
     } else if (type === 'warning') {
-        // --- NEW YELLOW WARNING STATE ---
-        mainText.classList.add('text-yellow-500'); 
+        mainText.classList.add('text-yellow-500');
         icon.classList.add('border-yellow-500', 'text-yellow-500');
         icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
     } else {
-        // Error state
         mainText.classList.add('text-red-500');
         icon.classList.add('border-red-500', 'text-red-500', 'animate-pulse');
         icon.innerHTML = '<i class="fas fa-times"></i>';

@@ -25,6 +25,16 @@ public class CertifiedGemController {
         CertifiedGemResponseDto response = certifiedGemService.addCertifiedGem(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    // Add this endpoint to CertifiedGemController.java
+    @PutMapping("/{itemId}/report-url")
+    public ResponseEntity<Void> updateReportUrl(
+            @PathVariable Long itemId,
+            @RequestParam String reportUrl
+    ) {
+        certifiedGemService.updateReportUrl(itemId, reportUrl);
+        return ResponseEntity.ok().build();
+    }
     // Inventory read/list endpoint: returns all inventory items, or filters by source using ?source=CERTIFIED/ANALYSIS
     @GetMapping("/all")
     public ResponseEntity<List<InventoryItemResponseDto>> getAllInventoryItems(

@@ -199,5 +199,17 @@ public class CertifiedGemService {
                 .toList();
     }
 
+    // find cetificate url
+    @org.springframework.transaction.annotation.Transactional
+    public void updateReportUrl(Long inventoryItemId, String reportUrl) {
+        // Find the certificate by the inventory item ID
+        GemCertificate certificate = gemCertificateRepository.findByInventoryItem_InventoryItemId(inventoryItemId)
+                .orElseThrow(() -> new RuntimeException("Certificate not found for Item ID: " + inventoryItemId));
+
+        // Update the URL and save
+        certificate.setReportUrl(reportUrl);
+        gemCertificateRepository.save(certificate);
+    }
+
 
 }

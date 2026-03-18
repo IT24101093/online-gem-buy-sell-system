@@ -21,7 +21,7 @@ import java.util.UUID;
 public class InventoryImageService {
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp"
+            "image/jpeg", "image/png", "image/webp", "application/pdf" // allow fies types to upload
     );
 
     @Value("${app.upload.dir:uploads}")
@@ -46,7 +46,7 @@ public class InventoryImageService {
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, WEBP images are allowed");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, WEBP images and PDF are allowed");
         }
 
         // 2) Check the inventory item exists (so we can link the image to a real gem record).
@@ -123,6 +123,7 @@ public class InventoryImageService {
             case "image/jpeg" -> ".jpg";
             case "image/png" -> ".png";
             case "image/webp" -> ".webp";
+            case "application/pdf" -> ".pdf";
             default -> "";
         };
     }
