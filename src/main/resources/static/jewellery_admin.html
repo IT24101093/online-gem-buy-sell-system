@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Jewellery Management – JayaGems</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="marketplace_admin.css">
+    <!-- Jewellery Admin CSS (extracted from inline styles) -->
+    <link rel="stylesheet" href="jewellery_admin.css">
+</head>
+
+<body class="bg-slate-100 flex">
+
+    <!-- ===== Sidebar (matches marketplace_admin.html) ===== -->
+    <aside class="w-64 h-screen bg-slate-900 text-white p-6 sticky top-0 hidden md:block">
+        <div class="mb-10 text-xl font-bold tracking-widest text-amber-400">JAYAGEMS</div>
+        <nav class="space-y-4">
+            <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"
+                onclick="window.location='marketplace_admin.html'">
+                <i data-lucide="layout-dashboard"></i> Marketplace
+            </div>
+            <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400">
+                <i data-lucide="package"></i> Inventory Logs
+            </div>
+            <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400">
+                <i data-lucide="users"></i> Customers
+            </div>
+            <!-- NEW: Jewellery link – active state highlighted -->
+            <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-amber-400"
+                style="background: rgba(212,175,55,0.1); border-left: 4px solid #d4af37;">
+                <i data-lucide="gem"></i> Jewellery
+            </div>
+        </nav>
+    </aside>
+
+    <!-- ===== Main Content ===== -->
+    <main class="flex-1 p-8">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-serif font-bold text-slate-800">Jewellery Management</h1>
+                <p class="text-slate-500">Manage jewellery types and their compatible gem categories.</p>
+            </div>
+            <!-- Add Jewellery Button -->
+            <button id="open-add-jewellery-btn" onclick="openAddJewelleryModal()"
+                class="flex items-center gap-2 px-6 py-3 gold-gradient text-white rounded-xl font-bold shadow-lg shadow-amber-200 hover:opacity-90 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add Jewellery
+            </button>
+        </header>
+
+        <!-- ===== Jewellery List Table ===== -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                    <i data-lucide="gem" class="text-amber-500 w-5 h-5"></i> Jewellery Listings
+                </h3>
+                <span id="jewellery-count" class="text-xs text-slate-400 font-semibold">0 items</span>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-400 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="p-4">Image</th>
+                        <th class="p-4">Jewellery Type</th>
+                        <th class="p-4">Metal Colour</th>
+                        <th class="p-4">Price (LKR)</th>
+                        <th class="p-4">Suitable Gem Categories</th>
+                        <th class="p-4">Actions</th>
+                    </tr>
+                </thead>
+                <!-- Rows injected by jewellery_admin.js -->
+                <tbody id="jewellery-table-body">
+                </tbody>
+            </table>
+            <!-- Empty state -->
+            <div id="jewellery-empty" class="py-20 text-center text-slate-400 hidden">
+                <i data-lucide="gem" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>
+                <p class="text-sm">No jewellery items yet. Click <strong>Add Jewellery</strong> to get started.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== Add Jewellery Modal ===== -->
+    <div id="add-jewellery-modal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div
+            class="bg-white rounded-3xl p-8 max-w-lg w-full animate__animated animate__zoomIn overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Add Jewellery</h2>
+                <button onclick="closeAddJewelleryModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="mb-5">
+                <label class="block text-sm font-bold mb-2 text-slate-700">Jewellery Image (optional)</label>
+                <input type="file" id="jwl-image-input" accept="image/*" onchange="previewJewelleryImage(event)"
+                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer">
+                <img id="jwl-image-preview" src="" alt="Preview">
+            </div>
+
+            <!-- Jewellery Type -->
+            <div class="mb-5">
+                <label class="block text-sm font-bold mb-2 text-slate-700">Jewellery Type <span
+                        class="text-red-400">*</span></label>
+                <select id="jwl-type"
+                    class="w-full p-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+                    <option value="">— Select Type —</option>
+                    <option value="Ring">Ring</option>
+                    <option value="Pendant">Pendant</option>
+                    <option value="Necklace">Necklace</option>
+                    <option value="Earrings">Earrings</option>
+                    <option value="Bracelet">Bracelet</option>
+                </select>
+            </div>
+
+            <!-- Metal Colour -->
+            <div class="mb-5">
+                <label class="block text-sm font-bold mb-2 text-slate-700">Metal Colour <span
+                        class="text-red-400">*</span></label>
+                <select id="jwl-metal"
+                    class="w-full p-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+                    <option value="">— Select Metal —</option>
+                    <option value="Gold">Gold</option>
+                    <option value="Silver">Silver</option>
+                    <option value="Platinum">Platinum</option>
+                </select>
+            </div>
+
+            <!-- Suitable Gem Categories (multi-select) -->
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-1 text-slate-700">
+                    Suitable Gem Categories <span class="text-red-400">*</span>
+                </label>
+                <p class="text-xs text-slate-400 mb-2">Hold <kbd
+                        class="px-1 py-0.5 bg-slate-100 rounded text-slate-500 text-xs">Ctrl</kbd> / <kbd
+                        class="px-1 py-0.5 bg-slate-100 rounded text-slate-500 text-xs">⌘</kbd> to select multiple.</p>
+                <select id="jwl-gem-categories" multiple
+                    class="w-full p-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+                    <option value="Sapphire">Sapphire</option>
+                    <option value="Ruby">Ruby</option>
+                    <option value="Emerald">Emerald</option>
+                    <option value="Garnet">Garnet</option>
+                    <option value="Alexandrite">Alexandrite</option>
+                    <option value="Spinel">Spinel</option>
+                    <option value="Tourmaline">Tourmaline</option>
+                    <option value="Aquamarine">Aquamarine</option>
+                    <option value="Amethyst">Amethyst</option>
+                    <option value="Diamond">Diamond</option>
+                </select>
+            </div>
+
+            <!-- Price (LKR) -->
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-slate-700">
+                    Price (LKR) <span class="text-red-400">*</span>
+                </label>
+                <input type="number" id="jwl-price" min="1" step="1" placeholder="e.g. 145000"
+                    class="w-full p-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+            </div>
+
+            <!-- Gemstone Name -->
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2 text-slate-700">Featured Gemstone Name</label>
+                <input type="text" id="jwl-gemstone" maxlength="120" placeholder="e.g. Blue Sapphire"
+                    class="w-full p-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+            </div>
+
+            <!-- Description -->
+            <div class="mb-5">
+                <label class="block text-sm font-bold mb-2 text-slate-700">Description</label>
+                <textarea id="jwl-description" rows="3" maxlength="500"
+                    placeholder="Short description of the jewellery piece..."
+                    class="w-full p-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm resize-none"></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3">
+                <button onclick="closeAddJewelleryModal()"
+                    class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition">
+                    Cancel
+                </button>
+                <button onclick="saveJewellery()"
+                    class="flex-1 py-3 gold-gradient text-white rounded-xl font-bold shadow-lg shadow-amber-200 hover:opacity-90 transition">
+                    Save Jewellery
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast Notification (replaces alert) ===== -->
+    <div id="jwl-admin-toast" style="position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;
+               padding:.65rem 1.25rem;border-radius:.75rem;font-size:.85rem;font-weight:600;
+               box-shadow:0 4px 20px rgba(0,0,0,.25);transition:opacity .3s;z-index:10000;" class="hidden"></div>
+
+    <!-- ===== Confirm Delete Jewellery Modal (replaces browser confirm) ===== -->
+    <div id="jwl-confirm-delete-modal" style="position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);
+               display:none;align-items:center;justify-content:center;z-index:9999;padding:1rem;">
+        <div style="background:#fff;border-radius:1.5rem;padding:2rem;max-width:26rem;width:100%;
+                    box-shadow:0 20px 60px rgba(0,0,0,.2);animation:jwlZoomIn .18s ease;">
+            <style>
+                @keyframes jwlZoomIn {
+                    from {
+                        transform: scale(.92);
+                        opacity: 0
+                    }
+
+                    to {
+                        transform: scale(1);
+                        opacity: 1
+                    }
+                }
+            </style>
+            <div class="flex items-center gap-3 mb-4">
+                <span class="p-2 bg-red-100 rounded-xl">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                </span>
+                <h2 class="text-xl font-bold text-slate-800">Delete Jewellery Item?</h2>
+            </div>
+            <p id="jwl-delete-label" class="text-sm text-slate-500 mb-6">
+                This item will be permanently deleted from the database.
+            </p>
+            <div class="flex gap-3">
+                <button onclick="closeJwlDeleteModal()"
+                    class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition">
+                    Cancel
+                </button>
+                <button onclick="confirmJwlDelete()"
+                    class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="jewellery_admin.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>

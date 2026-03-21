@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JayaGems | Jewellery Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Jewellery User CSS (extracted from inline styles) -->
+    <link rel="stylesheet" href="jewellery_user.css">
+</head>
+
+<body class="bg-white text-slate-900">
+
+    <!-- ===== NAVBAR (matches marketplace_user.html exactly) ===== -->
+    <nav
+        class="p-6 px-10 flex justify-between items-center border-b border-sky-200 sticky top-0 bg-sky-100/90 backdrop-blur-md z-50">
+        <div class="text-2xl font-serif font-bold tracking-widest text-blue-900">JAYAGEMS</div>
+        <div class="hidden md:flex gap-10 text-xs font-bold uppercase tracking-widest text-slate-600">
+            <a href="marketplace_user.html" class="hover:text-amber-600 transition">Shop All</a>
+            <a href="#" class="hover:text-amber-600 transition">Home</a>
+            <!-- NEW: Jewellery link – active (underlined) on this page -->
+            <a href="jewellery_user.html" class="text-amber-600 gold-border pb-1 transition">Jewellery</a>
+            <a href="#" class="hover:text-amber-600 transition">Contact Us</a>
+        </div>
+        <div class="flex items-center gap-6">
+            <i data-lucide="search" class="w-5 h-5 cursor-pointer"></i>
+            <div class="relative cursor-pointer">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span id="jwl-cart-count"
+                    class="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="max-w-7xl mx-auto px-10 pt-10 pb-4">
+        <h2 class="text-3xl font-serif">Our Jewellery Collection</h2>
+        <p class="text-slate-400 text-sm mt-1">Fine jewellery crafted for every gemstone occasion.</p>
+    </div>
+
+    <!-- ===== FILTER BAR (simple top bar matching existing style) ===== -->
+    <div class="max-w-7xl mx-auto px-10 pb-6 flex flex-wrap gap-3 items-center">
+        <!-- Search -->
+        <input type="text" id="jwl-search" onkeyup="filterJewellery()" placeholder="Search jewellery..."
+            class="p-3 bg-slate-100 border-b-2 border-slate-300 outline-none focus:border-amber-500 transition w-64">
+        <!-- Type filter -->
+        <select id="jwl-type-filter" onchange="filterJewellery()"
+            class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
+            <option value="all">All Types</option>
+            <option value="Ring">Ring</option>
+            <option value="Pendant">Pendant</option>
+            <option value="Necklace">Necklace</option>
+            <option value="Earrings">Earrings</option>
+            <option value="Bracelet">Bracelet</option>
+        </select>
+        <!-- Metal filter -->
+        <select id="jwl-metal-filter" onchange="filterJewellery()"
+            class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
+            <option value="all">All Metals</option>
+            <option value="Gold">Gold</option>
+            <option value="Silver">Silver</option>
+            <option value="Platinum">Platinum</option>
+        </select>
+    </div>
+
+    <!-- ===== JEWELLERY GRID ===== -->
+    <section id="jwl-grid"
+        class="max-w-7xl mx-auto px-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 pb-20">
+        <!-- Cards injected by jewellery_user.js -->
+    </section>
+
+    <!-- ===== EMPTY STATE ===== -->
+    <div id="jwl-empty" class="max-w-7xl mx-auto px-10 py-20 text-center text-slate-400 hidden">
+        <i data-lucide="gem" class="w-12 h-12 mx-auto mb-4 text-slate-300"></i>
+        <p>No jewellery found matching your criteria.</p>
+    </div>
+
+    <!-- ===== FOOTER (matches marketplace_user.html) ===== -->
+    <footer class="bg-slate-900 text-slate-100">
+        <div class="max-w-7xl mx-auto px-10 py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div>
+                <h3 class="font-serif text-xl mb-3">Visit Our Showroom</h3>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    JayaGems Flagship Gallery<br>
+                    Colombo 07, Sri Lanka<br>
+                    By appointment for bespoke gemstone viewings and consultations.
+                </p>
+            </div>
+            <div>
+                <h3 class="font-serif text-xl mb-3">Contact Information</h3>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    Phone: +94 77 000 0000<br>
+                    Email: hello@jayagems.lk<br>
+                    WhatsApp: +94 77 000 0000
+                </p>
+                <p class="text-xs text-slate-400 mt-3">Monday – Saturday: 10.00 AM – 6.00 PM (IST)</p>
+            </div>
+            <div>
+                <h3 class="font-serif text-xl mb-3">Why JayaGems</h3>
+                <ul class="text-sm text-slate-300 space-y-2">
+                    <li>• Ethically sourced Sri Lankan gemstones</li>
+                    <li>• Laboratory certification available on request</li>
+                    <li>• Worldwide insured shipping</li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== JEWELLERY DETAIL MODAL ===== -->
+    <div id="jwl-detail-modal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto animate__animated animate__fadeIn">
+            <div class="p-8 relative">
+                <button onclick="closeJwlDetail()"
+                    class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <div id="jwl-detail-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADD TO CART TOAST (mirrors gem marketplace) ===== -->
+    <div id="jwl-cart-toast"
+        class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-300 z-[60] font-semibold">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <span id="jwl-toast-message">Added to cart</span>
+    </div>
+
+    <script src="jewellery_user.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>

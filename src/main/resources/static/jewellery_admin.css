@@ -1,0 +1,97 @@
+/* ── Gold gradient button (also used inline as .gold-gradient) ─────── */
+.gold-gradient {
+    background: linear-gradient(135deg, #d4af37 0%, #f1d592 100%);
+}
+
+/* ── Sidebar active override ────────────────────────────────────────── */
+.sidebar-link.active,
+.sidebar-link[data-active="true"] {
+    background: rgba(212, 175, 55, 0.1);
+    border-left: 4px solid #d4af37;
+    color: #fbbf24;
+}
+
+/* ── Jewellery table thumbnail ──────────────────────────────────────── */
+.jwl-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.jwl-thumb-placeholder {
+    width: 56px;
+    height: 56px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 11px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+/* ── Multi-select gem categories ────────────────────────────────────── */
+#jwl-gem-categories {
+    min-height: 110px;
+}
+
+#jwl-gem-categories option:checked {
+    background: #d4af37;
+    color: #1e293b;
+}
+
+/* ── Image upload preview (inside the Add Jewellery modal) ──────────── */
+#jwl-image-preview {
+    display: none;
+    max-width: 100%;
+    max-height: 140px;
+    border-radius: 10px;
+    margin-top: 8px;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+}
+
+/* ── Category badge chips (shown per row in the table) ──────────────── */
+.cat-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(212, 175, 55, 0.15);
+    color: #92721b;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 2px 2px 0 0;
+    transition: background 0.2s ease;
+}
+
+.cat-badge:hover {
+    background: rgba(212, 175, 55, 0.30);
+}
+
+/* ── Add Jewellery modal – smooth entrance ──────────────────────────── */
+#add-jewellery-modal {
+    transition: opacity 0.25s ease;
+}
+
+/* ── Metal dot used in JS-rendered table rows ───────────────────────── */
+.metal-dot-admin {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* ── Responsive: stack layout on small screens ──────────────────────── */
+@media (max-width: 768px) {
+    /* On mobile the aside sidebar is hidden (md:block), so the
+       main content should take full width - nothing extra needed. */
+    main {
+        padding: 1.5rem;
+    }
+}
