@@ -1,5 +1,6 @@
 package com.gemtrade.onlinegembuysellsystem.order.controller;
 
+import com.gemtrade.onlinegembuysellsystem.order.dto.DeliveryServiceDTO;
 import com.gemtrade.onlinegembuysellsystem.order.entity.DeliveryService;
 import com.gemtrade.onlinegembuysellsystem.order.service.DeliveryServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class DeliveryServiceController {
 
     // GET all delivery services
     @GetMapping
-    public List<DeliveryService> getAll() {
+    public List<DeliveryServiceDTO> getAll() {
         return service.getAllDeliveryServices();
     }
 }

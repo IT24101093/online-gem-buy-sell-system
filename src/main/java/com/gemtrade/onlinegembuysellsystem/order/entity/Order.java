@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,15 +39,26 @@ public class Order {
     private BigDecimal insuranceFee;
     @Setter
     @Getter
-    private BigDecimal total;
+    private BigDecimal totalAmountLkr;
     @Setter
     @Getter
     private String orderStatus;
 
     @Setter
     @Getter
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "packed_at")
+    private LocalDateTime packedAt;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     // Getters and Setters
 

@@ -17,21 +17,49 @@ CREATE TABLE delivery_service (
                                   status VARCHAR(20) NOT NULL
 );
 
--- Orders table
-CREATE TABLE order (
-                       order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                       customer_id BIGINT NOT NULL,
-                       delivery_service_id BIGINT,
-                       delivery_fee DECIMAL(10,2) NOT NULL,
-                       insurance_fee DECIMAL(10,2) NOT NULL,
-                       total DECIMAL(14,2) NOT NULL,
-                       order_status VARCHAR(100) NOT NULL,
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
-                       CONSTRAINT fk_delivery_service FOREIGN KEY (delivery_service_id) REFERENCES delivery_service(delivery_service_id)
-);
 
-DROP TABLE IF EXISTS orders;
+-- Orders table
+
+ALTER TABLE orders
+    CHANGE id order_id BIGINT AUTO_INCREMENT;
+ALTER TABLE orders
+    DROP COLUMN customer_name,
+    DROP COLUMN customer_phone,
+    DROP COLUMN delivery_address,
+    DROP COLUMN customer_nic,
+    DROP COLUMN customer_age;
+
+ALTER TABLE orders
+    DROP COLUMN order_code;
+
+ALTER TABLE orders
+    CHANGE status order_status VARCHAR(100) NOT NULL;
+
+ALTER TABLE orders
+    ADD COLUMN customer_id BIGINT NOT NULL,
+    ADD COLUMN delivery_service_id BIGINT,
+    ADD COLUMN delivery_fee DECIMAL(10,2) NOT NULL,
+    ADD COLUMN insurance_fee DECIMAL(10,2) NOT NULL;
+
+ALTER TABLE orders
+    ADD CONSTRAINT fk_customer
+        FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+
+    ADD CONSTRAINT fk_delivery_service
+        FOREIGN KEY (delivery_service_id) REFERENCES delivery_service(delivery_service_id);
+
+# CREATE TABLE orders (
+#                        order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+#                        customer_id BIGINT NOT NULL,
+#                        delivery_service_id BIGINT,
+#                        delivery_fee DECIMAL(10,2) NOT NULL,
+#                        insurance_fee DECIMAL(10,2) NOT NULL,
+#                        total DECIMAL(14,2) NOT NULL,
+#                        order_status VARCHAR(100) NOT NULL,
+#                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+#                        CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+#                        CONSTRAINT fk_delivery_service FOREIGN KEY (delivery_service_id) REFERENCES delivery_service(delivery_service_id)
+# );
 
 /* REFERENCE TABLE: Courier & Shipping Configuration */
 CREATE TABLE courier_shipping_config (
@@ -50,3 +78,19 @@ CREATE TABLE insurance_risk_config (
                                        is_high_value      BOOLEAN DEFAULT FALSE,       -- For stones requiring extra security
                                        updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- INTERNATIONAL COURIERS
+INSERT INTO delivery_service (name, type, status) VALUES
+                                                      ('DHL Express', 'international', 'active'),
+                                                      ('FedEx', 'international', 'active'),
+                                                      ('UPS', 'international', 'active'),
+                                                      ('Aramex', 'international', 'active'),
+                                                      ('TNT Express', 'international', 'active');
+
+-- LOCAL COURIERS (Sri Lanka examples)
+INSERT INTO delivery_service (name, type, status) VALUES
+                                                      ('PickMe Delivery', 'local', 'active'),
+                                                      ('Aramex Sri Lanka', 'local', 'active'),
+                                                      ('Domex Courier', 'local', 'active'),
+                                                      ('SLAE Courier', 'local', 'active'),
+                                                      ('City Express', 'local', 'active');

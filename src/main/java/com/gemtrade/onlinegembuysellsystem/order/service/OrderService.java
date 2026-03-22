@@ -1,5 +1,6 @@
 package com.gemtrade.onlinegembuysellsystem.order.service;
 
+import com.gemtrade.onlinegembuysellsystem.inventory.service.InventoryItemService;
 import com.gemtrade.onlinegembuysellsystem.order.dto.CustomerDTO;
 import com.gemtrade.onlinegembuysellsystem.order.dto.OrderDTO;
 import com.gemtrade.onlinegembuysellsystem.order.dto.OrderRequest;
@@ -45,8 +46,7 @@ public class OrderService {
         order.setDeliveryFee(dto.getDeliveryFee());
         order.setInsuranceFee(dto.getInsuranceFee());
         order.setOrderStatus("CONFIRMED");  // status could be CONFIRMED, CANCELLED, ONHOLD
-        order.setTotal(dto.getDeliveryFee().add(dto.getInsuranceFee())); // calculate total automatically
-
+        order.setTotalAmountLkr(dto.getDeliveryFee().add(dto.getInsuranceFee())); // calculate total automatically
         return orderRepository.save(order);
     }
 }

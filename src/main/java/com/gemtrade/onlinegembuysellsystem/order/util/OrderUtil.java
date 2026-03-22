@@ -1,24 +1,36 @@
 package com.gemtrade.onlinegembuysellsystem.order.util;
 
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem;
+import com.gemtrade.onlinegembuysellsystem.inventory.service.InventoryItemService;
 import com.gemtrade.onlinegembuysellsystem.order.dto.OrderDTO;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public class OrderUtil {
 
+
+    private static InventoryItemService inventoryItemService;
     //calculateInsuranceFEE
     //calculatetotal
     public static void calculateOrder(OrderDTO orderDTO) {
-        calculateDeliveryFee(orderDTO);
-        calculateInsuranceFee(orderDTO);
+        Optional<InventoryItem> inventoryItem = inventoryItemService.getInventoryItemByInventoryId(orderDTO.getInventoryId());
+        BigDecimal weightCt = new BigDecimal("0");
+        if (inventoryItem.isPresent()) {
+            weightCt = inventoryItem.get().getWeightCt();
+        }
+        calculateDeliveryFee(orderDTO, weightCt);
+        calculateInsuranceFee(orderDTO, weightCt);
         calculateTotal(orderDTO);
     }
 
-    private static void calculateDeliveryFee(OrderDTO orderDTO) {
+    private static void calculateDeliveryFee(OrderDTO orderDTO, BigDecimal weightCt) {
+
         orderDTO.setDeliveryFee(new BigDecimal(20));
     }
 
-    private static void calculateInsuranceFee(OrderDTO orderDTO) {
+    private static void calculateInsuranceFee(OrderDTO orderDTO, BigDecimal weightCt) {
+
         orderDTO.setInsuranceFee(new BigDecimal(10));
     }
 
@@ -30,6 +42,6 @@ public class OrderUtil {
         BigDecimal insuranceFee = orderDTO.getInsuranceFee();
         BigDecimal deliveryFee = orderDTO.getDeliveryFee();
         BigDecimal total = insuranceFee.add(estimatedPrice).add(deliveryFee);
-        orderDTO.setTotal(total);
+        orderDTO.setTotalAmountLkr(total);
     }
 }

@@ -11,4 +11,5 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     // Find inventory items by source type (CERTIFIED / ANALYSIS)
     Optional<InventoryItem> findByInventoryCode(String inventoryCode);
     List<InventoryItem> findBySource(Source source);
+    Optional<InventoryItem> findByInventoryItemId(Long inventoryItemId);
 }

@@ -22,7 +22,13 @@ public class DeliveryServiceService {
 
 
 
-    public List<DeliveryService> getAllDeliveryServices() {
-        return repository.findByStatus("active");
+    public List<DeliveryServiceDTO> getAllDeliveryServices() {
+        List<DeliveryService> services = repository.findByStatus("active");
+
+        return services.stream().map(service -> {
+            DeliveryServiceDTO dto = new DeliveryServiceDTO();
+            BeanUtils.copyProperties(service, dto);
+            return dto;
+        }).toList();
     }
 }

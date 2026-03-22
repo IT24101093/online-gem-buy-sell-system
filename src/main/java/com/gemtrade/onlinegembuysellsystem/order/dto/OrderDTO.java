@@ -19,7 +19,7 @@ public class OrderDTO {
 
     @Getter
     @Setter
-    private BigDecimal total;
+    private BigDecimal totalAmountLkr;
     private String CourierType;
     @Getter
     @Setter
