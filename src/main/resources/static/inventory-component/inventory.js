@@ -1,22 +1,22 @@
-
-
 (() => {
-  const STORAGE_KEY = 'gemvault_inventory';
+  // --- CONFIGURATION ---
+  // Ensure this matches your Spring Boot Controller's GET endpoint for the inventory list
+  const API_BASE = 'http://localhost:8080/api/inventory/items';
   const MARKET_KEY  = 'gemvault_marketplace_queue';
+
+  let currentInventory = []; // Store fetched items for local filtering
 
   const listEl = document.getElementById('list');
   const emptyEl = document.getElementById('emptyState');
-
   const searchInput = document.getElementById('searchInput');
   const sourceFilter = document.getElementById('sourceFilter');
-
   const statTotal = document.getElementById('statTotal');
   const statCertified = document.getElementById('statCertified');
   const statAnalysis = document.getElementById('statAnalysis');
-
   const themeBtn = document.getElementById('theme-toggle');
   const html = document.documentElement;
 
+  // --- THEME HANDLING ---
   function setTheme(mode){
     if (mode === 'light') {
       html.classList.remove('dark');
@@ -26,79 +26,74 @@
       localStorage.setItem('theme','dark');
     }
   }
-  // default dark
   const savedTheme = localStorage.getItem('theme');
   setTheme(savedTheme === 'light' ? 'light' : 'dark');
   themeBtn?.addEventListener('click', () => setTheme(html.classList.contains('dark') ? 'light' : 'dark'));
 
-  function loadInventory(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    }catch{
+  // --- 1. FETCH FROM BOTH BACKEND CONTROLLERS ---
+  async function loadInventory(){
+    try {
+      // 1. Setup the URLs for both workflows
+      const certifiedUrl = 'http://localhost:8080/api/inventory/certified/all';
+
+      // 👉 Change this URL to match your exact Smart Analysis GET endpoint from Postman
+      const analysisUrl = 'http://localhost:8080/api/inventory/analysis/all';
+
+      // 2. Fetch both at the exact same time
+      const [certResponse, analysisResponse] = await Promise.all([
+        fetch(certifiedUrl).catch(() => null), // Catch prevents one failure from breaking the other
+        fetch(analysisUrl).catch(() => null)
+      ]);
+
+      let combinedInventory = [];
+
+      // 3. Add Certified gems to the list if successful
+      if (certResponse && certResponse.ok) {
+        const certData = await certResponse.json();
+        if (Array.isArray(certData)) {
+          combinedInventory = combinedInventory.concat(certData);
+        }
+      }
+
+      // 4. Add Analysis gems to the list if successful
+      if (analysisResponse && analysisResponse.ok) {
+        const analysisData = await analysisResponse.json();
+        if (Array.isArray(analysisData)) {
+          combinedInventory = combinedInventory.concat(analysisData);
+        }
+      }
+
+      // 5. Return the combined list so the UI can draw them all!
+      return combinedInventory;
+
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Failed to load database', showConfirmButton: false, timer: 3000 });
       return [];
     }
   }
 
-  function saveInventory(items){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }
+  // --- DELETE FROM BACKEND ---
+  async function deleteItem(id) {
+    try {
+      // This calls your @DeleteMapping in the Controller
+      // which now sets status to 'REMOVED' instead of deleting the row
+      const response = await fetch(`${API_BASE}/${id}`, {
+        method: 'DELETE'
+      });
 
-  function upsertItem(item){
-    const items = loadInventory();
-    const idx = items.findIndex(x => x.id === item.id);
-    if (idx >= 0) items[idx] = item;
-    else items.unshift(item);
-    saveInventory(items);
-  }
+      if (!response.ok) throw new Error("Failed to soft-delete");
 
-  function removeItem(id){
-    const items = loadInventory().filter(x => x.id !== id);
-    saveInventory(items);
-  }
-
-  function queueMarketplace(dto){
-    let q = [];
-    try { q = JSON.parse(localStorage.getItem(MARKET_KEY) || '[]'); } catch { q = []; }
-    if (!Array.isArray(q)) q = [];
-    q.unshift(dto);
-    localStorage.setItem(MARKET_KEY, JSON.stringify(q));
-  }
-
-  // Expose minimal helper so other pages can do:
-  // window.GemVaultInventory.addItem({...}) then redirect to inventory.html
-  window.GemVaultInventory = {
-    addItem: (data) => {
-      const item = normalizeItem(data);
-      upsertItem(item);
-      return item.id;
+      return true;
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'Could not remove item', 'error');
+      return false;
     }
-  };
+  }
 
-  function normalizeItem(data){
-    const now = new Date().toISOString();
-    const id = data.id || ('GV-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6).toUpperCase());
-    return {
-      id,
-      source: data.source || 'analysis',
-      gemType: data.gemType || 'Unknown',
-      weightCt: Number(data.weightCt ?? 0) || 0,
-      estimatedValue: Number(data.estimatedValue ?? 0) || 0,
-      cut: data.cut || data.cutShape || null,
-      dimensions: data.dimensions || null,
-      vendor: data.vendor || null,
-      certificate: data.certificate || null,
-      description: data.description || null,
-      imageDataUrl: data.imageDataUrl || null,
-
-      // Marketplace push state
-      pushedToMarketplace: Boolean(data.pushedToMarketplace),
-      pushedAtISO: data.pushedAtISO || null,
-
-      createdAtISO: data.createdAtISO || now
-    };
-  }function fmtMoney(v){
+  // --- FORMATTERS ---
+  function fmtMoney(v){
     const n = Number(v) || 0;
     return n.toLocaleString('en-LK', { style:'currency', currency:'LKR', maximumFractionDigits: 0 });
   }
@@ -108,10 +103,25 @@
     return n.toFixed(2) + ' ct';
   }
 
+  function escapeHtml(str){
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, s => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[s]));
+  }
+
+  function badgeForSource(source){
+    // Backend enum will likely be "CERTIFIED" or "ANALYSIS"
+    const src = String(source).toLowerCase();
+    if (src === 'certified') return '<span class="badge"><i class="fas fa-certificate text-emerald-500"></i> Certified</span>';
+    return '<span class="badge"><i class="fas fa-microscope text-indigo-500"></i> Analysis</span>';
+  }
+
+  // --- FILTERING & STATS ---
   function updateStats(items){
     const total = items.length;
-    const cert = items.filter(x => x.source === 'certified').length;
-    const ana  = items.filter(x => x.source === 'analysis').length;
+    const cert = items.filter(x => String(x.source).toLowerCase() === 'certified').length;
+    const ana  = items.filter(x => String(x.source).toLowerCase() === 'analysis').length;
     statTotal.textContent = total;
     statCertified.textContent = cert;
     statAnalysis.textContent = ana;
@@ -121,249 +131,264 @@
     if (!q) return true;
     const s = q.toLowerCase();
     const hay = [
-      item.id,
+      item.inventoryCode,
       item.gemType,
-      item.vendor?.name,
-      item.vendor?.nic,
-      item.vendor?.phone,
-      item.certificate?.id,
-      item.certificate?.issuer
+      item.category,
+      item.sellerName
     ].filter(Boolean).join(' ').toLowerCase();
     return hay.includes(s);
   }
 
   function applyFilters(items){
     const q = searchInput.value.trim();
-    const src = sourceFilter.value;
-    return items.filter(it => (src === 'all' ? true : it.source === src))
-                .filter(it => matches(it, q));
+    const src = sourceFilter.value.toLowerCase();
+    return items.filter(it => (src === 'all' ? true : String(it.source).toLowerCase() === src))
+        .filter(it => matches(it, q));
   }
 
-  function badgeForSource(source){
-    if (source === 'certified') return '<span class="badge"><i class="fas fa-certificate"></i> Certified</span>';
-    return '<span class="badge"><i class="fas fa-microscope"></i> Smart Analysis</span>';
-  }
-
+  // --- RENDER UI ---
   function render(items){
-    listEl.innerHTML = '';
-    updateStats(items);
+    // 1. Filter out any items that have been soft-deleted before drawing
+    const activeItems = items.filter(it => it.status !== 'REMOVED');
 
-    if (!items.length){
+    listEl.innerHTML = '';
+    updateStats(activeItems); // Update stats based only on what's visible
+
+    // FIX 1: Check activeItems instead of items
+    if (!activeItems.length){
       emptyEl.classList.remove('hidden');
       return;
     }
     emptyEl.classList.add('hidden');
 
-    for (const it of items){
-      const created = new Date(it.createdAtISO).toLocaleString();
-      const cut = it.cut ? `<span class="badge"><i class="fas fa-gem"></i> ${it.cut}</span>` : '';
-      const vendor = it.vendor?.name ? `<div class="text-sm text-slate-600 dark:text-slate-400">Vendor: <span class="font-semibold">${escapeHtml(it.vendor.name)}</span></div>` : '';
-      const cert = it.certificate?.id ? `<div class="text-sm text-slate-600 dark:text-slate-400">Cert ID: <span class="font-semibold">${escapeHtml(it.certificate.id)}</span></div>` : '';
-      const dims = it.dimensions ? `<div class="text-sm text-slate-600 dark:text-slate-400">Size: <span class="font-semibold">${it.dimensions.l}×${it.dimensions.w}×${it.dimensions.d} mm</span></div>` : '';
+    // FIX 2: Loop through activeItems instead of items
+    for (const it of activeItems) {
+      const id = it.inventoryItemId;
+      const code = escapeHtml(it.inventoryCode);
+      const name = escapeHtml(it.gemType);
+      const seller = it.sellerName ? `<div class="text-sm text-slate-600 dark:text-slate-400">Seller: <span class="font-semibold">${escapeHtml(it.sellerName)}</span></div>` : '';
+
+
+      // 1. Color-coded Status & Action Area Logic
+      let actionAreaHtml = '';
+      let statusDisplayHtml = '';
+
+      switch (it.status) {
+        case 'REMOVED':
+          statusDisplayHtml = `<span class="font-bold text-red-500">Removed</span>`;
+          actionAreaHtml = `
+          <div class="flex items-center bg-red-500/10 text-red-600 border border-red-500/20 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
+              <i class="fas fa-trash-alt mr-1"></i> Deleted
+          </div>`;
+          break;
+        case 'PENDING_MARKET':
+          statusDisplayHtml = `<span class="font-bold text-amber-500">Awaiting Admin</span>`;
+          actionAreaHtml = `
+                <div class="flex items-center bg-amber-500/10 text-amber-600 border border-amber-500/20 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
+                    <i class="fas fa-history mr-1"></i> Pushed
+                </div>`;
+          break;
+        case 'PUBLISHED':
+          statusDisplayHtml = `<span class="font-bold text-emerald-500">Live in Shop</span>`;
+          actionAreaHtml = `
+                <div class="flex items-center bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
+                    <i class="fas fa-globe mr-1"></i> Live
+                </div>`;
+          break;
+        case 'SOLD':
+          statusDisplayHtml = `<span class="font-bold text-slate-500">Sold</span>`;
+          actionAreaHtml = `<div class="text-xs font-bold text-slate-400 uppercase">Archived</div>`;
+          break;
+        default: // IN_STOCK
+          statusDisplayHtml = `<span class="font-bold text-blue-500">In Stock</span>`;
+          actionAreaHtml = `
+                <button class="icon-btn text-emerald-600" title="Push to Marketplace" data-action="publish" data-id="${id}">
+                    <i class="fas fa-upload"></i>
+                </button>`;
+      }
+
+      // 2. Hide Delete Button if the item is not "IN_STOCK"
+      const deleteBtnHtml = (it.status === 'IN_STOCK') ? `
+        <button class="icon-btn text-red-500 hover:text-red-700 hover:bg-red-50" title="Delete" data-action="delete" data-id="${id}">
+            <i class="fas fa-trash"></i>
+        </button>` : '';
+
+      const imgUrl = it.primaryImageUrl ? `http://localhost:8080${it.primaryImageUrl}` : 'https://placehold.co/400x300?text=No+Image';
 
       const card = document.createElement('div');
-      card.className = 'card p-6';
+      card.className = 'card p-0 overflow-hidden';
+
       card.innerHTML = `
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <div class="flex flex-wrap gap-2 mb-2">
-              ${badgeForSource(it.source)}
-              ${cut}
-              <span class="badge"><i class="fas fa-hashtag"></i> ${escapeHtml(it.id)}</span>
+        <div class="h-48 w-full bg-slate-200 dark:bg-slate-800 relative">
+          <img src="${imgUrl}" alt="${name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
+          <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+            ${badgeForSource(it.source)}
+            <span class="badge"><i class="fas fa-hashtag"></i> ${code}</span>
+          </div>
+        </div>
+
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-xl font-extrabold mb-1">${name}</h3>
+              <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">${it.category || 'N/A'}</div>
             </div>
-            <h3 class="text-xl font-extrabold mb-1">${escapeHtml(it.gemType)}</h3>
-            <div class="text-sm text-slate-600 dark:text-slate-400">Added: ${escapeHtml(created)}</div>
+
+            <div class="flex gap-2 items-center">
+              ${actionAreaHtml}
+              <button class="icon-btn" title="View Details" data-action="details" data-id="${id}">
+                <i class="fas fa-eye"></i>
+              </button>
+              ${deleteBtnHtml}
+            </div>
           </div>
 
-          <div class="flex gap-2">
-            <button class="icon-btn ${it.pushedToMarketplace ? 'opacity-50 pointer-events-none' : ''}" title="${it.pushedToMarketplace ? 'Already pushed to Marketplace' : 'Publish to Marketplace'}" data-action="publish" data-id="${escapeHtml(it.id)}" ${it.pushedToMarketplace ? 'disabled aria-disabled="true"' : ''}>
-              <i class="fas fa-upload"></i>
-            </button>
-            <button class="icon-btn" title="View Details" data-action="details" data-id="${escapeHtml(it.id)}">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="icon-btn" title="Delete" data-action="delete" data-id="${escapeHtml(it.id)}">
-              <i class="fas fa-trash"></i>
-            </button>
+          <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+            <div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">Weight</div>
+              <div class="text-lg font-bold">${fmtCt(it.weightCt)}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">Est. Value</div>
+              <div class="text-lg font-bold">${fmtMoney(it.estimatedValueLkr)}</div>
+            </div>
           </div>
-        </div>
 
-        <div class="mt-4 grid grid-cols-2 gap-3">
-          <div>
-            <div class="text-xs text-slate-500 dark:text-slate-400">Weight</div>
-            <div class="text-lg font-bold">${fmtCt(it.weightCt)}</div>
-          </div>
-          <div>
-            <div class="text-xs text-slate-500 dark:text-slate-400">Estimated Value</div>
-            <div class="text-lg font-bold">${fmtMoney(it.estimatedValue)}</div>
+          <div class="mt-4 space-y-1">
+            ${seller}
+            <div class="text-sm text-slate-600 dark:text-slate-400">Status: ${statusDisplayHtml}</div>
           </div>
         </div>
-
-        <div class="mt-4 space-y-1">
-          ${vendor}
-          ${cert}
-          ${dims}
-        </div>
-      `;
+    `;
       listEl.appendChild(card);
     }
   }
 
+  // --- ACTIONS ---
   async function showDetails(item){
     const html = `
-      <div class="text-left space-y-2">
-        <div><span class="opacity-70">ID:</span> <b>${escapeHtml(item.id)}</b></div>
+      <div class="text-left space-y-2 text-sm">
+        <div><span class="opacity-70">Item Code:</span> <b>${escapeHtml(item.inventoryCode)}</b></div>
         <div><span class="opacity-70">Type:</span> <b>${escapeHtml(item.gemType)}</b></div>
+        <div><span class="opacity-70">Category:</span> <b>${escapeHtml(item.category || 'None')}</b></div>
         <div><span class="opacity-70">Source:</span> <b>${escapeHtml(item.source)}</b></div>
         <div><span class="opacity-70">Weight:</span> <b>${fmtCt(item.weightCt)}</b></div>
-        <div><span class="opacity-70">Value:</span> <b>${fmtMoney(item.estimatedValue)}</b></div>
-        ${item.cut ? `<div><span class="opacity-70">Cut:</span> <b>${escapeHtml(item.cut)}</b></div>` : ''}
-        ${item.dimensions ? `<div><span class="opacity-70">Dimensions:</span> <b>${item.dimensions.l}×${item.dimensions.w}×${item.dimensions.d} mm</b></div>` : ''}
-        ${item.vendor?.name ? `<div><span class="opacity-70">Vendor:</span> <b>${escapeHtml(item.vendor.name)}</b></div>` : ''}
-        ${item.vendor?.nic ? `<div><span class="opacity-70">NIC:</span> <b>${escapeHtml(item.vendor.nic)}</b></div>` : ''}
-        ${item.vendor?.phone ? `<div><span class="opacity-70">Phone:</span> <b>${escapeHtml(item.vendor.phone)}</b></div>` : ''}
-        ${item.certificate?.id ? `<div><span class="opacity-70">Certificate ID:</span> <b>${escapeHtml(item.certificate.id)}</b></div>` : ''}
-        ${item.certificate?.issuer ? `<div><span class="opacity-70">Issuer:</span> <b>${escapeHtml(item.certificate.issuer)}</b></div>` : ''}
+        <div><span class="opacity-70">Est. Value:</span> <b>${fmtMoney(item.estimatedValueLkr)}</b></div>
+        ${item.sellerName ? `<div><span class="opacity-70">Seller:</span> <b>${escapeHtml(item.sellerName)}</b></div>` : ''}
+        <div><span class="opacity-70">Status:</span> <b>${escapeHtml(item.status)}</b></div>
+        <hr class="my-2 border-slate-200">
+        <div><span class="opacity-70">Description:</span> <br><span class="italic">${escapeHtml(item.description || 'No description provided.')}</span></div>
       </div>
     `;
-    await Swal.fire({
-      title: 'Gem Details',
-      html,
-      icon: 'info',
-      showCloseButton: true,
-      confirmButtonText: 'Close'
-    });
+    await Swal.fire({ title: 'Gem Details', html, icon: 'info', showCloseButton: true, confirmButtonText: 'Close' });
   }
 
-  async function publishItem(item){
-    // Prevent double-push
-    if (item.pushedToMarketplace) {
-      await Swal.fire({
-        title: 'Already pushed',
-        text: 'This gem has already been pushed to Marketplace Admin.',
-        icon: 'info',
-        confirmButtonText: 'Close'
-      });
-      return;
-    }
-
-    // Workflow: Inventory only pushes the gem to Marketplace Admin.
-    // Price editing happens in the Marketplace component (other member).
-    const ok = await Swal.fire({
+  async function publishItem(item) {
+    // 1. Confirm with the user
+    const result = await Swal.fire({
       title: 'Push to Marketplace?',
-      text: 'This will send the gem to the marketplace admin page, where you can set/change the selling price.',
+      text: "This will send the gem details to the admin for pricing.",
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Push',
-      cancelButtonText: 'Cancel',
-      showCloseButton: true
+      confirmButtonColor: '#059669',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, push it!'
     });
 
-    if (!ok.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-    // DTO to marketplace (common package idea)
-    // NOTE: suggestedPrice is your current estimated value; marketplace admin can override it.
-    const marketplaceDTO = {
-      inventoryId: item.id,
-      gemType: item.gemType,
-      source: item.source,
-      weightCt: item.weightCt,
-      cut: item.cut,
-      suggestedPrice: Number(item.estimatedValue || 0),
-      certificate: item.certificate || null,
-      vendor: item.vendor || null,
-      description: item.description || null,
-      imageDataUrl: item.imageDataUrl || null,
-      createdAtISO: new Date().toISOString()
-    };
+    try {
+      // 2. Create the Marketplace Draft payload
+      const draftPayload = {
+        inventoryItemId: item.inventoryItemId,
+        gemstoneName: item.gemType,
+        category: item.category || 'Uncategorized',
+        descriptionSnapshot: item.description || '',
+        suggestedPriceLkr: item.estimatedValueLkr
+      };
 
-    queueMarketplace(marketplaceDTO);
+      // 3. POST to Marketplace Drafts
+      const draftResponse = await fetch('http://localhost:8080/api/marketplace/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draftPayload)
+      });
 
-    // Mark as pushed in inventory so it can't be pushed again
-    item.pushedToMarketplace = true;
-    item.pushedAtISO = new Date().toISOString();
-    upsertItem(item);
+      if (!draftResponse.ok) throw new Error("Failed to create marketplace draft");
 
-    const next = await Swal.fire({
-      title: 'Pushed',
-      text: 'Gem was sent to Marketplace Admin. You can close or go to Marketplace Admin now.',
-      icon: 'success',
-      showCancelButton: true,
-      confirmButtonText: 'Go to Marketplace Admin',
-      cancelButtonText: 'Close',
-      showCloseButton: true
-    });
+      // 4. Update the Inventory Status to PENDING_MARKET
+      // Note: Using the inner enum name PENDING_MARKET exactly as defined in InventoryItem.java
+      const statusResponse = await fetch(`http://localhost:8080/api/inventory/items/${item.inventoryItemId}/status?status=PENDING_MARKET`, {
+        method: 'PUT'
+      });
 
-    if (next.isConfirmed) {
-      // Adjust this filename to whatever your teammate uses.
-      window.location.href = 'marketplace-admin.html';
+      if (statusResponse.ok) {
+        await Swal.fire({
+          title: 'Success!',
+          text: 'Gem pushed and status updated to Pushed.',
+          icon: 'success',
+          confirmButtonColor: '#059669'
+        });
+
+        // 5. Refresh the UI to trigger the render() logic that shows the badge
+        refresh();
+      } else {
+        throw new Error("Draft created, but failed to update inventory status.");
+      }
+
+    } catch (error) {
+      console.error("Error during publish:", error);
+      Swal.fire('Error', 'Something went wrong during the push process.', 'error');
     }
   }
 
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, s => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[s]));
-  }
-
+  // --- EVENT LISTENERS ---
   function bindEvents(){
-    searchInput.addEventListener('input', refresh);
-    sourceFilter.addEventListener('change', refresh);
+    searchInput.addEventListener('input', () => render(applyFilters(currentInventory)));
+    sourceFilter.addEventListener('change', () => render(applyFilters(currentInventory)));
 
     listEl.addEventListener('click', async (e) => {
       const btn = e.target.closest('button[data-action]');
       if (!btn) return;
 
-      const id = btn.getAttribute('data-id');
+      const id = parseInt(btn.getAttribute('data-id'));
       const action = btn.getAttribute('data-action');
-      const items = loadInventory();
-      const item = items.find(x => x.id === id);
+      const item = currentInventory.find(x => x.inventoryItemId === id);
       if (!item) return;
 
-      if (action === 'delete'){
+      if (action === 'delete') {
         const ok = await Swal.fire({
-          title: 'Delete item?',
-          text: 'This will remove it from inventory.',
+          title: 'Remove item?',
+          text: 'This item will be moved to history and removed from your active inventory.',
           icon: 'warning',
           showCancelButton: true,
-          confirmButtonText: 'Delete',
+          confirmButtonText: 'Remove',
           confirmButtonColor: '#ef4444'
         });
         if (ok.isConfirmed){
-          removeItem(id);
-          refresh();
+          const success = await deleteItem(id);
+          if (success) refresh();
         }
       } else if (action === 'details'){
         await showDetails(item);
       } else if (action === 'publish'){
         await publishItem(item);
-        refresh();
       }
     });
   }
 
-  function refresh(){
-    const items = loadInventory();
-    const filtered = applyFilters(items);
-    render(filtered);
+  // --- INITIALIZE ---
+  async function refresh(){
+    currentInventory = await loadInventory();
+    render(applyFilters(currentInventory));
   }
 
-  // If another page redirects here after adding, it can pass ?added=1
   function showAddedToastIfNeeded(){
     const params = new URLSearchParams(window.location.search);
     if (params.get('added') === '1'){
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Added to inventory',
-        showConfirmButton: false,
-        timer: 1800,
-        timerProgressBar: true
-      });
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Saved to Database', showConfirmButton: false, timer: 1800 });
       params.delete('added');
-      const clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-      window.history.replaceState({}, '', clean);
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }
 
