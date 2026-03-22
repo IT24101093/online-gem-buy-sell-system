@@ -1,5 +1,6 @@
 package com.gemtrade.onlinegembuysellsystem.order.entity;
 
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -59,6 +60,10 @@ public class Order {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY) // Many orders can have the same inventory item
+    @JoinColumn(name = "inventory_item_id", referencedColumnName = "inventory_item_id")
+    private InventoryItem inventoryItem;
 
     // Getters and Setters
 

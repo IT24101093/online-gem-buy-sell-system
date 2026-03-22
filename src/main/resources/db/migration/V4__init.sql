@@ -94,3 +94,12 @@ INSERT INTO delivery_service (name, type, status) VALUES
                                                       ('Domex Courier', 'local', 'active'),
                                                       ('SLAE Courier', 'local', 'active'),
                                                       ('City Express', 'local', 'active');
+
+-- Add column to orders table
+ALTER TABLE orders
+    ADD COLUMN inventory_item_id BIGINT;
+
+-- Add foreign key constraint
+ALTER TABLE orders
+    ADD CONSTRAINT fk_orders_inventory_item
+        FOREIGN KEY (inventory_item_id) REFERENCES inventory_item(inventory_item_id);

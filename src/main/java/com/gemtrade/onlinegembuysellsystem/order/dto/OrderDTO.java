@@ -29,4 +29,8 @@ public class OrderDTO {
     @Setter
     private Long inventoryId;
 
+    @Getter
+    @Setter
+    private Long inventoryItemId;
+
 }
