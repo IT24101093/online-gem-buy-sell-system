@@ -1,0 +1,6 @@
+package com.gemtrade.onlinegembuysellsystem.shop.payment.repository;
+
+import com.gemtrade.onlinegembuysellsystem.shop.payment.entity.ShopPayment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ShopPaymentRepository extends JpaRepository<ShopPayment, Long> {}
