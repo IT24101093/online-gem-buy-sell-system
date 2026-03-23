@@ -298,7 +298,6 @@ CREATE TABLE payment_transaction (
                                      method            ENUM('CARD') NOT NULL DEFAULT 'CARD',
                                      status            ENUM('PENDING','SUCCESS','FAILED','REFUNDED')
                    NOT NULL DEFAULT 'PENDING',
-
                                      gateway_name      VARCHAR(40)  NOT NULL,
                                      gateway_txn_id    VARCHAR(120) NULL UNIQUE,
                                      gateway_ref       VARCHAR(120) NULL,
@@ -319,7 +318,6 @@ CREATE TABLE payment_transaction (
                                          FOREIGN KEY (order_id) REFERENCES orders(id)
                                              ON DELETE CASCADE
 ) ENGINE=InnoDB;
-
 CREATE INDEX idx_payment_order   ON payment_transaction(order_id);
 CREATE INDEX idx_payment_status  ON payment_transaction(status);
 CREATE INDEX idx_payment_created ON payment_transaction(created_at);

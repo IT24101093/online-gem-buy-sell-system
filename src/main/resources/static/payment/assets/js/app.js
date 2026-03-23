@@ -193,7 +193,7 @@ function initPayment(){
         });
     }
 
-    btnPay.addEventListener("click", () => {
+    btnPay.addEventListener("click", async () => {
         // Clear errors
         ["errCardName","errCardNumber","errExpiry","errCvv","errEmail","errPhone"].forEach(k => setErr(k,""));
 
@@ -276,10 +276,39 @@ function initPayment(){
         localStorage.setItem("lastPayment", JSON.stringify(txn));
 
         previewStatus.textContent = status;
-        byId("payNotice").innerHTML = `Payment <b>${status}</b>. Receipt generated.`;
+        byId("payNotice").innerHTML = `Payment <b>${status}</b>. Saving to database...`;
 
-        // Navigate to receipt
-        window.location.href = "receipt.html";
+        try {
+            const response = await fetch("http://localhost:8080/api/payments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    orderId: parseInt(data.orderId.replace(/\D/g, "")),
+                    subtotalLkr: data.base,
+                    addonsLkr: data.addons,
+                    shippingLkr: data.shipping,
+                    taxLkr: data.tax,
+                    discountLkr: data.totalDiscount,
+                    totalAmountLkr: data.total,
+                    method: method,
+                    status: status
+                })
+            });
+
+
+            byId("payNotice").innerHTML = `Payment <b>${status}</b>. Saved to database ✅`;
+
+            // ✅ MOVE redirect INSIDE success
+            setTimeout(() => {
+                window.location.href = "receipt.html";
+            }, 1000);
+
+        } catch (error) {
+            console.log("DB Error:", error);
+            byId("payNotice").innerHTML = `Payment saved locally but DB failed ❌`;
+        }
     });
 }
 

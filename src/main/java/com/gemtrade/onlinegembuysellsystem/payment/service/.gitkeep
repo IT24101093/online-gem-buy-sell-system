@@ -1,0 +1,52 @@
+package com.gemtrade.onlinegembuysellsystem.payment.service;
+
+import com.gemtrade.onlinegembuysellsystem.payment.dto.CreatePaymentRequest;
+import com.gemtrade.onlinegembuysellsystem.payment.entity.PaymentTransaction;
+import com.gemtrade.onlinegembuysellsystem.payment.enums.PaymentMethod;
+import com.gemtrade.onlinegembuysellsystem.payment.enums.PaymentStatus;
+import com.gemtrade.onlinegembuysellsystem.payment.repository.PaymentTransactionRepository;
+
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@Service
+public class PaymentService {
+
+    private final PaymentTransactionRepository repo;
+
+    public PaymentService(PaymentTransactionRepository repo) {
+        this.repo = repo;
+    }
+
+    public PaymentTransaction process(CreatePaymentRequest req) {
+
+        BigDecimal total = req.getSubtotalLkr()
+                .add(req.getTaxLkr())
+                .subtract(req.getDiscountLkr());
+
+        PaymentTransaction payment = new PaymentTransaction();
+
+        payment.setOrderId(req.getOrderId());
+        payment.setSubtotalLkr(req.getSubtotalLkr());
+        payment.setTaxLkr(req.getTaxLkr());
+        payment.setDiscountLkr(req.getDiscountLkr());
+        payment.setTotalAmountLkr(total);
+
+        payment.setMethod(PaymentMethod.CARD);
+        payment.setGatewayName("MOCK_GATEWAY");
+
+        if (req.getCardNumber() != null && req.getCardNumber().length() == 16) {
+            payment.setStatus(PaymentStatus.SUCCESS);
+            payment.setGatewayTxnId("TXN-" + UUID.randomUUID());
+            payment.setCardLast4(req.getCardNumber().substring(12));
+        } else {
+            payment.setStatus(PaymentStatus.FAILED);
+        }
+
+        payment.setCardHolderName(req.getCardHolderName());
+
+        return repo.save(payment);
+    }
+}

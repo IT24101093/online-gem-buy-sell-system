@@ -151,5 +151,43 @@
         set("uiAmount", (txn.amount != null) ? `LKR ${Number(txn.amount).toFixed(2)}` : "LKR 0.00");
     }
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const raw = localStorage.getItem("lastPayment");
+
+        if (!raw) {
+            alert("No payment found ❌");
+            return;
+        }
+
+        const txn = JSON.parse(raw);
+
+        console.log("Receipt Data:", txn);
+
+        const ok = txn.status === "SUCCESS";
+
+        document.getElementById("rTitle").textContent =
+            ok ? "Payment Successful" : "Payment Failed";
+
+        document.getElementById("rSub").textContent =
+            ok ? "Thank you. Your transaction is recorded."
+                : "Please retry your payment.";
+
+        document.getElementById("rBadge").textContent = txn.status;
+
+        document.getElementById("rPaymentId").textContent = txn.paymentId;
+        document.getElementById("rOrderId").textContent = txn.orderId;
+        document.getElementById("rMethod").textContent = txn.method;
+        document.getElementById("rAmount").textContent =
+            `LKR ${Number(txn.amount).toFixed(2)}`;
+
+        document.getElementById("rTime").textContent =
+            new Date(txn.createdAt).toLocaleString();
+
+    });
+</script>
+
 </body>
 </html>
