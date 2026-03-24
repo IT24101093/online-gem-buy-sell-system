@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * JewelleryItem – admin-managed jewellery listing.
- * Maps to the jewellery_item table added in V3__marketplace_jewellery.sql.
+ * Maps to the jewellery_item table added in V2__marketplace_jewellery.sql.
  * Suitable gem categories are stored in a separate child table (jewellery_gem_category).
  */
 @Entity
@@ -65,6 +65,12 @@ public class JewelleryItem {
     @OneToMany(mappedBy = "jewelleryItem", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<JewelleryGemCategory> gemCategories = new ArrayList<>();
+
+    @PrePersist
+    public void onPersist() {
+        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
+        if (this.updatedAt == null) this.updatedAt = LocalDateTime.now();
+    }
 
     @PreUpdate
     public void onUpdate() {

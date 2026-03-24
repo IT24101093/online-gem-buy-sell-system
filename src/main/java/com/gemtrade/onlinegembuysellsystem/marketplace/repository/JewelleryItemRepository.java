@@ -19,6 +19,6 @@ public interface JewelleryItemRepository extends JpaRepository<JewelleryItem, Lo
 
     /** Filter by jewellery type (e.g. "Ring"). */
     @Query("SELECT DISTINCT j FROM JewelleryItem j LEFT JOIN FETCH j.gemCategories " +
-           "WHERE LOWER(j.jewelleryType) = LOWER(:type)")
+            "WHERE LOWER(j.jewelleryType) = LOWER(:type)")
     List<JewelleryItem> findByTypeFetched(@Param("type") String type);
 }

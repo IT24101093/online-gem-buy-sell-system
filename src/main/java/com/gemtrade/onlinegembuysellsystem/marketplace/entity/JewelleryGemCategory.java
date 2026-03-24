@@ -5,7 +5,7 @@ import lombok.*;
 
 /**
  * JewelleryGemCategory – one gem category suitable for a JewelleryItem.
- * Maps to the jewellery_gem_category table added in V3__marketplace_jewellery.sql.
+ * Maps to the jewellery_gem_category table added in V2__marketplace_jewellery.sql.
  * Examples: "Sapphire", "Ruby", "Emerald"
  */
 @Entity
