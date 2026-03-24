@@ -1,8 +1,16 @@
+// =====================================================================
+// marketplace_admin.js
+// Marketplace Admin – gem listing management.
+//
+// All browser dialog calls (alert / confirm / prompt) have been removed
+// and replaced with custom in-page modals & a toast notification.
+// =====================================================================
+
 const ADMIN_MARKETPLACE_API_BASE = '/api/admin/marketplace';
 
 // Original demo data kept for UI richness
 const demoInventoryItems = [
-    { draftId: -501, gemstoneName: "Natural Padparadscha Sapphire", spec: "1.25ct Oval", category: "Sapphire",mainImageUrl: "/gem-photos/image4.jpg" },
+    { draftId: -501, gemstoneName: "Natural Padparadscha Sapphire", spec: "1.25ct Oval", category: "Sapphire", mainImageUrl: "/gem-photos/image4.jpg" },
     { draftId: -502, gemstoneName: "Vivid Green Tsavorite", spec: "2.10ct Cushion", category: "Garnet" },
     // Blue Ceylon Sapphire restored as a permanent demo inventory item
     { draftId: -503, gemstoneName: "Blue Ceylon Sapphire", spec: "2.50ct Oval", category: "Sapphire" }
@@ -24,6 +32,23 @@ let marketItems = [];
 
 let activeGemId = null;
 
+// ── Toast notification (replaces alert) ────────────────────────────────────
+/**
+ * Shows a brief toast notification at the bottom-right of the screen.
+ * @param {string} message
+ * @param {'info'|'error'} type
+ */
+function admShowToast(message, type = 'info') {
+    const toast = document.getElementById('adm-toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? '#dc2626' : '#1e293b';
+    toast.classList.remove('hidden');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+// ── Render helpers ─────────────────────────────────────────────────────────
 function renderInventory() {
     const container = document.getElementById('inventory-inbox');
     container.innerHTML = inventoryItems.map(item => `
@@ -51,8 +76,8 @@ function renderMarketTable() {
             <td class="p-4 text-sm text-slate-500">${item.category}</td>
             <td class="p-4 font-mono text-green-600 font-bold">Rs. ${item.price.toLocaleString()}</td>
             <td class="p-4 flex gap-3">
-                <button class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition" onclick="openEditPrice(${item.listingId})"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button class="p-2 hover:bg-red-50 text-red-500 rounded-lg transition" onclick="deleteListing(${item.listingId})"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition" onclick="openEditPrice(${item.listingId})" title="Edit price"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                <button class="p-2 hover:bg-red-50 text-red-500 rounded-lg transition" onclick="deleteListing(${item.listingId})" title="Delete listing"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             </td>
         </tr>
         `;
@@ -70,6 +95,7 @@ function saveDemoMarketItemsToStorage() {
     }
 }
 
+// ── Publish (Prepare Listing) modal ──────────────────────────────────────
 function openModal(id) {
     activeGemId = id;
     const gem = inventoryItems.find(g => g.draftId === id);
@@ -78,11 +104,61 @@ function openModal(id) {
     document.getElementById('price-modal').classList.remove('hidden');
 }
 
-function closeModal() { document.getElementById('price-modal').classList.add('hidden'); }
+function closeModal() {
+    document.getElementById('price-modal').classList.add('hidden');
+    const varList = document.getElementById('admin-variant-list');
+    if (varList) varList.innerHTML = '';
+}
+
+// ── Feature 3: Dynamic carat variant rows in the Prepare Listing modal ──
+/**
+ * Adds a new carat + price input row to the admin-variant-list container.
+ */
+function addVariantRow() {
+    const container = document.getElementById('admin-variant-list');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = 'variant-row flex items-center gap-2 animate__animated animate__fadeIn';
+    row.innerHTML = `
+        <input
+            type="number"
+            step="0.01"
+            min="0.01"
+            placeholder="Carats (e.g.1.5)"
+            class="flex-1 p-2 bg-slate-100 rounded-lg text-sm outline-none"
+        >
+        <input
+            type="number"
+            step="1"
+            min="1"
+            placeholder="Price (LKR)"
+            class="flex-1 p-2 bg-slate-100 rounded-lg text-sm outline-none"
+        >
+        <button
+            type="button"
+            onclick="removeVariantRow(this)"
+            class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+            title="Remove variant">
+            <i data-lucide="x" class="w-3 h-3"></i>
+        </button>
+    `;
+    container.appendChild(row);
+    lucide.createIcons();
+}
+
+/** Removes the variant row that contains the given remove button. */
+function removeVariantRow(btn) {
+    const row = btn.closest('div');
+    if (row) row.remove();
+}
 
 function confirmPublish() {
     const price = document.getElementById('market-price').value;
-    if(!price) return alert("Please enter a price");
+    if (!price) {
+        admShowToast('Please enter a price before publishing.', 'error');
+        return;
+    }
 
     if (!activeGemId) return;
 
@@ -93,7 +169,7 @@ function confirmPublish() {
 
         const numericPrice = Number(price);
         if (Number.isNaN(numericPrice) || numericPrice <= 0) {
-            alert('Please enter a valid price');
+            admShowToast('Please enter a valid price greater than 0.', 'error');
             return;
         }
 
@@ -119,25 +195,26 @@ function confirmPublish() {
 
     const url = `${ADMIN_MARKETPLACE_API_BASE}/publish/${activeGemId}?price=${encodeURIComponent(price)}`;
     fetch(url, {
-        method: 'POST'
+        method: 'POST',
     }).then(res => {
+
         if (!res.ok) {
-            alert('Failed to publish listing');
+            admShowToast('Failed to publish listing. Please try again.', 'error');
             return;
         }
         return res.text();
     }).then(() => {
-        // Refresh both lists from backend
         loadPendingDrafts();
         loadActiveListings();
         document.getElementById('market-price').value = '';
         closeModal();
     }).catch(err => {
         console.error('Error publishing listing', err);
-        alert('An error occurred while publishing listing');
+        admShowToast('An error occurred while publishing the listing.', 'error');
     });
 }
 
+// ── List loaders ───────────────────────────────────────────────────────────
 function loadPendingDrafts() {
     fetch(`${ADMIN_MARKETPLACE_API_BASE}/pending`)
         .then(res => res.json())
@@ -157,16 +234,12 @@ function loadActiveListings() {
         .then(data => {
             const backendItems = Array.isArray(data) ? data : [];
 
-            // Always include original demo items like Teal Sapphire,
-            // but also apply any changes saved in localStorage.
             let persistedDemo = [];
             try {
                 const raw = window.localStorage.getItem('jayagems_admin_demo_market_items');
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed)) {
-                        persistedDemo = parsed;
-                    }
+                    if (Array.isArray(parsed)) persistedDemo = parsed;
                 }
             } catch (e) {
                 console.error('Failed to read admin demo market items from storage', e);
@@ -185,48 +258,111 @@ function loadActiveListings() {
         });
 }
 
+// ── Edit Price (custom modal replaces prompt) ──────────────────────────────
+
+/** ID of the listing currently being edited. */
+let _editPriceId = null;
+
+/** Opens the custom Edit Price modal for the given listing. */
 function openEditPrice(listingId) {
     const item = marketItems.find(m => m.listingId === listingId);
     if (!item) return;
 
-    const current = Number(item.price) || 0;
-    const entered = prompt('Enter new price (LKR)', current);
-    if (entered === null || entered === '') return;
+    _editPriceId = listingId;
 
-    const newPrice = Number(entered);
+    // Pre-fill the modal
+    document.getElementById('edit-price-label').textContent =
+        `Updating price for: ${item.name}`;
+    document.getElementById('edit-price-input').value = Number(item.price) || '';
+    document.getElementById('edit-price-error').classList.add('hidden');
+    document.getElementById('edit-price-modal').classList.remove('hidden');
+    // Focus the input for keyboard convenience
+    setTimeout(() => document.getElementById('edit-price-input').focus(), 80);
+}
+
+/** Closes the Edit Price modal without saving. */
+function closeEditPriceModal() {
+    document.getElementById('edit-price-modal').classList.add('hidden');
+    _editPriceId = null;
+}
+
+/** Called when the user clicks "Save Price" inside the modal. */
+function submitEditPrice() {
+    const input = document.getElementById('edit-price-input');
+    const errEl = document.getElementById('edit-price-error');
+    const newPrice = Number(input.value);
+
     if (Number.isNaN(newPrice) || newPrice <= 0) {
-        alert('Please enter a valid price');
+        errEl.classList.remove('hidden');
+        input.focus();
         return;
     }
+    errEl.classList.add('hidden');
 
-    // Demo items: update only on frontend
+    const listingId = _editPriceId;
+    closeEditPriceModal();
+
+    // Demo items: update on the frontend only
     if (listingId < 0) {
-        item.price = newPrice;
-        renderMarketTable();
+        const item = marketItems.find(m => m.listingId === listingId);
+        if (item) {
+            item.price = newPrice;
+            renderMarketTable();
+        }
         return;
     }
 
+    // Real backend items: PATCH the price via API
     fetch(`${ADMIN_MARKETPLACE_API_BASE}/listings/${listingId}/price?price=${encodeURIComponent(newPrice)}`, {
         method: 'PATCH'
     })
         .then(res => {
             if (!res.ok) {
-                alert('Failed to update price');
+                admShowToast('Failed to update price. Please try again.', 'error');
                 return;
             }
             loadActiveListings();
+            admShowToast('Price updated successfully.');
         })
         .catch(err => {
             console.error('Error updating price', err);
-            alert('An error occurred while updating price');
+            admShowToast('An error occurred while updating the price.', 'error');
         });
 }
 
-function deleteListing(listingId) {
-    const confirmed = confirm('Are you sure you want to delete this listing?');
-    if (!confirmed) return;
+// Close edit-price modal on backdrop click
+document.addEventListener('click', e => {
+    if (e.target === document.getElementById('edit-price-modal')) closeEditPriceModal();
+});
 
-    // Demo items: delete only on frontend
+// ── Delete Listing (custom modal replaces confirm) ─────────────────────────
+
+/** ID of the listing pending deletion. */
+let _deleteListingId = null;
+
+/** Opens the custom Confirm Delete modal for the given listing. */
+function deleteListing(listingId) {
+    const item = marketItems.find(m => m.listingId === listingId);
+    if (!item) return;
+
+    _deleteListingId = listingId;
+    document.getElementById('confirm-delete-label').textContent =
+        `"${item.name}" will be permanently removed from the marketplace. This cannot be undone.`;
+    document.getElementById('confirm-delete-modal').classList.remove('hidden');
+}
+
+/** Closes the Confirm Delete modal without deleting. */
+function closeDeleteModal() {
+    document.getElementById('confirm-delete-modal').classList.add('hidden');
+    _deleteListingId = null;
+}
+
+/** Called when the user confirms deletion inside the modal. */
+function confirmDeleteListing() {
+    const listingId = _deleteListingId;
+    closeDeleteModal();
+
+    // Demo items: delete on the frontend only
     if (listingId < 0) {
         const idx = marketItems.findIndex(m => m.listingId === listingId);
         if (idx !== -1) {
@@ -236,21 +372,29 @@ function deleteListing(listingId) {
         return;
     }
 
+    // Real backend items: DELETE via API
     fetch(`${ADMIN_MARKETPLACE_API_BASE}/listings/${listingId}`, {
         method: 'DELETE'
     })
         .then(res => {
             if (!res.ok) {
-                alert('Failed to delete listing');
+                admShowToast('Failed to delete listing. Please try again.', 'error');
                 return;
             }
             loadActiveListings();
+            admShowToast('Listing deleted successfully.');
         })
         .catch(err => {
             console.error('Error deleting listing', err);
-            alert('An error occurred while deleting listing');
+            admShowToast('An error occurred while deleting the listing.', 'error');
         });
 }
 
+// Close confirm-delete modal on backdrop click
+document.addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-delete-modal')) closeDeleteModal();
+});
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────
 loadPendingDrafts();
 loadActiveListings();

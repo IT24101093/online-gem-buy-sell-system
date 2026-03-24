@@ -54,7 +54,7 @@
 
 .gold-gradient-btn {
     background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-    transition: opacity 0.3s;
+    transition: opacity 0.3s
 }
 
 .gold-gradient-btn:hover {

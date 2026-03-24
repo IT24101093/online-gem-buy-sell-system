@@ -1,25 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | JayaGems Marketplace</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="marketplace_admin.css">
     <style>
-        .gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #f1d592 100%); }
-        .sidebar-link:hover { background: rgba(212, 175, 55, 0.1); border-left: 4px solid #d4af37; }
+        /* ── Custom modals – no browser dialogs ── */
+        .adm-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .55);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+
+        .adm-modal-box {
+            background: #fff;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-width: 26rem;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+            animation: zoomIn .18s ease;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(.92);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ── Admin toast ── */
+        #adm-toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: #1e293b;
+            color: #fff;
+            padding: .65rem 1.25rem;
+            border-radius: .75rem;
+            font-size: .85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .25);
+            transition: opacity .3s;
+            z-index: 10000;
+        }
+
+        #adm-toast.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
+
 <body class="bg-slate-100 flex">
 
 <aside class="w-64 h-screen bg-slate-900 text-white p-6 sticky top-0 hidden md:block">
     <div class="mb-10 text-xl font-bold tracking-widest text-amber-400">JAYAGEMS</div>
     <nav class="space-y-4">
-        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-amber-400"><i data-lucide="layout-dashboard"></i> Marketplace</div>
-        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"><i data-lucide="package"></i> Inventory Logs</div>
-        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"><i data-lucide="users"></i> Customers</div>
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-amber-400"><i
+                data-lucide="layout-dashboard"></i> Marketplace</div>
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"><i
+                data-lucide="package"></i> Inventory Logs</div>
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"><i
+                data-lucide="users"></i> Customers</div>
+        <!-- NEW: Jewellery Management link -->
+        <div class="sidebar-link p-3 rounded cursor-pointer flex items-center gap-3 text-slate-400"
+             onclick="window.location='jewellery_admin.html'">
+            <i data-lucide="gem"></i> Jewellery
+        </div>
     </nav>
 </aside>
 
@@ -62,17 +126,89 @@
     </div>
 </main>
 
-<div id="price-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-8 max-w-md w-full animate__animated animate__zoomIn">
+<div id="price-modal"
+     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div
+            class="bg-white rounded-3xl p-8 max-w-md w-full animate__animated animate__zoomIn overflow-y-auto max-h-[90vh]">
         <h2 class="text-2xl font-bold mb-2">Publish to Market</h2>
         <p id="modal-gem-desc" class="text-slate-500 mb-6 text-sm">Reviewing details from inventory...</p>
 
         <label class="block text-sm font-bold mb-2">Listing Price (LKR)</label>
-        <input type="number" id="market-price" class="w-full p-4 bg-slate-100 rounded-xl mb-6 outline-none focus:ring-2 focus:ring-amber-500" placeholder="0.00">
+        <input type="number" id="market-price"
+               class="w-full p-4 bg-slate-100 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-amber-500"
+               placeholder="0.00">
+
+        <!-- NEW: Carat Variants Section (Feature 3) -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <label class="block text-sm font-bold text-slate-700">Carat Variants <span
+                        class="font-normal text-slate-400">(optional)</span></label>
+                <button type="button" onclick="addVariantRow()"
+                        class="flex items-center gap-1 text-xs font-bold text-amber-600 hover:text-amber-700 transition">
+                    <i data-lucide="plus-circle" class="w-3 h-3"></i> Add Variant
+                </button>
+            </div>
+            <!-- Variant rows are dynamically injected here -->
+            <div id="admin-variant-list" class="space-y-2"></div>
+            <p class="text-xs text-slate-400 mt-2">Add carat-wise pricing options. Leave empty to use the single
+                price above.</p>
+        </div>
+        <!-- /Carat Variants -->
 
         <div class="flex gap-3">
             <button onclick="closeModal()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">Discard</button>
-            <button onclick="confirmPublish()" class="flex-1 py-3 gold-gradient text-white rounded-xl font-bold shadow-lg shadow-amber-200">Publish Listing</button>
+            <button onclick="confirmPublish()"
+                    class="flex-1 py-3 gold-gradient-btn text-white rounded-xl font-bold shadow-lg shadow-amber-200">Publish
+                Listing</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== Custom Toast ===== -->
+<div id="adm-toast" class="hidden"></div>
+
+<!-- ===== Edit Price Modal (replaces browser prompt) ===== -->
+<div id="edit-price-modal" class="adm-modal-backdrop hidden">
+    <div class="adm-modal-box">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-slate-800">Edit Gem Price</h2>
+            <button onclick="closeEditPriceModal()" class="text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <p id="edit-price-label" class="text-sm text-slate-500 mb-4">Updating price for selected gem.</p>
+        <label class="block text-sm font-bold mb-2 text-slate-700">New Price (LKR)</label>
+        <input type="number" id="edit-price-input" min="1" step="1" placeholder="e.g. 1250000"
+               class="w-full p-3 bg-slate-100 rounded-xl mb-1 outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+        <p id="edit-price-error" class="text-xs text-red-500 mb-4 hidden">Please enter a valid price greater than 0.
+        </p>
+        <div class="flex gap-3 mt-4">
+            <button onclick="closeEditPriceModal()"
+                    class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+            <button onclick="submitEditPrice()"
+                    class="flex-1 py-3 gold-gradient-btn text-white rounded-xl font-bold shadow-lg shadow-amber-200 hover:opacity-90 transition">Save
+                Price</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Confirm Delete Modal (replaces browser confirm) ===== -->
+<div id="confirm-delete-modal" class="adm-modal-backdrop hidden">
+    <div class="adm-modal-box">
+        <div class="flex items-center gap-3 mb-4">
+                <span class="p-2 bg-red-100 rounded-xl">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                </span>
+            <h2 class="text-xl font-bold text-slate-800">Delete Listing?</h2>
+        </div>
+        <p id="confirm-delete-label" class="text-sm text-slate-500 mb-6">This action cannot be undone. The gem
+            listing will be permanently removed.</p>
+        <div class="flex gap-3">
+            <button onclick="closeDeleteModal()"
+                    class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+            <button onclick="confirmDeleteListing()"
+                    class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition">Delete</button>
         </div>
     </div>
 </div>
@@ -80,4 +216,5 @@
 <script src="marketplace_admin.js"></script>
 <script>lucide.createIcons();</script>
 </body>
+
 </html>
