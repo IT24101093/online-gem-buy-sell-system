@@ -1,65 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JayaGems | Exclusive Gemstone Collection</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .font-serif { font-family: 'Playfair Display', serif; }
-        .gem-card:hover img { transform: scale(1.08); }
-        .gold-border { border-bottom: 2px solid #d4af37; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .gem-card:hover img {
+            transform: scale(1.08);
+        }
+
+        .gold-border {
+            border-bottom: 2px solid #d4af37;
+        }
+
+        /* ─── Left Filter Panel ─────────────────────────────────── */
+        /* NEW: sticky sidebar that stays put while gem grid scrolls  */
+        #filter-panel {
+            width: 240px;
+            flex-shrink: 0;
+        }
+
+        /* Thin scrollbar inside left panel on smaller viewports */
+        #filter-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #filter-panel::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        /* Filter section label */
+        .filter-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        /* Mobile: slide-in filter panel toggle */
+        #filter-toggle-btn {
+            display: none;
+        }
+
+        @media (max-width: 767px) {
+            #filter-toggle-btn {
+                display: flex;
+            }
+
+            #filter-panel {
+                position: fixed;
+                top: 0;
+                left: -260px;
+                height: 100vh;
+                width: 240px;
+                z-index: 100;
+                background: white;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
+                overflow-y: auto;
+                transition: left 0.3s ease;
+                padding: 24px 20px;
+            }
+
+            #filter-panel.open {
+                left: 0;
+            }
+
+            #filter-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 99;
+            }
+
+            #filter-overlay.open {
+                display: block;
+            }
+        }
     </style>
 </head>
+
 <body class="bg-white text-slate-900">
 
-<nav class="p-6 px-10 flex justify-between items-center border-b border-sky-200 sticky top-0 bg-sky-100/90 backdrop-blur-md z-50">
+<!-- ===== NAVBAR ===== -->
+<nav
+        class="p-6 px-10 flex justify-between items-center border-b border-sky-200 sticky top-0 bg-sky-100/90 backdrop-blur-md z-50">
     <div class="text-2xl font-serif font-bold tracking-widest text-blue-900">JAYAGEMS</div>
     <div class="hidden md:flex gap-10 text-xs font-bold uppercase tracking-widest text-slate-600">
         <a href="#" class="hover:text-amber-600 transition">Shop All</a>
         <a href="#" class="hover:text-amber-600 transition">Home</a>
+        <!-- NEW: Jewellery nav link -->
+        <a href="jewellery_user.html" class="hover:text-amber-600 transition">Jewellery</a>
         <a href="#" class="hover:text-amber-600 transition">Contact Us</a>
     </div>
     <div class="flex items-center gap-6">
+        <!-- Mobile filter toggle -->
+        <button id="filter-toggle-btn" onclick="toggleFilterPanel()"
+                class="flex items-center gap-1 mr-2 text-xs font-bold text-slate-600 md:hidden">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Filters
+        </button>
         <i data-lucide="search" class="w-5 h-5 cursor-pointer"></i>
         <div class="relative cursor-pointer">
             <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-            <span id="cart-count" class="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            <span id="cart-count"
+                  class="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
         </div>
     </div>
 </nav>
 
-<div class="max-w-7xl mx-auto p-10 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- Mobile filter overlay (backdrop) -->
+<div id="filter-overlay" onclick="toggleFilterPanel()"></div>
+
+<!-- ===== PAGE TITLE ===== -->
+<div class="max-w-7xl mx-auto px-10 pt-10 pb-4 flex items-center justify-between">
     <h2 class="text-3xl font-serif">Our Private Collection</h2>
-    <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-        <input
-                type="text"
-                id="user-search"
-                onkeyup="filterGems()"
-                placeholder="Search by gemstone name..."
-                class="flex-1 md:w-80 p-3 bg-slate-100 border-b-2 border-slate-300 outline-none focus:border-amber-500 focus:bg-slate-200 transition"
-        >
-        <div class="flex gap-3">
-            <select
-                    id="price-filter"
-                    onchange="filterGems()"
-                    class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide"
-            >
+
+    <!-- NEW: Gem Suggestion Button (Feature 4 – moved here from below) -->
+    <button id="suggestion-btn" onclick="openSuggestionModal()"
+            class="hidden md:flex items-center gap-2 px-5 py-2.5 bg-blue-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-blue-800 transition shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.527A3.001 3.001 0 0011 20H9a3 3 0 00-2.796-2.573l-.347-.527z" />
+        </svg>
+        Find the Perfect Gem
+    </button>
+</div>
+
+<!-- ===== MAIN CONTENT: LEFT FILTER + RIGHT GRID ===== -->
+<!--
+NEW LAYOUT: two-column flex layout.
+Left: #filter-panel (sticky sidebar with all filters)
+Right: #gem-market (existing gem grid – unchanged)
+-->
+<div class="max-w-7xl mx-auto px-10 pb-20 flex gap-8 items-start">
+
+    <!-- ═══════════════════════════════════════════════════════
+     LEFT FILTER PANEL
+     – All filter controls moved here from the old top bar
+     – IDs are unchanged so filterGems() in marketplace_user.js
+       works with zero modification
+     ═══════════════════════════════════════════════════════ -->
+    <aside id="filter-panel" class="hidden md:block sticky top-24">
+
+        <!-- Panel Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-widest">Filters</h3>
+            <button onclick="resetFilters()"
+                    class="text-xs text-amber-600 font-bold hover:text-amber-700 transition">Reset</button>
+        </div>
+
+        <!-- 1. Search -->
+        <div class="mb-5">
+            <label class="filter-label" for="user-search">Search</label>
+            <input type="text" id="user-search" onkeyup="filterGems()" placeholder="Gem name..."
+                   class="w-full p-3 bg-slate-100 border-b-2 border-slate-300 outline-none focus:border-amber-500 focus:bg-slate-50 transition text-sm">
+        </div>
+
+        <!-- 2. Price Range -->
+        <div class="mb-5">
+            <label class="filter-label" for="price-filter">Price Range</label>
+            <select id="price-filter" onchange="filterGems()"
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide focus:ring-2 focus:ring-amber-300 outline-none">
                 <option value="all">All Prices</option>
                 <option value="under_1m">Under Rs. 1,000,000</option>
-                <option value="1m_2m">Rs. 1,000,000 - 2,000,000</option>
-                <option value="2m_3m">Rs. 2,000,000 - 3,000,000</option>
+                <option value="1m_2m">Rs. 1M – 2M</option>
+                <option value="2m_3m">Rs. 2M – 3M</option>
                 <option value="above_3m">Above Rs. 3,000,000</option>
             </select>
-            <select
-                    id="color-filter"
-                    onchange="filterGems()"
-                    class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide"
-            >
+        </div>
+
+        <!-- 3. Colour -->
+        <div class="mb-5">
+            <label class="filter-label" for="color-filter">Colour</label>
+            <select id="color-filter" onchange="filterGems()"
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide focus:ring-2 focus:ring-amber-300 outline-none">
                 <option value="all">All Colours</option>
                 <option value="blue">Blue Tones</option>
                 <option value="yellow">Yellow / Golden</option>
@@ -67,12 +200,68 @@
                 <option value="green">Green / Teal</option>
             </select>
         </div>
-    </div>
+
+        <!-- 4. Carat Range (Feature 2) -->
+        <div class="mb-5">
+            <label class="filter-label" for="carat-filter">Carat Range</label>
+            <select id="carat-filter" onchange="filterGems()"
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide focus:ring-2 focus:ring-amber-300 outline-none">
+                <option value="all">All Carats</option>
+                <option value="lt1">&lt; 1 ct</option>
+                <option value="1to2">1 – 2 ct</option>
+                <option value="2to5">2 – 5 ct</option>
+                <option value="gt5">&gt; 5 ct</option>
+            </select>
+        </div>
+
+        <!-- 5. Country of Origin (Feature 2) -->
+        <div class="mb-6">
+            <label class="filter-label" for="origin-filter">Country of Origin</label>
+            <select id="origin-filter" onchange="filterGems()"
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide focus:ring-2 focus:ring-amber-300 outline-none">
+                <option value="all">All Origins</option>
+                <option value="Sri Lanka">Sri Lanka</option>
+                <option value="Myanmar">Myanmar</option>
+                <option value="Zambia">Zambia</option>
+                <option value="Madagascar">Madagascar</option>
+                <option value="Colombia">Colombia</option>
+                <option value="Tanzania">Tanzania</option>
+            </select>
+        </div>
+
+        <!-- Apply button -->
+        <button onclick="filterGems()"
+                class="w-full py-3 bg-blue-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition">
+            Apply Filters
+        </button>
+
+        <!-- Divider -->
+        <div class="border-t border-slate-100 mt-6 pt-5">
+            <!-- Suggestion button on mobile (inside panel) -->
+            <button onclick="openSuggestionModal(); toggleFilterPanel();"
+                    class="w-full py-2.5 flex items-center justify-center gap-2 border border-blue-900 text-blue-900 text-xs font-bold uppercase tracking-wide hover:bg-blue-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.527A3.001 3.001 0 0011 20H9a3 3 0 00-2.796-2.573l-.347-.527z" />
+                </svg>
+                Find the Perfect Gem
+            </button>
+        </div>
+    </aside>
+    <!-- /LEFT FILTER PANEL -->
+
+    <!-- ═══════════════════════════════════════════════════════
+     RIGHT: GEM GRID (unchanged – same ID, same classes)
+     ═══════════════════════════════════════════════════════ -->
+    <section id="gem-market" class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        <!-- Cards injected by marketplace_user.js – no change needed -->
+    </section>
+
 </div>
+<!-- /MAIN CONTENT -->
 
-<section id="gem-market" class="max-w-7xl mx-auto px-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 pb-20">
-</section>
-
+<!-- ===== FOOTER ===== -->
 <footer class="bg-slate-900 text-slate-100">
     <div class="max-w-7xl mx-auto px-10 py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
@@ -90,9 +279,7 @@
                 Email: hello@jayagems.lk<br>
                 WhatsApp: +94 77 000 0000
             </p>
-            <p class="text-xs text-slate-400 mt-3">
-                Monday – Saturday: 10.00 AM – 6.00 PM (IST)
-            </p>
+            <p class="text-xs text-slate-400 mt-3">Monday – Saturday: 10.00 AM – 6.00 PM (IST)</p>
         </div>
         <div>
             <h3 class="font-serif text-xl mb-3">Why JayaGems</h3>
@@ -105,11 +292,14 @@
     </div>
 </footer>
 
-<!-- Gem Details Modal -->
-<div id="gem-details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate__animated animate__fadeIn">
+<!-- ===== GEM DETAILS MODAL (unchanged) ===== -->
+<div id="gem-details-modal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div
+            class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate__animated animate__fadeIn">
         <div class="p-8">
-            <button onclick="closeGemDetails()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition">
+            <button onclick="closeGemDetails()"
+                    class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
             <div id="gem-details-content"></div>
@@ -117,13 +307,148 @@
     </div>
 </div>
 
-<!-- Add to Cart Toast -->
-<div id="cart-toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-300 z-[60] font-semibold">
+<!-- ===== GEM SUGGESTION MODAL (unchanged – Feature 4) ===== -->
+<div id="suggestion-modal"
+     class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
+    <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-y-auto animate__animated animate__fadeInUp">
+        <!-- Modal Header -->
+        <div
+                class="sticky top-0 bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center z-10">
+            <div>
+                <h2 class="font-serif text-2xl text-slate-800 font-bold">Find the Perfect Gem</h2>
+                <p class="text-slate-500 text-sm">Tell us about your jewellery — we'll suggest the best gemstones.
+                </p>
+            </div>
+            <button onclick="closeSuggestionModal()" class="text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="p-8">
+            <!-- Input Form Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+                <!-- Jewellery Image Upload -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Jewellery
+                        Image</label>
+                    <div class="flex items-start gap-5">
+                        <label for="sug-image-input"
+                               class="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-amber-400 transition bg-slate-50 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-300 mb-1" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            <span class="text-[10px] text-slate-400 text-center leading-tight">Click to
+                                    upload</span>
+                            <input type="file" id="sug-image-input" accept="image/*" class="hidden"
+                                   onchange="previewSuggestionImage(event)">
+                        </label>
+                        <img id="sug-image-preview" src="" alt="Preview"
+                             class="hidden w-32 h-32 object-cover rounded-xl border-2 border-slate-200 shadow">
+                    </div>
+                </div>
+
+                <!-- Jewellery Type -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Jewellery
+                        Type</label>
+                    <select id="sug-jewellery-type"
+                            class="w-full p-3 bg-slate-100 border-b-2 border-slate-300 outline-none focus:border-amber-500 transition text-sm">
+                        <option value="all">Any Type</option>
+                        <option value="Ring">Ring</option>
+                        <option value="Pendant">Pendant</option>
+                        <option value="Necklace">Necklace</option>
+                        <option value="Earrings">Earrings</option>
+                        <option value="Bracelet">Bracelet</option>
+                    </select>
+                </div>
+
+                <!-- Preferred Gem Colour -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Preferred
+                        Gem Colour</label>
+                    <select id="sug-color"
+                            class="w-full p-3 bg-slate-100 border-b-2 border-slate-300 outline-none focus:border-amber-500 transition text-sm">
+                        <option value="all">Any Colour</option>
+                        <option value="blue">Blue Tones</option>
+                        <option value="yellow">Yellow / Golden</option>
+                        <option value="pink">Pink / Peach</option>
+                        <option value="green">Green / Teal</option>
+                        <option value="red">Red / Vivid</option>
+                    </select>
+                </div>
+
+                <!-- Budget Range -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Budget
+                        Range</label>
+                    <select id="sug-budget"
+                            class="w-full p-3 bg-slate-100 border-b-2 border-slate-300 outline-none focus:border-amber-500 transition text-sm">
+                        <option value="all">Any Budget</option>
+                        <option value="under_1m">Under Rs. 1,000,000</option>
+                        <option value="1m_2m">Rs. 1M – 2M</option>
+                        <option value="2m_3m">Rs. 2M – 3M</option>
+                        <option value="above_3m">Above Rs. 3,000,000</option>
+                    </select>
+                </div>
+
+                <!-- Suggest Button -->
+                <div class="flex items-end">
+                    <button onclick="suggestGems()"
+                            class="w-full py-3 bg-blue-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-blue-800 transition">
+                        ✦ Suggest Gems
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div id="suggestion-results-header" class="hidden border-t border-slate-100 pt-6 mb-4">
+                <h3 class="font-serif text-xl text-slate-800">Recommended Gemstones</h3>
+                <p id="suggestion-results-count" class="text-sm text-slate-500"></p>
+            </div>
+            <div id="suggestion-results"
+                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            </div>
+            <p id="suggestion-no-results" class="hidden text-center text-slate-400 py-10 text-sm">
+                No gemstones are available for the selected preferences at the moment.
+                Please adjust your budget or explore other colour options.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ADD TO CART TOAST (unchanged) ===== -->
+<div id="cart-toast"
+     class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-300 z-[60] font-semibold">
     <i data-lucide="check-circle" class="w-5 h-5"></i>
     <span id="cart-toast-message">Added to cart</span>
 </div>
 
 <script src="marketplace_user.js"></script>
-<script>lucide.createIcons();</script>
+<script>
+    lucide.createIcons();
+
+    // ── NEW: Mobile filter panel toggle ──────────────────────────
+    function toggleFilterPanel() {
+        const panel = document.getElementById('filter-panel');
+        const overlay = document.getElementById('filter-overlay');
+        panel.classList.toggle('open');
+        overlay.classList.toggle('open');
+    }
+
+    // ── NEW: Reset all filters to defaults ───────────────────────
+    function resetFilters() {
+        document.getElementById('user-search').value = '';
+        document.getElementById('price-filter').value = 'all';
+        document.getElementById('color-filter').value = 'all';
+        document.getElementById('carat-filter').value = 'all';
+        document.getElementById('origin-filter').value = 'all';
+        filterGems();
+    }
+</script>
 </body>
+
 </html>
