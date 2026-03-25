@@ -50,4 +50,5 @@ public class PaymentService {
         }
         return (sum % 10 == 0);
     }
+
 }

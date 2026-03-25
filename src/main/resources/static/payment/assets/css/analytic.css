@@ -1,0 +1,16 @@
+/* Analytics Page Specific Enhancements */
+.total {
+    font-size: 28px;
+    font-weight: 800;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+}
+
+#incomeVal {
+    color: var(--gold2);
+    text-shadow: 0 4px 15px rgba(201, 162, 58, 0.3);
+}
+
+.card-body .total {
+    padding: 10px 0;
+}

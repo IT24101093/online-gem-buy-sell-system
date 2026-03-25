@@ -342,6 +342,7 @@ function initReceipt(){
             `INVOICE (Mock)\n\nPayment ID: ${txn.paymentId}\nOrder ID: ${txn.orderId}\nAmount: ${money(txn.amount)}\nStatus: ${txn.status}`
         );
     });
+
 }
 
 // ---------- Boot ----------
