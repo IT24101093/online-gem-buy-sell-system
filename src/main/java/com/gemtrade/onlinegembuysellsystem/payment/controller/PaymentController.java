@@ -5,6 +5,9 @@ import com.gemtrade.onlinegembuysellsystem.payment.service.PaymentService;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/payments")
 @CrossOrigin
@@ -21,6 +24,11 @@ public class PaymentController {
         // This ensures the data sent from app.js is actually passed to the service
         payment.setStatus("SUCCESS");
         return service.save(payment);
+    }
+
+    @GetMapping("/analytics/monthly")
+    public Map<String, BigDecimal> getReport(@RequestParam int month, @RequestParam int year) {
+        return service.getMonthlyReport(month, year);
     }
 
     @GetMapping("/{id}")

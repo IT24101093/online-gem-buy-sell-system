@@ -5,28 +5,36 @@ import com.gemtrade.onlinegembuysellsystem.payment.repository.PaymentTransaction
 
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
 
 
 @Service
 public class PaymentService {
 
-    private final PaymentTransactionRepository repo;
+    private final PaymentTransactionRepository repository;
 
-    public PaymentService(PaymentTransactionRepository repo) {
-        this.repo = repo;
+    public PaymentService(PaymentTransactionRepository repository) {
+        this.repository = repository;
     }
+
+    // ...Another methods (isValidLuhn etc.) ...
 
     public PaymentTransaction save(PaymentTransaction payment) {
 
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
 
-        return repo.save(payment);
+        return repository.save(payment);
     }
 
     public PaymentTransaction findById(Long id) {
-        return repo.findById(id).orElse(null);
+        return repository.findById(id).orElse(null);
     }
 
     public boolean isValidLuhn(String cardNumber) {
@@ -49,6 +57,27 @@ public class PaymentService {
             shouldDouble = !shouldDouble;
         }
         return (sum % 10 == 0);
+    }
+
+    public Map<String, BigDecimal> getMonthlyReport(int month, int year) {
+        // get the all payment records in each month
+        List<PaymentTransaction> transactions = repository.findAll();
+
+        BigDecimal income = transactions.stream()
+                .filter(p -> "SUCCESS".equals(p.getStatus()))
+                //filtering with date field
+                .map(PaymentTransaction::getTotalAmountLkr)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal loss = BigDecimal.ZERO; // still now the loss value is 0
+        BigDecimal balance = income.subtract(loss);
+
+        Map<String, BigDecimal> report = new HashMap<>();
+        report.put("income", income);
+        report.put("loss", loss);
+        report.put("balance", balance);
+
+        return report;
     }
 
 }

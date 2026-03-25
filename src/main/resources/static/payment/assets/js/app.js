@@ -1,4 +1,3 @@
-// ---------- Helpers ----------
 const money = (n) => `LKR ${Number(n).toFixed(2)}`;
 const byId = (id) => document.getElementById(id);
 
@@ -315,7 +314,7 @@ function initPayment(){
 // ---------- Receipt Page Logic ----------
 function initReceipt(){
     const rTitle = byId("rTitle");
-    if (!rTitle) return; // not on receipt page
+    if (!rTitle) return;
 
     const raw = localStorage.getItem("lastPayment");
     if (!raw){

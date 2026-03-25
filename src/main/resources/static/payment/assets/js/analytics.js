@@ -8,7 +8,7 @@ async function loadAnalytics() {
     }
 
     try {
-        const response = await fetch(`http://localhost:8080/api/payments/report?month=3&year=2026`);
+       const response = await fetch(`http://localhost:8080/api/payments/analytics/monthly?month=3&year=2026`);
         if (!response.ok) throw new Error("Offline");
 
         const data = await response.json();
