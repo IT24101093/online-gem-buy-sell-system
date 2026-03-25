@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Financial Overview | JayaGems Admin</title>
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -77,6 +78,50 @@
           <strong id="tabIncome">LKR 0.00</strong>
           <strong id="tabLoss" style="color: var(--danger);">LKR 0.00</strong>
           <strong id="tabBalance" style="color: var(--success);">LKR 0.00</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top: 30px; background: rgba(255,255,255,0.03);">
+    <div class="card-head">
+      <h2>Corporate Balance Sheet</h2>
+      <p class="sub">Financial position: Assets vs Liabilities & Capital</p><div class="card-body">
+      <div style="height: 250px; margin-bottom: 20px;">
+        <canvas id="balanceChart"></canvas>
+      </div>
+
+      <div class="summary"> ... </div>
+    </div>
+
+
+    </div>
+
+    <div class="card-body">
+      <div class="summary">
+        <div class="row group-header"><strong>Current Assets</strong></div>
+        <div class="row">
+          <span>Gem Inventory Value (from Showcase)</span>
+          <strong id="assetGems">LKR 0.00</strong>
+        </div>
+        <div class="row">
+          <span>Cash at Bank (Sales Revenue)</span>
+          <strong id="assetCash">LKR 0.00</strong>
+        </div>
+
+        <div class="row group-header" style="margin-top: 25px;"><strong>Liabilities & Capital</strong></div>
+        <div class="row">
+          <span>Owner's Capital (Initial Investment)</span>
+          <strong id="capitalVal">LKR 1,500,000.00</strong>
+        </div>
+        <div class="row">
+          <span>Purchasing Liabilities (to Ordering Dept)</span>
+          <strong id="liabilityOrders" style="color: var(--danger);">LKR 0.00</strong>
+        </div>
+
+        <div class="row" style="margin-top: 25px; border-top: 2px double var(--line); padding-top: 15px;">
+          <strong style="font-size: 1.1rem;">Total Assets Value (Insurance Base)</strong>
+          <strong id="totalAssets" style="color: var(--success); font-size: 1.2rem;">LKR 0.00</strong>
         </div>
       </div>
     </div>
