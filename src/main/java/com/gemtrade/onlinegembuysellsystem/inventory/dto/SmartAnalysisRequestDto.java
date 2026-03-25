@@ -2,7 +2,9 @@ package com.gemtrade.onlinegembuysellsystem.inventory.dto;
 
 import lombok.Data;
 
+
 import java.math.BigDecimal;
+
 
 @Data
 public class SmartAnalysisRequestDto {
@@ -34,4 +36,9 @@ public class SmartAnalysisRequestDto {
     private BigDecimal widthMm;
     private BigDecimal depthMm;
     private BigDecimal manualWeightCt; // optional (if toggle ON)
+
+    // ---> ADD THESE 3 NEW FIELDS <---
+    private String colorGrade;
+    private String clarityGrade;
+    private String cutGrade;
 }

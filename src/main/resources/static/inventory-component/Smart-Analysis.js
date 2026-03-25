@@ -1,157 +1,80 @@
-
-
-
-// ------------------------------
-// Inventory localStorage (shared with inventory/add-gem)
-// ------------------------------
-const INVENTORY_STORAGE_KEY = "gemvault_inventory";
-
-function loadInventory() {
-  try {
-    const raw = localStorage.getItem(INVENTORY_STORAGE_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveInventory(items) {
-  localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(items));
-}
-
-function addToInventory(item) {
-  const items = loadInventory();
-  items.unshift(item);
-  saveInventory(items);
-}
-
-
-
-// ------------------------------
-// Vendor validation helpers (Sri Lanka-friendly)
-// ------------------------------
+// ===============================
+// 1) Vendor validation helpers (Sri Lanka-friendly)
+// ===============================
 function normalizeNic(nic) {
   return String(nic || "").trim().toUpperCase().replace(/\s+/g, "");
 }
 function isValidSriLankaNIC(nic) {
   const x = normalizeNic(nic);
-  // Old NIC: 9 digits + V/X  (e.g., 123456789V)
-  // New NIC: 12 digits       (e.g., 200012345678)
   return /^\d{9}[VX]$/.test(x) || /^\d{12}$/.test(x);
 }
 function normalizePhone(phone) {
-  // Keep digits and leading +
   let p = String(phone || "").trim().replace(/[^\d+]/g, "");
-  // Convert 0094... to +94...
   if (p.startsWith("0094")) p = "+94" + p.slice(4);
-  // Convert 94XXXXXXXXX to +94XXXXXXXXX (if user forgets +)
   if (/^94\d{9}$/.test(p)) p = "+".concat(p);
   return p;
 }
 function isValidSriLankaPhone(phone) {
   const p = normalizePhone(phone);
-  // Accept:
-  // 0XXXXXXXXX (10 digits starting 0)
-  // +94XXXXXXXXX (9 digits after +94)
   return /^0\d{9}$/.test(p) || /^\+94\d{9}$/.test(p);
 }
 function isReasonableName(name) {
   const n = String(name || "").trim();
   if (n.length < 3) return false;
-  // allow letters, spaces, dots, hyphen (basic)
   return /^[A-Za-z.\- ]+$/.test(n);
 }
 
 // ===============================
-// 0) Backend endpoints (edit later)
+// 2) Backend Endpoints (Spring Boot)
 // ===============================
-const API_BASE = ""; // e.g. "http://localhost:8080"
+const API_BASE = "http://localhost:8080";
 const ENDPOINTS = {
-  analyze: "/api/gem/analyze",
-  // identify endpoint optional; current UI already simulates identify in simulateOpenCV()
-};
-
-// If backend isn't running, keep the UI usable (demo-only).
-const DEMO_FALLBACK = true;
-
-// ===============================
-// 1) Small reference data (demo)
-// (In real backend, these come from MySQL)
-// ===============================
-const GEM_DB = {
-  Diamond: { sg: 3.52, base: 2000 },
-  Ruby: { sg: 4.00, base: 800 },
-  Sapphire: { sg: 4.00, base: 500 },
-  Emerald: { sg: 2.72, base: 700 },
-  Quartz: { sg: 2.65, base: 100 },
-  Topaz: { sg: 3.50, base: 600 },
-};
-
-const SHAPE_FACTOR = {
-  Round: 0.0018,
-  Oval: 0.0020,
-  Emerald: 0.0024,
-  Pear: 0.00175,
-  Marquise: 0.0016,
-};
-
-const YIELD = {
-  Emerald: 0.60,
-  Oval: 0.45,
-  Round: 0.35,
-};
-
-// Multipliers (demo). Backend should store these in DB.
-const MULT = {
-  color: { Vivid: 1.5, Medium: 1.0, Light: 0.8 },
-  clarity: { IF: 1.5, VVS: 1.3, VS: 1.1, SI: 0.9, I: 0.7 },
-  cut: { "Excellent": 1.2, "Very Good": 1.1, Good: 1.0, Fair: 0.8 },
+  detect: "/api/inventory/analysis/detect",
+  run: "/api/inventory/analysis/run",
+  save: "/api/inventory/analysis/save"
 };
 
 // ===============================
-// 2) State
+// 3) State & UI Helpers
 // ===============================
 const currentAnalysisResult = {
-  type: null, // detected stone type
-  imageDataUrl: "", // uploaded image (data URL)
+  type: null,
+  imageDataUrl: "",
   predictedRoughWeight: null,
   sgUsed: null,
-  cuts: null,
+  cuts: [],
   recommendedCut: null,
   warnings: [],
 };
 
+const GEM_TYPES = ["Diamond", "Ruby", "Sapphire", "Emerald", "Quartz", "Topaz", "Spinel", "Garnet", "Tourmaline", "Amethyst", "Citrine"];
+
 function populateGemTypeDropdown() {
-  const select = $("confirmedGemType");
+  const select = document.getElementById("confirmedGemType");
   if (!select) return;
 
   const currentValue = select.value;
-  const gemTypes = Object.keys(GEM_DB);
-
   select.innerHTML = '<option value="">Select gem type</option>';
-  gemTypes.forEach((type) => {
+
+  GEM_TYPES.forEach((type) => {
     const option = document.createElement("option");
     option.value = type;
     option.textContent = type;
     select.appendChild(option);
   });
 
-  if (currentValue && gemTypes.includes(currentValue)) {
+  if (currentValue && GEM_TYPES.includes(currentValue)) {
     select.value = currentValue;
   }
 }
 
 function getConfirmedGemType() {
-  const confirmed = $("confirmedGemType")?.value || "";
+  const confirmed = document.getElementById("confirmedGemType")?.value || "";
   return confirmed || currentAnalysisResult.type || "";
 }
 
 let selectedCut = null;
 
-// ===============================
-// 3) Helpers
-// ===============================
 const $ = (id) => document.getElementById(id);
 
 function setText(id, txt) {
@@ -163,12 +86,11 @@ function setOptimizationEnabled(enabled) {
   const w = $("optimizationWidget");
   if (!w) return;
   if (enabled) {
-    w.classList.remove("opacity-50", "blur-sm");
+    w.classList.remove("opacity-50", "blur-sm", "pointer-events-none");
   } else {
-    w.classList.add("opacity-50", "blur-sm");
+    w.classList.add("opacity-50", "blur-sm", "pointer-events-none");
   }
 }
-
 
 function show(el, yes) {
   if (!el) return;
@@ -189,19 +111,14 @@ function fmtCt(v) {
 function fmtMoney(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return "--";
-  // Display in Sri Lankan Rupees (LKR)
   return "LKR " + n.toLocaleString("en-LK", { maximumFractionDigits: 0 });
 }
 
-
-function buildAutoDescription({ gemType, roughShape, grades, dimensions, predictedRoughWeight, selectedCut, cutRow }) {
+function buildAutoDescription({ gemType, roughShape, grades, dimensions, predictedRoughWeight, selectedCut }) {
   const parts = [];
   if (gemType) parts.push(`${gemType} (Smart Analysis)`);
   if (dimensions && (dimensions.l || dimensions.w || dimensions.d)) {
-    const l = dimensions.l ?? "--";
-    const w = dimensions.w ?? "--";
-    const d = dimensions.d ?? "--";
-    parts.push(`Rough size: ${l}×${w}×${d} mm`);
+    parts.push(`Rough size: ${dimensions.l ?? "--"}×${dimensions.w ?? "--"}×${dimensions.d ?? "--"} mm`);
   }
   if (roughShape) parts.push(`Rough shape: ${roughShape}`);
   if (grades) {
@@ -209,17 +126,11 @@ function buildAutoDescription({ gemType, roughShape, grades, dimensions, predict
     if (grades.clarity) parts.push(`Clarity: ${grades.clarity}`);
     if (grades.cut) parts.push(`Cut grade: ${grades.cut}`);
   }
-  if (predictedRoughWeight != null && !Number.isNaN(Number(predictedRoughWeight))) {
-    parts.push(`Predicted rough weight: ${Number(predictedRoughWeight).toFixed(2)} ct`);
-  }
+  if (predictedRoughWeight != null) parts.push(`Predicted rough weight: ${Number(predictedRoughWeight).toFixed(2)} ct`);
   if (selectedCut) parts.push(`Selected cut: ${selectedCut}`);
-  if (cutRow) {
-    if (cutRow.cutWeight != null) parts.push(`Est. finished weight: ${Number(cutRow.cutWeight).toFixed(2)} ct`);
-    if (cutRow.predictedValue != null) parts.push(`Est. value: Rs. ${Number(cutRow.predictedValue).toLocaleString("en-LK", { maximumFractionDigits: 0 })}`);
-  }
+
   return parts.join(" • ");
 }
-
 
 function setWarnings(list) {
   const box = $("weightWarning");
@@ -259,7 +170,7 @@ function markRecommended(cut) {
 }
 
 // ===============================
-// 4) Theme toggle (ORIGINAL behavior)
+// 4) UI Toggles 
 // ===============================
 (function initThemeToggle() {
   const root = document.documentElement;
@@ -271,21 +182,18 @@ function markRecommended(cut) {
   else root.classList.add("dark");
 
   btn.innerHTML = root.classList.contains("dark")
-    ? '<i class="fa-solid fa-sun"></i>'
-    : '<i class="fa-solid fa-moon"></i>';
+      ? '<i class="fa-solid fa-sun"></i>'
+      : '<i class="fa-solid fa-moon"></i>';
 
   btn.addEventListener("click", () => {
     root.classList.toggle("dark");
     localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
     btn.innerHTML = root.classList.contains("dark")
-      ? '<i class="fa-solid fa-sun"></i>'
-      : '<i class="fa-solid fa-moon"></i>';
+        ? '<i class="fa-solid fa-sun"></i>'
+        : '<i class="fa-solid fa-moon"></i>';
   });
 })();
 
-// ===============================
-// 5) "More cuts" toggle (Oval)
-// ===============================
 (function initMoreCutsToggle() {
   const btn = $("toggleMoreCuts");
   const box = $("moreCutsContainer");
@@ -295,14 +203,11 @@ function markRecommended(cut) {
     const open = box.classList.contains("hidden");
     show(box, open);
     btn.innerHTML = open
-      ? '<i class="fa-solid fa-layer-group"></i> Hide Oval option'
-      : '<i class="fa-solid fa-layer-group"></i> Show Oval option';
+        ? '<i class="fa-solid fa-layer-group"></i> Hide Oval option'
+        : '<i class="fa-solid fa-layer-group"></i> Show Oval option';
   });
 })();
 
-// ===============================
-// 6) Manual weight toggle
-// ===============================
 (function initManualWeight() {
   const t = $("toggleManualWeight");
   const box = $("manualWeightContainer");
@@ -316,9 +221,6 @@ function markRecommended(cut) {
   });
 })();
 
-// ===============================
-// 7) Cut selection (Round/Emerald/Oval)
-// ===============================
 function resetCutUI() {
   ["Round", "Emerald", "Oval"].forEach((c) => {
     $("card" + c)?.classList.remove("ring-2", "ring-green-500");
@@ -335,23 +237,14 @@ function selectCut(cutName) {
 window.selectCut = selectCut;
 
 // ===============================
-// 8) Image upload scan simulation (ORIGINAL)
+// 5) REAL OpenCV / FastAPI Detection
 // ===============================
-function simulateOpenCV(input) {
+async function simulateOpenCV(input) {
   if (!input.files[0]) return;
-
   const file = input.files[0];
 
-  // Validate image file
   if (!file.type.startsWith("image/")) {
-    Swal.fire({
-      icon: "error",
-      title: "Invalid File Format",
-      text: "Please upload a valid image file (JPG/PNG/WEBP).",
-      background: "#1e293b",
-      color: "#fff",
-      confirmButtonColor: "#ef4444",
-    });
+    Swal.fire({ icon: "error", title: "Invalid File Format", text: "Please upload an image.", background: "#1e293b", color: "#fff" });
     input.value = "";
     return;
   }
@@ -361,13 +254,14 @@ function simulateOpenCV(input) {
   const imagePreview = $("uploadedImagePreview");
   const panel2 = $("dimensionPanel");
 
-  // Loading
+  // Show Loading state on image
   placeholder.innerHTML =
-    '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-500"></i>' +
-    '<p class="text-xs text-purple-300 mt-2">Scanning Structural Integrity...</p>';
+      '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-500"></i>' +
+      '<p class="text-xs text-purple-300 mt-2">Scanning Image with AI...</p>';
+  placeholder.classList.remove("hidden");
   result.classList.add("hidden");
 
-  // Show preview
+  // Load preview immediately
   const reader = new FileReader();
   reader.onload = (e) => {
     imagePreview.src = e.target.result;
@@ -375,217 +269,167 @@ function simulateOpenCV(input) {
   };
   reader.readAsDataURL(file);
 
-  setTimeout(() => {
-    const types = Object.keys(GEM_DB);
-    const detected = types[Math.floor(Math.random() * types.length)];
+  // Prepare FormData for the backend (CHANGE "file" IF POSTMAN USES A DIFFERENT KEY)
+  const formData = new FormData();
+  formData.append("file", file);
 
-    placeholder.innerHTML =
-      '<i class="fa-solid fa-camera text-2xl text-purple-500 mb-2"></i>' +
-      '<p class="text-xs text-slate-400">Upload Rough Stone Image</p>';
+  try {
+    const response = await fetch(API_BASE + ENDPOINTS.detect, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!response.ok) throw new Error("Failed to detect gem type");
+
+    // Maps to SmartAnalysisDetectResponseDto.java
+    const data = await response.json();
+
+    // Update UI with real AI data
     placeholder.classList.add("hidden");
-
     result.classList.remove("hidden");
-    setText("detectedType", detected);
-    setText("confidenceScore", "98.4%");
 
+    setText("detectedType", data.detectedGemType);
+    setText("confidenceScore", data.confidenceScore + "%");
     panel2.classList.remove("opacity-50", "pointer-events-none");
 
-    // store
-    currentAnalysisResult.type = detected;
+    currentAnalysisResult.type = data.detectedGemType;
     const confirmedGemType = $("confirmedGemType");
-    if (confirmedGemType) confirmedGemType.value = detected;
+    if (confirmedGemType) {
+      // Add it to dropdown if it's new
+      if (!Array.from(confirmedGemType.options).some(opt => opt.value === data.detectedGemType)) {
+        const opt = document.createElement('option');
+        opt.value = data.detectedGemType;
+        opt.innerHTML = data.detectedGemType;
+        confirmedGemType.appendChild(opt);
+      }
+      confirmedGemType.value = data.detectedGemType;
+    }
 
-    // clear previous analysis outputs
+    // Reset subsequent states
     setText("roughWeightDisplay", "0.00");
     setText("sgDisplay", "--");
-    setText("valRoundWt", "-- ct");
-    setText("valRoundPrice", "--");
-    setText("valEmeraldWt", "-- ct");
-    setText("valEmeraldPrice", "--");
-    setText("valOvalWt", "-- ct");
-    setText("valOvalPrice", "--");
+    setText("valRoundWt", "-- ct"); setText("valRoundPrice", "--");
+    setText("valEmeraldWt", "-- ct"); setText("valEmeraldPrice", "--");
+    setText("valOvalWt", "-- ct"); setText("valOvalPrice", "--");
     setRecommendation("");
     clearRecommendedBadges();
     setWarnings([]);
     selectedCut = null;
     resetCutUI();
     setOptimizationEnabled(false);
-  }, 2000);
+
+  } catch (error) {
+    placeholder.innerHTML = `<p class="text-xs text-red-500 mt-2">Error: ${error.message}</p>`;
+  }
 }
 window.simulateOpenCV = simulateOpenCV;
 
 // ===============================
-// 9) Run analysis (backend first; demo fallback if needed)
+// 6) RUN ANALYSIS
 // ===============================
-async function callBackendAnalyze(payload) {
-  const res = await fetch(API_BASE + ENDPOINTS.analyze, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("Backend analyze failed");
-  return await res.json();
-}
-
-function localAnalyze(payload) {
-  const { stoneType, dimensionsMm, roughShape, manualWeightCt, grades, requestedCuts } = payload;
-
-  const gem = GEM_DB[stoneType] || null;
-  const sg = gem?.sg ?? 0;
-  const shapeFactor = SHAPE_FACTOR[roughShape] ?? 0;
-
-  const L = dimensionsMm.length, W = dimensionsMm.width, D = dimensionsMm.depth;
-  const predictedRoughWeight = (L * W * D) * sg * shapeFactor;
-
-  const warnings = [];
-
-  if (manualWeightCt != null && predictedRoughWeight > 0) {
-    const diffRatio = Math.abs(manualWeightCt - predictedRoughWeight) / predictedRoughWeight;
-    if (diffRatio >= 0.15) warnings.push("Weight seems inconsistent with dimensions. Please double-check.");
-  }
-
-  // price
-  const base = gem?.base ?? 0;
-  const qm = (MULT.color[grades.color] ?? 1) * (MULT.clarity[grades.clarity] ?? 1) * (MULT.cut[grades.cut] ?? 1);
-
-  const cuts = [];
-  let best = null;
-
-  for (const shape of requestedCuts) {
-    const y = YIELD[shape] ?? 0;
-    const finalWeight = predictedRoughWeight * y;
-    const predictedValue = Math.round(finalWeight * base * qm);
-
-    const row = { shape, finalWeight, predictedValue, recommended: false };
-    cuts.push(row);
-    if (!best || predictedValue > best.predictedValue) best = row;
-  }
-
-  if (best) best.recommended = true;
-
-  return {
-    predictedRoughWeight,
-    sgUsed: sg,
-    warnings,
-    cuts,
-    recommendedCut: best?.shape ?? null,
-    recommendationReason: best ? `Recommended: ${best.shape} because predicted value is highest.` : "",
-  };
-}
-
-function validateInputs() {
-  if (!currentAnalysisResult.type) return "Please upload an image first (Step 1).";
-  if (!getConfirmedGemType()) return "Confirm the gem type before running the analysis.";
-
+async function runSmartAnalysis() {
   const L = num($("inputL")?.value);
   const W = num($("inputW")?.value);
   const D = num($("inputD")?.value);
-  if (L == null || W == null || D == null || L <= 0 || W <= 0 || D <= 0)
-    return "Enter valid L, W, D values (must be > 0).";
+  const shape = $("roughShapeSelect")?.value;
 
-  const roughShape = $("roughShapeSelect")?.value || "";
-  if (!roughShape) return "Select Rough Shape (for shape factor).";
-
-  const color = $("colorGradeSelect")?.value || "";
-  const clarity = $("clarityGradeSelect")?.value || "";
-  const cut = $("cutGradeSelect")?.value || "";
-  if (!color || !clarity || !cut) return "Select Color, Clarity, and Cut grades.";
-
-  const manualEnabled = $("toggleManualWeight")?.checked;
-  if (manualEnabled) {
-    const mw = num($("manualWeightInput")?.value);
-    if (mw == null || mw <= 0) return "Enter a valid manual weight (ct).";
+  if (!currentAnalysisResult.type) {
+    Swal.fire({ icon: "warning", title: "Missing Image", text: "Please upload an image first.", background: "#1e293b", color: "#fff" });
+    return;
   }
-  return null;
-}
-
-async function runSmartAnalysis() {
-  const err = validateInputs();
-  if (err) {
-    Swal.fire({ icon: "warning", title: "Check inputs", text: err, background: "#1e293b", color: "#fff" });
+  if (!L || !W || !D || !shape) {
+    Swal.fire({ icon: "warning", title: "Missing Data", text: "Please enter all dimensions and shape.", background: "#1e293b", color: "#fff" });
     return;
   }
 
-  const payload = {
-    stoneType: getConfirmedGemType(),
-    dimensionsMm: {
-      length: Number($("inputL").value),
-      width: Number($("inputW").value),
-      depth: Number($("inputD").value),
-    },
-    roughShape: $("roughShapeSelect").value,
-    manualWeightCt: $("toggleManualWeight").checked ? Number($("manualWeightInput").value) : null,
-    grades: {
-      color: $("colorGradeSelect").value,
-      clarity: $("clarityGradeSelect").value,
-      cut: $("cutGradeSelect").value,
-    },
-    requestedCuts: ["Emerald", "Oval", "Round"],
+  const manualOn = $("toggleManualWeight")?.checked || false;
+  const manualCt = manualOn ? num($("manualWeightInput")?.value) : null;
+
+  const requestDto = {
+    detectedGemType: currentAnalysisResult.type || "",
+    confidenceScore: (parseFloat($("confidenceScore")?.innerText) || 0.98) * 100,
+    confirmedGemType: getConfirmedGemType(),
+    lengthMm: L,
+    widthMm: W,
+    depthMm: D,
+    roughShape: shape,
+    manualWeightOn: manualOn,
+    manualWeightCt: manualCt,
+    colorGrade: $("colorGradeSelect")?.value || "",
+    clarityGrade: $("clarityGradeSelect")?.value || "",
+    cutGrade: $("cutGradeSelect")?.value || ""
   };
-
-  setRecommendation("Analyzing...");
-  setWarnings([]);
-
-  let result;
-  try {
-    result = await callBackendAnalyze(payload);
-  } catch (e) {
-    if (!DEMO_FALLBACK) {
-      setRecommendation("");
-      Swal.fire({
-        icon: "error",
-        title: "Backend not connected",
-        text: "Start Spring Boot backend (or enable demo fallback).",
-        background: "#1e293b",
-        color: "#fff",
-      });
-      return;
-    }
-    result = localAnalyze(payload);
-  }
-
-  // Render
-  currentAnalysisResult.predictedRoughWeight = result.predictedRoughWeight;
-  currentAnalysisResult.sgUsed = result.sgUsed;
-  currentAnalysisResult.cuts = result.cuts;
-  currentAnalysisResult.recommendedCut = result.recommendedCut;
-  currentAnalysisResult.warnings = result.warnings || [];
-
-  setText("roughWeightDisplay", Number(result.predictedRoughWeight).toFixed(2));
-  setText("sgDisplay", result.sgUsed != null ? String(result.sgUsed) : "--");
-
-  // per cut
-  const map = {};
-  (result.cuts || []).forEach((c) => (map[c.shape] = c));
-  if (map.Round) { setText("valRoundWt", fmtCt(map.Round.finalWeight)); setText("valRoundPrice", fmtMoney(map.Round.predictedValue)); }
-  if (map.Emerald) { setText("valEmeraldWt", fmtCt(map.Emerald.finalWeight)); setText("valEmeraldPrice", fmtMoney(map.Emerald.predictedValue)); }
-  if (map.Oval) { setText("valOvalWt", fmtCt(map.Oval.finalWeight)); setText("valOvalPrice", fmtMoney(map.Oval.predictedValue)); }
-
-  setWarnings(result.warnings || []);
-  setRecommendation(result.recommendationReason || "");
-  markRecommended(result.recommendedCut);
-  setOptimizationEnabled(true);
-
-  // Auto-select recommended cut (user can change)
-  if (result.recommendedCut) selectCut(result.recommendedCut);
+  currentAnalysisResult.confidenceScore = requestDto.confidenceScore;
 
   Swal.fire({
-    icon: "success",
-    title: "Analysis Complete",
-    text: "Review the cut options and select your preferred cut.",
-    background: "#1e293b",
-    color: "#fff",
-    confirmButtonColor: "#22c55e",
+    title: 'Analyzing Data...',
+    text: 'Calculating optimal cuts...',
+    allowOutsideClick: false,
+    background: "#1e293b", color: "#fff",
+    didOpen: () => { Swal.showLoading(); }
   });
+
+  try {
+    const response = await fetch(API_BASE + ENDPOINTS.run, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestDto)
+    });
+
+    if (!response.ok) throw new Error("Failed to analyze gem.");
+
+    const data = await response.json();
+    Swal.close();
+
+    currentAnalysisResult.predictedRoughWeight = data.finalWeightCt;
+    currentAnalysisResult.cuts = data.cutOptions;
+
+    setText("roughWeightDisplay", fmtCt(data.finalWeightCt));
+    setText("sgDisplay", `SG: ${data.specificGravityUsed}`);
+
+    if (data.warningTriggered) {
+      setWarnings([data.warningMessage]);
+    } else {
+      setWarnings([]);
+    }
+
+    if(data.cutOptions) {
+      data.cutOptions.forEach(cut => {
+        if (cut.cutShape === "Round") {
+          setText("valRoundWt", fmtCt(cut.yieldCt));
+          setText("valRoundPrice", fmtMoney(cut.cutValueLkr));
+        } else if (cut.cutShape === "Emerald") {
+          setText("valEmeraldWt", fmtCt(cut.yieldCt));
+          setText("valEmeraldPrice", fmtMoney(cut.cutValueLkr));
+        } else if (cut.cutShape === "Oval") {
+          setText("valOvalWt", fmtCt(cut.yieldCt));
+          setText("valOvalPrice", fmtMoney(cut.cutValueLkr));
+        }
+      });
+    }
+
+    if (data.recommendedCut) {
+      markRecommended(data.recommendedCut);
+      setRecommendation(`Optimal Yield: ${data.recommendedCut} cut provides the highest return.`);
+      selectCut(data.recommendedCut);
+    }
+
+    setOptimizationEnabled(true);
+    Swal.fire({ icon: "success", title: "Analysis Complete", background: "#1e293b", color: "#fff", timer: 1000, showConfirmButton: false });
+
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Analysis Failed", text: error.message, background: "#1e293b", color: "#fff" });
+  }
 }
 window.runSmartAnalysis = runSmartAnalysis;
 
 // ===============================
-// 10) Add to inventory popup (keeps original UX)
+// 7) SAVE TO INVENTORY
 // ===============================
 async function triggerVendorPopup() {
-  if (!currentAnalysisResult.cuts) {
-    Swal.fire({ icon: "info", title: "Run analysis first", text: "Please run analysis before adding to inventory.", background: "#1e293b", color: "#fff" });
+  console.log("My Analysis Result:", currentAnalysisResult);
+  if (!currentAnalysisResult.cuts || currentAnalysisResult.cuts.length === 0) {
+    Swal.fire({ icon: "info", title: "Run analysis first", background: "#1e293b", color: "#fff" });
     return;
   }
   if (!selectedCut) {
@@ -596,14 +440,13 @@ async function triggerVendorPopup() {
   const { value: formValues } = await Swal.fire({
     title: "Vendor Details",
     html:
-      `<input id="swalVendorName" class="swal2-input" placeholder="Vendor name">` +
-      `<input id="swalVendorNic" class="swal2-input" placeholder="NIC / ID">` +
-      `<input id="swalVendorPhone" class="swal2-input" placeholder="Phone number">`,
+        `<input id="swalVendorName" class="swal2-input" placeholder="Vendor name">` +
+        `<input id="swalVendorNic" class="swal2-input" placeholder="NIC / ID">` +
+        `<input id="swalVendorPhone" class="swal2-input" placeholder="Phone number">`,
     focusConfirm: false,
     showCancelButton: true,
     confirmButtonText: "Add to Inventory",
-    background: "#1e293b",
-    color: "#fff",
+    background: "#1e293b", color: "#fff",
     preConfirm: () => {
       const vendorName = document.getElementById("swalVendorName").value.trim();
       const vendorNicRaw = document.getElementById("swalVendorNic").value.trim();
@@ -614,12 +457,12 @@ async function triggerVendorPopup() {
         return false;
       }
       if (!isReasonableName(vendorName)) {
-        Swal.showValidationMessage("Please enter a valid vendor name (letters and spaces, min 3 characters).");
+        Swal.showValidationMessage("Please enter a valid vendor name.");
         return false;
       }
       const vendorNic = normalizeNic(vendorNicRaw);
       if (!isValidSriLankaNIC(vendorNic)) {
-        Swal.showValidationMessage("Invalid NIC. Use 9 digits + V/X (old) or 12 digits (new).");
+        Swal.showValidationMessage("Invalid NIC. Use 9 digits + V/X or 12 digits.");
         return false;
       }
       const vendorPhone = normalizePhone(vendorPhoneRaw);
@@ -633,59 +476,111 @@ async function triggerVendorPopup() {
 
   if (!formValues) return;
 
-  // ✅ Build inventory item + auto-generate description, then save into localStorage
-  const cutRow = (currentAnalysisResult.cuts || []).find((c) => c.shape === selectedCut) || null;
+  const autoDesc = buildAutoDescription({
+    gemType: getConfirmedGemType(),
+    roughShape: $("roughShapeSelect")?.value,
+    grades: {
+      color: $("colorGradeSelect")?.value,
+      clarity: $("clarityGradeSelect")?.value,
+      cut: $("cutGradeSelect")?.value
+    },
+    dimensions: { l: num($("inputL").value), w: num($("inputW").value), d: num($("inputD").value) },
+    predictedRoughWeight: currentAnalysisResult.predictedRoughWeight,
+    selectedCut: selectedCut
+  });
 
-  const L = num("inputL");
-  const W = num("inputW");
-  const D = num("inputD");
-
-  const roughShape = $("roughShapeSelect")?.value || "";
-  const grades = {
-    color: $("colorGradeSelect")?.value || "",
-    clarity: $("clarityGradeSelect")?.value || "",
-    cut: $("cutGradeSelect")?.value || "",
+  const saveRequestDto = {
+    seller: {
+      name: formValues.vendorName,
+      nic: formValues.vendorNic,
+      phone: formValues.vendorPhone
+    },
+    category: "ROUGH",
+    description: autoDesc,
+    selectedCutShape: selectedCut,
+    analysis: {
+      detectedGemType: currentAnalysisResult.type || "",
+      confirmedGemType: getConfirmedGemType(),
+      confidenceScore: currentAnalysisResult.confidenceScore || 0,
+      lengthMm: num($("inputL").value),
+      widthMm: num($("inputW").value),
+      depthMm: num($("inputD").value),
+      roughShape: $("roughShapeSelect")?.value,
+      manualWeightOn: $("toggleManualWeight").checked,
+      manualWeightCt: num($("manualWeightInput").value),
+      colorGrade: $("colorGradeSelect")?.value,
+      clarityGrade: $("clarityGradeSelect")?.value,
+      cutGrade: $("cutGradeSelect")?.value
+    }
   };
-
-  const item = {
-    id: "GV-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6).toUpperCase(),
-    source: "analysis",
-    gemType: getConfirmedGemType() || "Unknown",
-    weightCt: Number(cutRow?.cutWeight ?? currentAnalysisResult.predictedRoughWeight ?? 0) || 0,
-    estimatedValue: Number(cutRow?.predictedValue ?? 0) || 0,
-    cut: selectedCut || null,
-    dimensions: { l: L || null, w: W || null, d: D || null },
-    vendor: { name: formValues.vendorName, nic: formValues.vendorNic, phone: formValues.vendorPhone },
-    certificate: null,
-    description: buildAutoDescription({
-      gemType: getConfirmedGemType() || "",
-      roughShape,
-      grades,
-      dimensions: { l: L || null, w: W || null, d: D || null },
-      predictedRoughWeight: currentAnalysisResult.predictedRoughWeight,
-      selectedCut,
-      cutRow,
-    }),
-    imageDataUrl: currentAnalysisResult.imageDataUrl || "",
-    createdAtISO: new Date().toISOString(),
-  };
-
-  addToInventory(item);
 
   Swal.fire({
-    icon: "success",
-    title: "Added to Inventory",
-    text: "Gem saved successfully.",
-    background: "#1e293b",
-    color: "#fff",
-    confirmButtonColor: "#22c55e",
-  }).then(() => {
-    window.location.href = "inventory.html?added=1";
+    title: 'Saving to Server...',
+    allowOutsideClick: false,
+    background: "#1e293b", color: "#fff",
+    didOpen: () => { Swal.showLoading(); }
   });
+
+  try {
+    // === STEP 1: SAVE THE DATA ===
+    const saveResponse = await fetch(API_BASE + ENDPOINTS.save, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(saveRequestDto)
+    });
+
+    if (!saveResponse.ok) throw new Error("Server failed to save the record.");
+
+    const savedData = await saveResponse.json();
+
+    // === STEP 2: UPLOAD THE IMAGE ===
+    // ⚠️ Check your HTML: Make sure the ID of your <input type="file"> is exactly "imageInput"
+    // If it is different (e.g., "uploadImage"), change "imageInput" below to match it!
+    const fileInput = document.getElementById("analysisFile");
+
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+      const formData = new FormData();
+
+      // "file" is the standard parameter name Spring Boot expects.
+      formData.append("file", fileInput.files[0]);
+
+      try {
+        const imageResponse = await fetch(`${API_BASE}/api/inventory/items/${savedData.inventoryItemId}/images`, {
+          method: "POST",
+          body: formData
+          // Note: DO NOT add { "Content-Type": "multipart/form-data" } here.
+          // The browser automatically sets the correct boundaries!
+        });
+
+        if (!imageResponse.ok) {
+          console.error("Data was saved, but the image upload failed. Check the server logs.");
+        }
+      } catch (imgError) {
+        console.error("Network error while uploading image:", imgError);
+      }
+    }
+
+    // === STEP 3: SHOW SUCCESS AND RELOAD ===
+    Swal.fire({
+      icon: "success",
+      title: "Saved Successfully",
+      text: `Inventory Code: ${savedData.inventoryCode}`,
+      background: "#1e293b",
+      color: "#fff",
+      confirmButtonColor: "#10b981",
+    }).then(() => {
+      // Reload the page to reset the form
+      window.location.reload();
+    });
+
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "Save Failed", text: error.message, background: "#1e293b", color: "#fff" });
+  }
 }
 window.triggerVendorPopup = triggerVendorPopup;
 
-// Init
+// ===============================
+// Init on load
+// ===============================
 populateGemTypeDropdown();
-initAutoRecalc();
 setOptimizationEnabled(false);

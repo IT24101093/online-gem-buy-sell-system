@@ -22,5 +22,8 @@ public class SmartAnalysisSaveResponseDto {
     private Boolean warningTriggered;
     private String warningMessage;
 
+
+    private String description;
+
     private String message;
 }

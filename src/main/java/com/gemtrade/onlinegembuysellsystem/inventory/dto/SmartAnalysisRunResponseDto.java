@@ -31,4 +31,6 @@ public class SmartAnalysisRunResponseDto {
 
     private List<CutOptionDto> cutOptions;
     private String recommendedCut;
+
+    private String description;
 }

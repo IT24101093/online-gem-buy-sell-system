@@ -12,4 +12,5 @@ public class SmartAnalysisSaveRequestDto {
     private SmartAnalysisRunRequestDto analysis;
 
     private String selectedCutShape; // optional override
+
 }

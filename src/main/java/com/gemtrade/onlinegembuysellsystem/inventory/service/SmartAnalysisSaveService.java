@@ -54,15 +54,32 @@ public class SmartAnalysisSaveService {
         item.setStatus(InventoryItem.Status.IN_STOCK);
         item.setSeller(seller);
 
-        if (req.getDescription() != null && !req.getDescription().isBlank()) {
+        // --- START OF PROFESSIONAL FIX ---
+
+        // --- THE ACTUAL FIX ---
+
+        // 1. Force the mode to AUTO
+        item.setDescriptionMode(InventoryItem.DescriptionMode.AUTO);
+
+        // 2. Grab the description that was generated on the frontend JS
+        if (req.getDescription() != null && !req.getDescription().trim().isEmpty()) {
             item.setDescription(req.getDescription());
-            item.setDescriptionMode(InventoryItem.DescriptionMode.MANUAL);
         } else {
-            item.setDescription("Smart Analysis saved (" + chosenCut + ")");
-            item.setDescriptionMode(InventoryItem.DescriptionMode.AUTO);
+            // Fallback just in case JS sends nothing
+            String gemName = run.getConfirmedGemType() != null ? run.getConfirmedGemType() : "Unknown Gem";
+            String caratWeight = run.getFinalWeightCt() != null ? run.getFinalWeightCt().toString() : "0.00";
+            item.setDescription("Smart Analysis: " + gemName + " (" + caratWeight + " ct).");
         }
 
+        // 3. Update the timestamp
+        item.setDescriptionUpdatedAt(java.time.LocalDateTime.now());
+
+        // 4. Save the item
         InventoryItem savedItem = inventoryItemRepository.save(item);
+
+        // --- END OF FIX ---
+
+        // --- END OF PROFESSIONAL FIX ---
 
         ValidationReport report = new ValidationReport();
         report.setInventoryItem(savedItem);
@@ -77,6 +94,7 @@ public class SmartAnalysisSaveService {
         report.setYieldPercent(chosen.getYieldPercent());
 
         report.setRawJson(req.getAnalysis().getRawJson());
+        report.setGeneratedDescription(savedItem.getDescription());
 
         ValidationReport savedReport = validationReportRepository.save(report);
 
@@ -91,6 +109,7 @@ public class SmartAnalysisSaveService {
                 run.getRecommendedCut(),
                 run.getWarningTriggered(),
                 run.getWarningMessage(),
+                savedItem.getDescription(),
                 "Saved. Upload image using POST /api/inventory/items/{itemId}/images"
         );
     }

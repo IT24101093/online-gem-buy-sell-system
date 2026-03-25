@@ -93,49 +93,49 @@
                                 </div>
 
                                 <!-- Rough shape + Four Cs -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                <div class="grid grid-cols-2 gap-4 mt-4">
                                     <div>
-                                        <label class="block text-amber-500 text-xs font-bold mb-1">Rough Shape (for Shape Factor)</label>
-                                        <select id="roughShapeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm focus:border-amber-500 focus:outline-none text-white">
-                                            <option value="" selected disabled>Select shape</option>
+                                        <label class="block text-sm font-medium text-cyan-400 mb-1">Rough Shape (Shape Factor)</label>
+                                        <select id="roughShapeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-sm focus:border-amber-500 focus:outline-none text-white transition-colors">
+                                            <option value="" selected disabled>Select Shape</option>
                                             <option value="Round">Round</option>
                                             <option value="Oval">Oval</option>
-                                            <option value="Emerald">Emerald / Rectangular</option>
-                                            <option value="Pear">Pear</option>
-                                            <option value="Marquise">Marquise</option>
+                                            <option value="Emerald">Emerald</option>
                                         </select>
                                     </div>
+
                                     <div>
-                                        <label class="block text-amber-500 text-xs font-bold mb-1">Color Grade</label>
-                                        <select id="colorGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm focus:border-amber-500 focus:outline-none text-white">
-                                            <option value="" selected disabled>Select color</option>
-                                            <option value="Vivid">Vivid</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="Light">Light</option>
+                                        <label class="block text-sm font-medium text-cyan-400 mb-1">Color Grade</label>
+                                        <select id="colorGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-sm focus:border-amber-500 focus:outline-none text-white transition-colors">
+                                            <option value="" selected disabled>Select Color</option>
+                                            <option value="A">Grade A (Premium)</option>
+                                            <option value="B">Grade B (Standard)</option>
+                                            <option value="C">Grade C (Commercial)</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                                <div class="grid grid-cols-2 gap-4 mt-4">
                                     <div>
-                                        <label class="block text-amber-500 text-xs font-bold mb-1">Clarity Grade</label>
-                                        <select id="clarityGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm focus:border-amber-500 focus:outline-none text-white">
-                                            <option value="" selected disabled>Select clarity</option>
-                                            <option value="IF">IF</option>
-                                            <option value="VVS">VVS</option>
-                                            <option value="VS">VS</option>
-                                            <option value="SI">SI</option>
-                                            <option value="I">I</option>
+                                        <label class="block text-sm font-medium text-cyan-400 mb-1">Clarity Grade</label>
+                                        <select id="clarityGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-sm focus:border-amber-500 focus:outline-none text-white transition-colors">
+                                            <option value="" selected disabled>Select Clarity</option>
+                                            <option value="IF">IF (Internally Flawless)</option>
+                                            <option value="VVS">VVS (Very Very Slightly Included)</option>
+                                            <option value="VS">VS (Very Slightly Included)</option>
+                                            <option value="SI">SI (Slightly Included)</option>
+                                            <option value="I">I (Included)</option>
                                         </select>
                                     </div>
+
                                     <div>
-                                        <label class="block text-amber-500 text-xs font-bold mb-1">Cut Grade</label>
-                                        <select id="cutGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm focus:border-amber-500 focus:outline-none text-white">
-                                            <option value="" selected disabled>Select cut</option>
-                                            <option value="Excellent">Excellent</option>
-                                            <option value="Very Good">Very Good</option>
-                                            <option value="Good">Good</option>
-                                            <option value="Fair">Fair</option>
+                                        <label class="block text-sm font-medium text-cyan-400 mb-1">Cut Grade</label>
+                                        <select id="cutGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-sm focus:border-amber-500 focus:outline-none text-white transition-colors">
+                                            <option value="" selected disabled>Select Cut</option>
+                                            <option value="EX">EX (Excellent Cut)</option>
+                                            <option value="VG">VG (Very Good Cut)</option>
+                                            <option value="G">G (Good Cut)</option>
+                                            <option value="F">F (Fair Cut)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -144,7 +144,7 @@
                                     <!-- warnings inserted by JS -->
                                 </div>
 
-                                <button onclick="runSmartAnalysis()" class="w-full py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-900/50 transition-all">
+                                <button onclick="runSmartAnalysis()" class="w-full mt-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-900/50 transition-all">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i> Run Analysis
                                 </button>
                             </div>

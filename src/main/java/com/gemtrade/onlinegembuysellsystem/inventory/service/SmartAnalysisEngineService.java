@@ -140,7 +140,9 @@ public class SmartAnalysisEngineService {
                 adjustedPricePerCarat,
                 estimatedValue,
                 cuts,
-                bestCut
+                bestCut,
+                "Analysis successful"
+
         );
     }
 
