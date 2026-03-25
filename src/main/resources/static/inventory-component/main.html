@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GemVault - Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <!-- Main page theme (keeps design, matches the rest of your app) -->
+  <link rel="stylesheet" href="main.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { gem: { accent: '#a855f7' } } } }
+    }
+  </script>
+</head>
+
+<body class="text-slate-800 dark:text-slate-100">
+  <nav class="fixed w-full z-50 glass-panel shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i class="fa-regular fa-gem text-3xl text-purple-600 dark:text-purple-400"></i>
+        <span class="text-2xl font-bold tracking-tight">
+          Gem<span class="text-purple-600 dark:text-purple-400">Vault</span>
+        </span>
+      </div>
+
+      <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition" aria-label="Toggle theme">
+        <i class="fas fa-moon dark:hidden text-slate-600"></i>
+        <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+      </button>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-12 px-6 flex flex-col items-center justify-center min-h-screen">
+    <div class="text-center mb-16 hero-text animate-on-load">
+      <h1 class="text-5xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-cyan-500">
+        Manage Your Treasure
+      </h1>
+      <p class="text-xl text-slate-600 dark:text-slate-400">
+        Select an action to begin.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 max-w-6xl w-full">
+
+      <!-- Certified Gem -->
+      <a href="add-gem.html" class="action-card animate-on-load group relative overflow-hidden rounded-3xl glass-panel p-8 shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+        <div class="absolute top-0 right-0 p-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition group-hover:bg-purple-500/20"></div>
+        <div class="relative z-10 flex flex-col items-center text-center">
+          <div class="w-20 h-20 bg-purple-100 dark:bg-purple-900/50 rounded-2xl flex items-center justify-center mb-6 text-purple-600 dark:text-purple-300">
+            <i class="fas fa-certificate text-4xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold mb-3">Add Certified Gem</h2>
+          <p class="text-slate-500 dark:text-slate-400 mb-6">Register a gem with certificate verification.</p>
+        </div>
+      </a>
+
+      <!-- Smart Analysis (Uncertified) -->
+      <a href="Smart-Analysis.html" class="action-card animate-on-load group relative overflow-hidden rounded-3xl glass-panel p-8 shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+        <div class="absolute top-0 right-0 p-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition group-hover:bg-indigo-500/20"></div>
+        <div class="relative z-10 flex flex-col items-center text-center">
+          <div class="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600 dark:text-indigo-300">
+            <i class="fas fa-microscope text-4xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold mb-3">Smart Analysis</h2>
+          <p class="text-slate-500 dark:text-slate-400 mb-6">Analyze an uncertified gem and estimate value.</p>
+        </div>
+      </a>
+
+      <!-- Inventory -->
+      <a href="inventory.html" class="action-card animate-on-load group relative overflow-hidden rounded-3xl glass-panel p-8 shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-2 cursor-pointer">
+        <div class="absolute top-0 right-0 p-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition group-hover:bg-emerald-500/20"></div>
+        <div class="relative z-10 flex flex-col items-center text-center">
+          <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/50 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 dark:text-emerald-300">
+            <i class="fas fa-boxes-stacked text-4xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold mb-3">Inventory</h2>
+          <p class="text-slate-500 dark:text-slate-400 mb-6">Browse, search, and manage your collection.</p>
+        </div>
+      </a>
+
+    </div>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>

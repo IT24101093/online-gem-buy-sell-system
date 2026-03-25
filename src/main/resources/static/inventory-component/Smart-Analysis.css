@@ -1,0 +1,353 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;700&display=swap');
+
+/* =========================================================
+  
+========================================================= */
+:root{
+  /* Original base vars */
+  --primary-bg: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.7);
+
+  /* Accent: switched from orange to purple (theme-friendly) */
+  --accent: #a855f7;                 /* purple */
+  --accent-glow: rgba(168, 85, 247, 0.22);
+
+  /* Add-gem palette (shared) */
+  --bg-a: #0b1220;
+  --bg-b: #0f172a;
+  --bg-c: #111827;
+
+  --glass: rgba(15, 23, 42, 0.58);
+  --glass-border: rgba(148, 163, 184, 0.16);
+  --shadow-strong: 0 22px 60px rgba(0,0,0,0.45);
+
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+}
+
+body{ font-family: 'Outfit', sans-serif; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar{ width: 8px; }
+::-webkit-scrollbar-track{ background: var(--primary-bg); }
+::-webkit-scrollbar-thumb{ background: #334155; border-radius: 4px; }
+
+/* Glassmorphic Card */
+.card{
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* Inputs (legacy class – your layout stays same) */
+.input-field{
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: all 0.2s;
+}
+.input-field:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+.label{
+  display: block;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.btn-primary{
+  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s;
+}
+.btn-primary:hover{ filter: brightness(1.06); transform: translateY(-1px); }
+
+.btn-secondary{
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+.btn-secondary:hover{
+  background: #334155;
+  color: white;
+  border-color: #64748b;
+}
+
+/* Nav & Tabs */
+.nav-item{
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: #94a3b8;
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+.nav-item:hover{ background: #334155; color: white; }
+.nav-item.active{
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--accent);
+  border-left: 3px solid var(--accent);
+}
+
+.tab-btn{
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.tab-btn:hover{ color: white; }
+.tab-btn.active{
+  background: #1e293b;
+  color: var(--accent);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Recommended Card Highlight */
+.recommended-card{
+  border: 2px solid var(--accent) !important;
+  background: linear-gradient(145deg, rgba(30,41,59,0.9), rgba(168,85,247,0.10)) !important;
+  box-shadow: 0 0 20px var(--accent-glow) !important;
+  position: relative;
+}
+.recommended-card::after{
+  content: "RECOMMENDED";
+  position: absolute;
+  top: 0; right: 0;
+  background: var(--accent);
+  color: #0b1220;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 0.25rem 0.6rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+/* Utils */
+.hidden{ display: none !important; }
+
+@keyframes fadeInUp{
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up{ animation: fadeInUp 0.5s ease-out forwards; }
+
+/* SweetAlert base */
+.swal2-input{
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+  color: white !important;
+}
+
+/* =========================================================
+   DARK THEME (match add-gem look) – default
+========================================================= */
+body{
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(168,85,247,0.12), transparent 60%),
+    radial-gradient(900px 500px at 80% 90%, rgba(59,130,246,0.12), transparent 55%),
+    linear-gradient(135deg, var(--bg-a) 0%, var(--bg-b) 45%, var(--bg-c) 100%) !important;
+  color: var(--text);
+}
+
+.card{
+  background: var(--glass) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-strong) !important;
+  backdrop-filter: blur(14px);
+}
+
+.label{ color: var(--muted) !important; }
+
+.btn-secondary{
+  background: rgba(2, 6, 23, 0.40) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  color: var(--text) !important;
+}
+.btn-secondary:hover{
+  background: rgba(2, 6, 23, 0.55) !important;
+  border-color: rgba(168,85,247,0.30) !important;
+}
+
+/* Focus theme */
+input:focus, select:focus, textarea:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(168,85,247,0.18) !important;
+  border-color: rgba(168,85,247,0.45) !important;
+}
+
+/* Dropdown options */
+select option{
+  background-color: #0b1220;
+  color: #f1f5f9;
+}
+
+/* SweetAlert: transparent glass like add-gem modal */
+.swal2-container{ backdrop-filter: blur(10px); }
+.swal2-popup{
+  background: rgba(15, 23, 42, 0.60) !important;
+  border: 1px solid rgba(148,163,184,0.18) !important;
+  box-shadow: 0 22px 60px rgba(0,0,0,0.45) !important;
+  color: var(--text) !important;
+  backdrop-filter: blur(18px);
+  border-radius: 24px !important;
+}
+.swal2-title, .swal2-html-container{ color: var(--text) !important; }
+.swal2-input, .swal2-textarea, .swal2-select{
+  background: rgba(2, 6, 23, 0.35) !important;
+  border: 1px solid rgba(148,163,184,0.18) !important;
+  color: var(--text) !important;
+  backdrop-filter: blur(12px);
+}
+.swal2-confirm{ border-radius: 14px !important; }
+
+/* Selection + amber utility overrides */
+::selection{ background: rgba(59,130,246,0.55); color: #ffffff; }
+.text-amber-500{ color: rgba(56, 189, 248, 1) !important; }
+.border-amber-500{ border-color: rgba(56, 189, 248, 0.55) !important; }
+
+/* Inventory button green */
+button[onclick="triggerVendorPopup()"]{
+  background: rgba(34, 197, 94, 0.85) !important;
+  box-shadow: 0 18px 40px rgba(34, 197, 94, 0.18) !important;
+}
+button[onclick="triggerVendorPopup()"]:hover{
+  background: rgba(34, 197, 94, 1) !important;
+}
+
+/* =========================================================
+   LIGHT MODE (comfortable + readable)
+========================================================= */
+html:not(.dark) body{
+  background:
+    radial-gradient(1000px 520px at 15% 10%, rgba(99,102,241,0.06), transparent 60%),
+    radial-gradient(900px 520px at 85% 90%, rgba(16,185,129,0.05), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #f6f7fb 45%, #f7f7f5 100%) !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) main,
+html:not(.dark) main.bg-gradient-to-br{
+  background: transparent !important;
+}
+
+html:not(.dark) .card{
+  background: rgba(255,255,255,0.85) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 18px 55px rgba(2,6,23,0.10) !important;
+  backdrop-filter: blur(12px);
+}
+
+html:not(.dark) header{
+  background: rgba(255,255,255,0.82) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html:not(.dark) .bg-slate-900{ background-color: transparent !important; }
+html:not(.dark) .bg-slate-900\/80{ background-color: rgba(255,255,255,0.72) !important; }
+html:not(.dark) .bg-slate-900\/50{ background-color: rgba(255,255,255,0.62) !important; }
+html:not(.dark) .bg-slate-800{ background-color: rgba(255,255,255,0.60) !important; }
+html:not(.dark) .bg-slate-800\/50{ background-color: rgba(255,255,255,0.60) !important; }
+
+html:not(.dark) .border-slate-700{ border-color: rgba(15, 23, 42, 0.10) !important; }
+html:not(.dark) .border-slate-700\/50{ border-color: rgba(15, 23, 42, 0.10) !important; }
+html:not(.dark) .border-slate-600{ border-color: rgba(15, 23, 42, 0.12) !important; }
+
+html:not(.dark) .text-slate-50{ color:#0f172a !important; }
+html:not(.dark) .text-slate-300{ color: rgba(15,23,42,0.72) !important; }
+html:not(.dark) .text-slate-400{ color: rgba(15,23,42,0.58) !important; }
+html:not(.dark) .text-slate-500{ color: rgba(15,23,42,0.55) !important; }
+
+html:not(.dark) .label{ color: rgba(15,23,42,0.55) !important; }
+
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea{
+  background: rgba(15,23,42,0.03) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  color:#0f172a !important;
+}
+html:not(.dark) input:focus,
+html:not(.dark) select:focus,
+html:not(.dark) textarea:focus{
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.16) !important;
+  border-color: rgba(99,102,241,0.35) !important;
+}
+html:not(.dark) select option{
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+html:not(.dark) button[onclick="runSmartAnalysis()"]{
+  background: linear-gradient(90deg, rgba(99,102,241,0.95), rgba(79,70,229,0.95)) !important;
+  box-shadow: 0 18px 45px rgba(99,102,241,0.22) !important;
+  color: #ffffff !important;
+}
+html:not(.dark) button[onclick="runSmartAnalysis()"]:hover{
+  filter: brightness(1.03);
+}
+
+html:not(.dark) button[onclick="triggerVendorPopup()"]{
+  background: rgba(34, 197, 94, 0.92) !important;
+  box-shadow: 0 18px 40px rgba(34, 197, 94, 0.16) !important;
+  color: #ffffff !important;
+}
+html:not(.dark) button[onclick="triggerVendorPopup()"]:hover{
+  background: rgba(34, 197, 94, 1) !important;
+}
+
+html:not(.dark) .btn-secondary{
+  background: rgba(15, 23, 42, 0.05) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: #0f172a !important;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.06) !important;
+}
+html:not(.dark) .btn-secondary:hover{
+  background: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(99,102,241,0.20) !important;
+}
+
+html:not(.dark) .swal2-container{ backdrop-filter: blur(10px); }
+html:not(.dark) .swal2-popup{
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(15, 23, 42, 0.10) !important;
+  box-shadow: 0 18px 55px rgba(2,6,23,0.14) !important;
+  color: #0f172a !important;
+  backdrop-filter: blur(14px);
+  border-radius: 24px !important;
+}
+html:not(.dark) .swal2-title,
+html:not(.dark) .swal2-html-container{ color:#0f172a !important; }
+html:not(.dark) .swal2-input,
+html:not(.dark) .swal2-textarea,
+html:not(.dark) .swal2-select{
+  background: rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid rgba(15, 23, 42, 0.10) !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .text-amber-500{ color: rgba(79,70,229,1) !important; }
+html:not(.dark) .border-amber-500{ border-color: rgba(79,70,229,0.30) !important; }
+
+html:not(.dark) .text-white{ color: #0f172a !important; }
+html:not(.dark) .text-white\/90{ color: rgba(15,23,42,0.90) !important; }
+html:not(.dark) .text-white\/80{ color: rgba(15,23,42,0.80) !important; }
+html:not(.dark) .text-white\/70{ color: rgba(15,23,42,0.70) !important; }
+html:not(.dark) .text-white\/60{ color: rgba(15,23,42,0.60) !important; }
+html:not(.dark) .text-white\/50{ color: rgba(15,23,42,0.55) !important; }
+html:not(.dark) .opacity-10 .text-white{ color: rgba(15,23,42,0.12) !important; }
