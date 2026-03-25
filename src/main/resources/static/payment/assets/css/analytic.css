@@ -14,3 +14,13 @@
 .card-body .total {
     padding: 10px 0;
 }
+
+/* Print/PDF Export Settings */
+@media print {
+    .topbar, .nav, .footer, .btn, .ghost { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .card { border: 1px solid #ddd !important; box-shadow: none !important; background: white !important; }
+    .hero h1 { color: black !important; }
+}
+
+.total { font-size: 24px; font-weight: 800; margin-top: 10px; }

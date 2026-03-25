@@ -16,13 +16,13 @@
       </div>
     </div>
     <nav class="nav">
-      <a href="admin_analytics.html" class="active">Analytics</a>
-      <a href="index.html">Logout</a>
+      <a href="#" class="btn" onclick="exportReport()">📥 Download PDF</a>
+      <a href="index.html" onclick="localStorage.removeItem('userRole')" class="ghost">Logout</a>
     </nav>
   </div>
 </header>
 
-<main class="container">
+<main class="container" id="printableArea">
   <section class="hero">
     <div>
       <h1>Financial Overview</h1>
@@ -31,65 +31,63 @@
   </section>
 
   <section class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px;">
-    <div class="card" style="background: rgba(255,255,255,0.05); border-color: rgba(201,162,58,0.3);">
+    <div class="card" style="border-color: rgba(255,255,255,0.1);">
       <div class="card-head">
         <h2>Total Income</h2>
         <p class="sub">Successful gem sales revenue.</p>
       </div>
       <div class="card-body">
-        <div class="total" id="incomeVal" style="font-size: 24px;">Server Offline</div>
+        <div class="total" id="incomeVal">Server Offline</div>
       </div>
     </div>
 
-    <div class="card" style="background: rgba(255,255,255,0.05); border-color: var(--danger);">
+    <div class="card" style="border-color: var(--danger);">
       <div class="card-head">
-        <h2 style="color: var(--text);">Total Loss</h2>
+        <h2>Total Loss</h2>
         <p class="sub">Canceled orders and refunds.</p>
       </div>
       <div class="card-body">
-        <div class="total" id="lossVal" style="color: var(--danger); font-size: 24px;">LKR 0.00</div>
+        <div class="total" id="lossVal" style="color: var(--danger);">LKR 0.00</div>
       </div>
     </div>
 
-    <div class="card" style="background: rgba(255,255,255,0.05); border-color: var(--success);">
+    <div class="card" style="border-color: var(--success);">
       <div class="card-head">
-        <h2 style="color: var(--text);">Net Balance</h2>
+        <h2>Net Balance</h2>
         <p class="sub">Final profit after deductions.</p>
       </div>
       <div class="card-body">
-        <div class="total" id="balanceVal" style="color: var(--success); font-size: 24px;">LKR 0.00</div>
+        <div class="total" id="balanceVal" style="color: var(--success);">LKR 0.00</div>
       </div>
     </div>
   </section>
 
-  <section class="card" style="margin-top: 30px; background: rgba(255,255,255,0.03);">
-    <div class="card-head">
-      <h2>Monthly Summary Records</h2>
-    </div>
+  <section class="card" style="margin-top: 30px;">
+    <div class="card-head"><h2>Monthly Summary Records</h2></div>
     <div class="card-body">
       <div class="summary">
-        <div class="row" style="font-weight: bold; opacity: 0.8; padding-bottom: 15px; border-bottom: 1px solid var(--line);">
+        <div class="row" style="font-weight: bold; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
           <span>Report Period</span>
           <span>Income</span>
           <span>Loss</span>
           <span>Final Balance</span>
         </div>
-        <div class="row" style="padding: 20px 0;">
-          <span>March 2026</span>
+        <div class="row" style="padding: 15px 0;">
+          <span id="displayMonth">March 2026</span>
           <strong id="tabIncome">LKR 0.00</strong>
-          <strong style="color: var(--danger);" id="tabLoss">LKR 0.00</strong>
-          <strong style="color: var(--success);" id="tabBalance">LKR 0.00</strong>
+          <strong id="tabLoss" style="color: var(--danger);">LKR 0.00</strong>
+          <strong id="tabBalance" style="color: var(--success);">LKR 0.00</strong>
         </div>
       </div>
     </div>
   </section>
 </main>
 
-<footer class="footer">
-  <span>© 2026 Online Gem Buy & Selling System</span>
-  <span style="opacity: 0.6;">Management Dashboard</span>
-</footer>
-
 <script src="assets/js/analytics.js"></script>
+<script>
+  function exportReport() {
+      window.print(); // Browser එකේ Print පහසුකම භාවිතා කිරීම
+  }
+</script>
 </body>
 </html>

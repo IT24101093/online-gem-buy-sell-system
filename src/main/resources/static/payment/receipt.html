@@ -73,7 +73,9 @@
                 </div>
 
                 <div class="actions">
-                    <button class="btn" id="btnDownload">Download Invoice (Mock)</button>
+                    <button type="button" class="btn accent" id="downloadBtn" onclick="printReceipt()">
+                        Download Invoice (PDF)
+                    </button>
                     <a class="btn ghost" href="form.html">New Checkout</a>
                 </div>
             </div>
@@ -187,6 +189,27 @@
             new Date(txn.createdAt).toLocaleString();
 
     });
+</script>
+
+<script>
+    function printReceipt() {
+        // 1. අනවශ්‍ය Header සහ Navigation බොත්තම් තාවකාලිකව සඟවන්න
+        const topbar = document.querySelector('.topbar');
+        const stepper = document.querySelector('.stepper');
+        const actionButtons = document.querySelector('.actions');
+
+        if(topbar) topbar.style.display = 'none';
+        if(stepper) stepper.style.display = 'none';
+        if(actionButtons) actionButtons.style.display = 'none';
+
+        // 2. මැක්බුක් එකේ Print Dialog එක විවෘත කරන්න
+        window.print();
+
+        // 3. Print කිරීමෙන් පසු නැවත බොත්තම් පෙන්වන්න
+        if(topbar) topbar.style.display = 'flex';
+        if(stepper) stepper.style.display = 'flex';
+        if(actionButtons) actionButtons.style.display = 'flex';
+    }
 </script>
 
 </body>

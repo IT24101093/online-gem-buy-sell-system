@@ -343,6 +343,10 @@ function initReceipt(){
         );
     });
 
+    function downloadReceipt() {
+    // අනවශ්‍ය Header සහ Navigation බොත්තම් තාවකාලිකව සඟවා Print කිරීම
+    window.print();
+  }
 }
 
 // ---------- Boot ----------

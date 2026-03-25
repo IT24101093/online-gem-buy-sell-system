@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login | JayaGems</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-badge"><span>◆</span></div>
+      <div class="brand-text">
+        <div class="brand-name">JayaGems</div>
+        <div class="brand-sub">Secure Administration</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="card accent" style="max-width: 400px; margin: 80px auto; padding: 40px;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Admin Portal</h2>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="adminUser" placeholder="e.g., admin" autocomplete="off">
+    </div>
+    <div class="field" style="margin-top: 20px;">
+      <label>Password</label>
+      <input type="password" id="adminPass" placeholder="••••••••">
+    </div>
+    <div class="actions" style="margin-top: 30px;">
+      <button class="btn wide" onclick="handleLogin()">Login to Dashboard</button>
+      <a href="index.html" class="btn ghost wide" style="margin-top: 10px; text-decoration: none;">Back to Home</a>
+    </div>
+    <p id="loginErr" class="error" style="text-align: center; margin-top: 15px;"></p>
+  </div>
+</main>
+
+<script>
+  function handleLogin() {
+      const user = document.getElementById('adminUser').value;
+      const pass = document.getElementById('adminPass').value;
+      const err = document.getElementById('loginErr');
+
+      // පරීක්ෂණ සඳහා සරල Username/Password
+      if (user === "admin" && pass === "1234") {
+          localStorage.setItem("userRole", "ADMIN");
+          window.location.href = "admin_analytics.html";
+      } else {
+          err.textContent = "Invalid credentials. Please try again. ❌";
+      }
+  }
+</script>
+</body>
+</html>
