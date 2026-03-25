@@ -450,7 +450,7 @@ a[aria-disabled="true"]{
     font-weight:900;
 }
 
-/* Print Settings - PDF එකක් ලෙස ගන්නා විට පෙනෙන ආකාරය */
+/* Print Settings - As a PDF Style */
 @media print {
     body {
         background: white !important;
@@ -459,9 +459,9 @@ a[aria-disabled="true"]{
         padding: 10px;
     }
 
-    /* රිසිට්පතේ Cards පමණක් පෙන්වන්න */
+    /*  Only show the Cards in receipt  */
     .card {
-        border: 1px dashed #333 !important; /* කැපූ රේඛාවක් ලෙස පෙන්වීමට */
+        border: 1px dashed #333 !important;
         box-shadow: none !important;
         background: transparent !important;
         color: black !important;
@@ -469,12 +469,11 @@ a[aria-disabled="true"]{
         margin-bottom: 20px !important;
     }
 
-    /* පාරිභෝගිකයාට රිසිට්පතේදී අනවශ්‍ය දේවල් සඟවන්න */
     .topbar, .nav, .footer, .btn, .stepper, .actions {
         display: none !important;
     }
 
-    /* රිසිට්පත මැදට (Center) ගැනීමට */
+    /* Set to Center the receipt */
     .container {
         width: 100% !important;
         max-width: 100% !important;

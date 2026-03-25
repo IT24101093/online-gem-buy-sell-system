@@ -43,12 +43,12 @@
       const pass = document.getElementById('adminPass').value;
       const err = document.getElementById('loginErr');
 
-      // පරීක්ෂණ සඳහා සරල Username/Password
+      // Check the Username/Password
       if (user === "admin" && pass === "1234") {
           localStorage.setItem("userRole", "ADMIN");
           window.location.href = "admin_analytics.html";
       } else {
-          err.textContent = "Invalid credentials. Please try again. ❌";
+          err.textContent = "Invalid credentials. Please try again.";
       }
   }
 </script>

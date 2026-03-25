@@ -20,7 +20,7 @@ public class PaymentController {
     public PaymentTransaction createPayment(@RequestBody PaymentTransaction payment) {
         // This ensures the data sent from app.js is actually passed to the service
         payment.setStatus("SUCCESS");
-        return service.save(payment); // Ensure service.save is called here
+        return service.save(payment);
     }
 
     @GetMapping("/{id}")
