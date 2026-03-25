@@ -1,4 +1,4 @@
-// 1. Currency Formatting function
+// Currency Formatting function
 const money = (n) => `LKR ${Number(n || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
 function renderBalanceChart(gemValue, cashValue, liabilities) {
@@ -28,7 +28,7 @@ function renderBalanceChart(gemValue, cashValue, liabilities) {
     });
 }
 
-// 3. The function of get the main records
+// The function of get the main records
 async function loadAnalytics() {
     // Admin Check
     if (localStorage.getItem("userRole") !== "ADMIN") {
@@ -40,7 +40,7 @@ async function loadAnalytics() {
     let currentLoss = 0;
 
     try {
-        // A. Get the financial data
+        // Get the financial data
         const response = await fetch(`http://localhost:8080/api/payments/analytics/monthly?month=3&year=2026`);
         if (!response.ok) throw new Error("Offline");
 
@@ -58,7 +58,7 @@ async function loadAnalytics() {
         if(document.getElementById('tabLoss')) document.getElementById('tabLoss').textContent = money(currentLoss);
         if(document.getElementById('tabBalance')) document.getElementById('tabBalance').textContent = money(data.balance);
 
-        // B. Module Sync
+        // Module Sync
         await syncModules(currentIncome, currentLoss);
 
     } catch (error) {
@@ -67,7 +67,7 @@ async function loadAnalytics() {
     }
 }
 
-// 4. combined another dep with function
+// combined another dep with function
 async function syncModules(income, loss) {
     try {
         // Get the Showcase and Ordering details

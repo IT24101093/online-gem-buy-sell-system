@@ -85,15 +85,17 @@
         <aside class="card sticky">
             <div class="card-head">
                 <h2>Invoice Preview</h2>
-                <p class="sub">Invoice</p>
+                <p class="sub">Official Transaction Record</p>
             </div>
 
             <div class="card-body">
                 <div class="invoice">
-                    <div class="invoice-row">
+                    <div class="invoice-row" style="margin-bottom: 10px;">
                         <div>
-                            <div class="invoice-title">JayaGems</div>
-                            <div class="muted small">Online Gem Buy & Selling System</div>
+                            <div class="invoice-title" style="color: var(--gold2);">JayaGems (Pvt) Ltd.</div>
+                            <div class="muted small">No. 123, Gem Street, Ratnapura.</div>
+                            <div class="muted small">Tel: +94 45 222 3344</div>
+                            <div class="muted small">Email: sales@jayagems.com</div>
                         </div>
                         <div class="invoice-right">
                             <div class="muted small">Status</div>
@@ -119,13 +121,26 @@
                     <div class="divider"></div>
 
                     <div class="invoice-row total">
-                        <div>Total</div>
+                        <div>Total Amount</div>
                         <div class="invoice-right" id="uiAmount">LKR 0.00</div>
                     </div>
 
-                    <small class="hint" style="display:block; margin-top:10px;">
-                        ------------------------------------------------------
-                    </small>
+                    <div style="margin-top: 40px; display: flex; justify-content: center; align-items: center; padding-bottom: 20px;">
+
+                        <div style="width: 110px; height: 110px; border: 3px double #000; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.05); position: relative; transform: rotate(-10deg); box-shadow: 0 0 0 4px rgba(0,0,0,0.02);">
+                            <div style="font-size: 11px; font-weight: 900; color: #000; text-align: center; text-transform: uppercase; line-height: 1.2; letter-spacing: 0.5px;">
+                                JayaGems<br>
+                                <span style="font-size: 14px; border-top: 1px solid #000; border-bottom: 1px solid #000; margin: 4px 0; display: inline-block; padding: 2px 0;">VERIFIED</span><br>
+                                PAID
+                            </div>
+
+                            <div style="position: absolute; width: 92%; height: 92%; border: 1px solid rgba(0,0,0,0.1); border-radius: 50%;"></div>
+                        </div>
+
+                    </div>
+                    <div style="text-align: center; margin-top: 20px; opacity: 0.5;">
+                        <small class="hint">Thank you for your business!</small>
+                    </div>
                 </div>
             </div>
         </aside>

@@ -29,16 +29,70 @@ function isValidCardLuhn(cardNumber){
 }
 
 function qualityMultiplier(grade){
-    if (grade === "A") return 1.25;
-    if (grade === "B") return 1.10;
+    if (grade === "A") return 2.50;
+    if (grade === "B") return 1.50;
     return 1.00;
 }
 
 // ---------- Checkout Page Logic ----------
 function initCheckout(){
+
+const gemSelect = byId("gemName");
+const ppcInput = byId("pricePerCarat");
+
+if (gemSelect && ppcInput) {
+    gemSelect.addEventListener("change", () => {
+        const gem = gemSelect.value;
+        let price = 0;
+
+
+        if (gem === "blue sapphire") price = 55000;
+        else if (gem === "ruby") price = 45000;
+        else if (gem === "emerald") price = 38000;
+        else if (gem === "topaz") price = 15000;
+        else price = 10000;
+
+
+        ppcInput.value = price;
+        ppcInput.readOnly = true;
+
+
+        ppcInput.style.background = "rgba(255,255,255,0.05)";
+        ppcInput.style.cursor = "not-allowed";
+
+        setErr("errGemName", "");
+    });
+}
+
+
+const qualitySelect = byId("qualityGrade");
+const weightInput = byId("weightCarats");
+
+if (qualitySelect && weightInput) {
+    qualitySelect.addEventListener("change", () => {
+        const grade = qualitySelect.value;
+
+        if (grade === "A") {
+            weightInput.value = "2.50";
+        } else if (grade === "B") {
+            weightInput.value = "1.50";
+        } else {
+            weightInput.value = "1.00";
+        }
+
+        weightInput.readOnly = true;
+
+        // (Visual feedback for non-editable field)
+        weightInput.style.background = "rgba(255,255,255,0.05)";
+        weightInput.style.cursor = "not-allowed";
+
+        setErr("errWeight", "");
+    });
+}
+
     const btnCalc = byId("btnCalculate");
     const btnReset = byId("btnReset");
-    if (!btnCalc || !btnReset) return; // not on checkout
+    if (!btnCalc || !btnReset) return;
 
     const goPay = byId("goPay");
 
@@ -54,6 +108,42 @@ function initCheckout(){
         const promo = (byId("promo").value || "").trim().toUpperCase();
         const cert = byId("addonCert").checked;
         const ins = byId("addonIns").checked;
+
+        const promoInput = byId("promo");
+        const discountInput = byId("discount");
+        const weightInput = byId("weightCarats");
+        const qualitySelect = byId("qualityGrade");
+
+        // 1. Quality Grade Weight Autofill
+        if (qualitySelect && weightInput) {
+            qualitySelect.addEventListener("change", () => {
+                const grade = qualitySelect.value;
+                weightInput.value = (grade === "A") ? "2.50" : (grade === "B") ? "1.50" : "1.00";
+                weightInput.readOnly = true; // Lock weight input
+                weightInput.style.background = "rgba(255,255,255,0.05)";
+                weightInput.style.cursor = "not-allowed";
+            });
+        }
+
+        // 2. Promo Code (GEM10) Discount Autofill
+        btnCalc.addEventListener("click", () => {
+            const promo = (promoInput.value || "").trim().toUpperCase();
+            const ppc = parseFloat(byId("pricePerCarat").value) || 0;
+            const weight = parseFloat(weightInput.value) || 0;
+            const base = ppc * weight;
+
+            if (promo === "GEM10") {
+                const promoDiscount = base * 0.10; // 10% discount calculation
+                discountInput.value = promoDiscount.toFixed(2);
+                discountInput.readOnly = true;
+                discountInput.style.background = "rgba(255,255,255,0.05)";
+                discountInput.style.cursor = "not-allowed";
+            } else {
+                discountInput.value = "0";
+                discountInput.readOnly = true;
+            }
+
+        });
 
         // Clear errors
         ["errGemName","errWeight","errPpc","errTax","errShip","errDiscount"].forEach(k => setErr(k,""));
@@ -127,7 +217,7 @@ function initCheckout(){
 
         byId("calcNotice").innerHTML = `Calculated successfully. <b>Total payable: ${money(total)}</b>`;
 
-        // Save "order" for payment page (Progress 1: browser storage)
+        // Save "order" for payment page
         const orderId = `ORD-${String(Math.floor(Math.random() * 90000) + 10000)}`;
         localStorage.setItem("checkoutData", JSON.stringify({
             orderId,
@@ -192,7 +282,10 @@ function initPayment(){
         });
     }
 
-    btnPay.addEventListener("click", async () => {
+   btnPay.addEventListener("click", async () => {
+       btnPay.innerHTML = '<span class="spinner"></span> Processing...';
+       btnPay.disabled = true;
+
         // Clear errors
         ["errCardName","errCardNumber","errExpiry","errCvv","errEmail","errPhone"].forEach(k => setErr(k,""));
 
@@ -308,6 +401,37 @@ function initPayment(){
             console.log("DB Error:", error);
             byId("payNotice").innerHTML = `Payment saved locally but DB failed.`;
         }
+    });
+}
+
+// Name on Card:(Only strings)
+const cardNameInput = byId("cardName");
+if (cardNameInput) {
+    cardNameInput.addEventListener("input", () => {
+        cardNameInput.value = cardNameInput.value.replace(/[^a-zA-Z\s]/g, "");
+    });
+}
+
+// Expiry (MM/YY): (Only integers and /)
+const expiryInput = byId("expiry");
+if (expiryInput) {
+    expiryInput.addEventListener("input", () => {
+
+        let v = expiryInput.value.replace(/[^\d/]/g, "");
+
+        // autofill / command
+        if (v.length === 2 && !v.includes("/")) {
+            v = v + "/";
+        }
+        expiryInput.value = v.slice(0, 5);
+    });
+}
+
+// Phone Number:(Only integers)
+const phoneInput = byId("phone");
+if (phoneInput) {
+    phoneInput.addEventListener("input", () => {
+        phoneInput.value = phoneInput.value.replace(/\D/g, "");
     });
 }
 

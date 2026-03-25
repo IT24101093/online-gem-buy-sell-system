@@ -58,8 +58,14 @@
             <div class="card-body">
                 <div class="form-grid">
                     <div class="field">
-                        <label for="gemName">Gem Name</label>
-                        <input id="gemName" type="text" placeholder="e.g., Blue Sapphire" maxlength="40" />
+                        <label for="gemName">Select Gem Type</label>
+                        <select id="gemName">
+                            <option value="" selected disabled>-- Choose a Gem --</option>
+                            <option value="blue sapphire">Blue Sapphire</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="emerald">Emerald</option>
+                            <option value="topaz">Topaz</option>
+                        </select>
                         <small class="error" id="errGemName"></small>
                     </div>
 
@@ -87,20 +93,20 @@
 
                     <div class="field">
                         <label for="taxRate">Tax Rate (%)</label>
-                        <input id="taxRate" type="number" inputmode="decimal" value="8" min="0" max="25" step="0.01" />
-                        <small class="error" id="errTax"></small>
+                        <input id="taxRate" type="number" value="8" readonly style="background: rgba(255,255,255,0.05); cursor: not-allowed;" />
+                        <small class="hint">Fixed company tax rate.</small>
                     </div>
 
                     <div class="field">
                         <label for="shippingFee">Shipping (LKR)</label>
-                        <input id="shippingFee" type="number" inputmode="decimal" value="1200" min="0" step="1" />
-                        <small class="error" id="errShip"></small>
+                        <input id="shippingFee" type="number" value="1200" readonly style="background: rgba(255,255,255,0.05); cursor: not-allowed;" />
+                        <small class="hint">Standard shipping charge.</small>
                     </div>
 
                     <div class="field">
                         <label for="discount">Discount (LKR)</label>
-                        <input id="discount" type="number" inputmode="decimal" value="0" min="0" step="1" />
-                        <small class="error" id="errDiscount"></small>
+                        <input id="discount" type="number" value="0" readonly style="background: rgba(255,255,255,0.05); cursor: not-allowed;" />
+                        <small class="hint">Discounts applied via promo codes only.</small>
                     </div>
 
                     <div class="field">
@@ -130,6 +136,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <!-- RIGHT CARD (STICKY SUMMARY) -->
         <aside class="card accent sticky">
