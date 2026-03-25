@@ -298,16 +298,16 @@ function initPayment(){
             });
 
 
-            byId("payNotice").innerHTML = `Payment <b>${status}</b>. Saved to database ✅`;
+            byId("payNotice").innerHTML = `Payment <b>${status}</b>. Saved to database.`;
 
-            // ✅ MOVE redirect INSIDE success
+            // MOVE redirect INSIDE success
             setTimeout(() => {
                 window.location.href = "receipt.html";
             }, 1000);
 
         } catch (error) {
             console.log("DB Error:", error);
-            byId("payNotice").innerHTML = `Payment saved locally but DB failed ❌`;
+            byId("payNotice").innerHTML = `Payment saved locally but DB failed.`;
         }
     });
 }

@@ -18,13 +18,9 @@ public class PaymentController {
 
     @PostMapping
     public PaymentTransaction createPayment(@RequestBody PaymentTransaction payment) {
-
-        System.out.println("Incoming Payment: " + payment);
-
+        // This ensures the data sent from app.js is actually passed to the service
         payment.setStatus("SUCCESS");
-        payment.setMethod(payment.getMethod()); // keep frontend value
-
-        return service.save(payment);
+        return service.save(payment); // Ensure service.save is called here
     }
 
     @GetMapping("/{id}")

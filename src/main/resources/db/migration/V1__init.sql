@@ -287,40 +287,18 @@ CREATE INDEX idx_feedback_created ON order_feedback(created_at);
    PAYMENT
    ========================= */
 CREATE TABLE payment_transaction (
-                                     payment_id        BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                     order_id          BIGINT NOT NULL,
-
-                                     subtotal_lkr      DECIMAL(14,2) NOT NULL,
-                                     tax_lkr           DECIMAL(14,2) NOT NULL DEFAULT 0,
-                                     discount_lkr      DECIMAL(14,2) NOT NULL DEFAULT 0,
-                                     total_amount_lkr  DECIMAL(14,2) NOT NULL,
-
-                                     method            ENUM('CARD') NOT NULL DEFAULT 'CARD',
-                                     status            ENUM('PENDING','SUCCESS','FAILED','REFUNDED')
-                   NOT NULL DEFAULT 'PENDING',
-                                     gateway_name      VARCHAR(40)  NOT NULL,
-                                     gateway_txn_id    VARCHAR(120) NULL UNIQUE,
-                                     gateway_ref       VARCHAR(120) NULL,
-                                     idempotency_key   VARCHAR(80)  NULL UNIQUE,
-
-                                     card_brand        VARCHAR(20) NULL,
-                                     card_last4        CHAR(4)     NULL,
-                                     card_holder_name  VARCHAR(120) NULL,
-
-                                     created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                     paid_at           TIMESTAMP NULL,
-
-                                     receipt_no        VARCHAR(40)  NULL UNIQUE,
-                                     receipt_pdf_path  VARCHAR(500) NULL,
-                                     receipt_pdf_url   VARCHAR(500) NULL,
-
-                                     CONSTRAINT fk_payment_order
-                                         FOREIGN KEY (order_id) REFERENCES orders(id)
-                                             ON DELETE CASCADE
-) ENGINE=InnoDB;
-CREATE INDEX idx_payment_order   ON payment_transaction(order_id);
-CREATE INDEX idx_payment_status  ON payment_transaction(status);
-CREATE INDEX idx_payment_created ON payment_transaction(created_at);
+                                     payment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                     order_id VARCHAR(30) NOT NULL,
+                                     subtotal_lkr DECIMAL(14,2),
+                                     addons_lkr DECIMAL(14,2),
+                                     shipping_lkr DECIMAL(14,2),
+                                     tax_lkr DECIMAL(14,2),
+                                     discount_lkr DECIMAL(14,2),
+                                     total_amount_lkr DECIMAL(14,2),
+                                     method ENUM('CARD', 'CASH') NOT NULL,
+                                     status ENUM('SUCCESS', 'FAILED') NOT NULL,
+                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 /* =========================
    REFERENCE TABLES
