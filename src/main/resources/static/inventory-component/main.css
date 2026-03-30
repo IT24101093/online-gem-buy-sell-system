@@ -1,0 +1,64 @@
+/* main.css — Main/Dashboard theme
+   Matches your app: dark glass + comfortable light mode
+   No layout changes (Tailwind handles layout)
+*/
+
+:root{
+  --bg-a:#0b1220;
+  --bg-b:#0f172a;
+  --bg-c:#111827;
+
+  --glass: rgba(15, 23, 42, 0.58);
+  --glass-border: rgba(148, 163, 184, 0.16);
+  --shadow: 0 22px 60px rgba(0,0,0,0.45);
+
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+}
+
+body{
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(168,85,247,0.12), transparent 60%),
+    radial-gradient(900px 500px at 80% 90%, rgba(59,130,246,0.10), transparent 55%),
+    linear-gradient(135deg, var(--bg-a) 0%, var(--bg-b) 45%, var(--bg-c) 100%);
+  min-height: 100vh;
+}
+
+.glass-panel{
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.50);
+}
+
+.dark .glass-panel{
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+}
+
+/* Smooth entry animation hooks (GSAP drives motion) */
+.animate-on-load{
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+/* Comfortable light mode */
+html:not(.dark) body{
+  background:
+    radial-gradient(1000px 520px at 15% 10%, rgba(99,102,241,0.06), transparent 60%),
+    radial-gradient(900px 520px at 85% 90%, rgba(16,185,129,0.05), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #f6f7fb 45%, #f7f7f5 100%) !important;
+  color:#0f172a;
+}
+
+html:not(.dark) .glass-panel{
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 18px 55px rgba(2,6,23,0.10);
+}
+
+/* Nice selection */
+::selection{
+  background: rgba(99,102,241,0.22);
+  color: #0f172a;
+}
