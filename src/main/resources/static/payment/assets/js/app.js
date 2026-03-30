@@ -114,7 +114,7 @@ if (qualitySelect && weightInput) {
         const weightInput = byId("weightCarats");
         const qualitySelect = byId("qualityGrade");
 
-        // 1. Quality Grade Weight Autofill
+        // Quality Grade Weight Autofill
         if (qualitySelect && weightInput) {
             qualitySelect.addEventListener("change", () => {
                 const grade = qualitySelect.value;
@@ -125,7 +125,7 @@ if (qualitySelect && weightInput) {
             });
         }
 
-        // 2. Promo Code (GEM10) Discount Autofill
+        // Promo Code (GEM10) Discount Autofill
         btnCalc.addEventListener("click", () => {
             const promo = (promoInput.value || "").trim().toUpperCase();
             const ppc = parseFloat(byId("pricePerCarat").value) || 0;
@@ -239,7 +239,6 @@ if (qualitySelect && weightInput) {
             createdAt: new Date().toISOString()
         }));
 
-        // Enable proceed
         if (goPay){
             goPay.setAttribute("aria-disabled", "false");
             goPay.classList.remove("disabled");
