@@ -25,7 +25,7 @@ public class CourierShippingConfig {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Optional: auto-set timestamp
+    // Optional: auto-set timestamp set current date and time
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

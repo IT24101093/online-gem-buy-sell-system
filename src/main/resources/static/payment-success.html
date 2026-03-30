@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | Jaya Gems</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00ff87;
+            --bg: #0f0f23;
+            --card: #1a1a2e;
+            --text: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .receipt-card {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .success-icon {
+            font-size: 60px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .order-id {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .details-box {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 5px;
+        }
+        .btn-home {
+            background: var(--primary);
+            color: #0f0f23;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+        }
+        .btn-home:hover { opacity: 0.9; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="receipt-card">
+    <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+    <h1>Payment Successful!</h1>
+    <p>Thank you, <span id="user-name" style="color: var(--primary);">Customer</span>!</p>
+    <p>Your order <span id="order-no" class="order-id">#GEM-000</span> is being processed.</p>
+
+    <div class="details-box">
+        <div class="row"><span>Item:</span> <span id="item-name">Loading...</span></div>
+        <div class="row"><span>Weight:</span> <span id="item-weight">...</span></div>
+        <div class="row"><span>Shipping to:</span> <span id="dest">...</span></div>
+        <div class="row" style="border: none; margin-top: 15px; font-size: 1.2rem; font-weight: bold;">
+            <span>Total Paid:</span> <span id="total-price" style="color: var(--primary);">LKR 0</span>
+        </div>
+    </div>
+
+    <p style="font-size: 0.85rem; color: #8892b0; margin-bottom: 25px;">
+        A confirmation email has been sent to your registered contact.
+    </p>
+
+    <a href="order-details.html" class="btn-home">Track My Order</a>
+</div>
+
+<script>
+    // JS to fetch the specific order details
+    async function fetchReceipt() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('id');
+
+        if (!orderId) return;
+
+        try {
+            // We fetch all and filter for the specific ID (or use a specific GET by ID if your Java has it)
+            const response = await fetch(`http://localhost:8080/api/orders/all`);
+            const orders = await response.json();
+            const order = orders.find(o => o.orderId == orderId);
+
+            if (order) {
+                document.getElementById('user-name').innerText = order.customer.firstName;
+                document.getElementById('order-no').innerText = "#GEM-" + String(order.orderId).padStart(3, '0');
+                document.getElementById('item-name').innerText = order.inventoryItem.gemType;
+                document.getElementById('item-weight').innerText = order.inventoryItem.weightCt + " ct";
+                document.getElementById('dest').innerText = order.customer.deliveryAddress;
+                document.getElementById('total-price').innerText = "LKR " + order.totalAmountLkr.toLocaleString();
+            }
+        } catch (e) {
+            console.error("Receipt error:", e);
+        }
+    }
+
+    window.onload = fetchReceipt;
+</script>
+</body>
+</html>

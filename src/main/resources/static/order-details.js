@@ -1,70 +1,84 @@
+// order-details.js - LIVE DATABASE VERSION
+const API_URL = 'http://localhost:8080/api/orders/all';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Load the board immediately
     loadAndDisplayOrders();
-    
-    // Auto-refresh the board every 2 seconds to catch Admin updates live!
-    setInterval(loadAndDisplayOrders, 2000);
+
+    // Auto-refresh the board every 3 seconds to catch Admin updates live!
+    setInterval(loadAndDisplayOrders, 3000);
 });
 
-function loadAndDisplayOrders() {
-    // Read the exact same data the Admin Dashboard uses
-    const storedOrders = JSON.parse(localStorage.getItem('adminOrders') || '[]');
+async function loadAndDisplayOrders() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error("Could not connect to database");
 
-    // Clear the current columns so we don't duplicate items
-    document.getElementById('list-processing').innerHTML = '';
-    document.getElementById('list-packed').innerHTML = '';
-    document.getElementById('list-delivered').innerHTML = '';
+        const javaOrders = await response.json();
 
-    let counts = { processing: 0, packed: 0, delivered: 0 };
+        // Clear the current columns so we don't duplicate items
+        document.getElementById('list-processing').innerHTML = '';
+        document.getElementById('list-packed').innerHTML = '';
+        document.getElementById('list-delivered').innerHTML = '';
 
-    storedOrders.forEach(order => {
-        // Only process orders that have a valid status
-        if (counts[order.status] !== undefined) {
-            counts[order.status]++;
+        let counts = { processing: 0, packed: 0, delivered: 0 };
 
-            // Logic to add the button ONLY if the status is delivered
-            // Redirects to feedback.html and passes the order ID in the URL
-            const actionButton = order.status === 'delivered' 
-                ? `<button class="btn-action" 
-                    style="margin-top: 10px; padding: 8px 12px; cursor: pointer; background: #00ff87; border: none; border-radius: 5px; color: #1a1a2e; font-weight: bold; width: 100%;" 
-                    onclick="window.location.href='feedback.html?orderId=${order.id}'">
-                    Review Order
-                   </button>` 
-                : '';
+        javaOrders.forEach(o => {
+            // Map Java Status (CONFIRMED/PACKED/DELIVERED) to UI Column IDs
+            // In Java, the initial status is 'CONFIRMED', which we show as 'processing'
+            let statusKey = o.orderStatus.toLowerCase();
+            if (statusKey === 'confirmed') statusKey = 'processing';
 
-            // Create HTML card for the order
-            const cardHTML = `
-                <div class="gem-card">
-                    <div class="gem-info">
-                        <h4>${order.id}</h4>
-                        <p style="color: #8892b0; font-size: 0.85rem;">For: ${order.name}</p>
-                        <p>${order.gems}</p>
-                        <div class="gem-price">${order.amount}</div>
-                        ${actionButton}
+            if (counts[statusKey] !== undefined) {
+                counts[statusKey]++;
+
+                const displayId = "#GEM-" + String(o.orderId).padStart(3, '0');
+                const customerName = o.customer ? o.customer.firstName : "Guest";
+                const gemType = o.inventoryItem ? o.inventoryItem.gemType : "Premium Gem";
+                const price = o.totalAmountLkr ? o.totalAmountLkr.toLocaleString() : "0";
+
+                // Logic to add the button ONLY if the status is delivered
+                const actionButton = statusKey === 'delivered'
+                    ? `<button class="btn-action" 
+                        onclick="window.location.href='feedback.html?id=${o.orderId}'"
+                        style="margin-top: 10px; padding: 8px 12px; cursor: pointer; background: #00ff87; border: none; border-radius: 5px; color: #1a1a2e; font-weight: bold; width: 100%;">
+                        Leave Feedback
+                       </button>`
+                    : '';
+
+                // Create the Gem Card HTML
+                const cardHTML = `
+                    <div class="gem-card">
+                        <div class="gem-info">
+                            <h4>${displayId}</h4>
+                            <p style="color: #8892b0; font-size: 0.85rem;">For: ${customerName}</p>
+                            <p>${gemType}</p>
+                            <div class="gem-price">LKR ${price}</div>
+                            ${actionButton}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            // Inject into the correct column based on the Admin's status
-            if (order.status === 'processing') {
-                document.getElementById('list-processing').innerHTML += cardHTML;
-            } else if (order.status === 'packed') {
-                document.getElementById('list-packed').innerHTML += cardHTML;
-            } else if (order.status === 'delivered') {
-                document.getElementById('list-delivered').innerHTML += cardHTML;
+                document.getElementById(`list-${statusKey}`).innerHTML += cardHTML;
             }
-        }
-    });
+        });
 
-    // Update the numbers at the top of the columns
-    document.getElementById('count-processing').innerText = counts.processing;
-    document.getElementById('count-packed').innerText = counts.packed;
-    document.getElementById('count-delivered').innerText = counts.delivered;
+        // Update the numbers at the top of the columns
+        document.getElementById('count-processing').innerText = counts.processing;
+        document.getElementById('count-packed').innerText = counts.packed;
+        document.getElementById('count-delivered').innerText = counts.delivered;
+
+    } catch (error) {
+        console.error("Board Sync Error:", error);
+        // Optional: Show a small error message in the UI if the backend is down
+    }
 }
 
-// NEW: Theme toggle logic to match Admin dashboard
+// Theme toggle logic
 function toggleTheme() {
     document.body.classList.toggle('light-mode');
     const toggle = document.querySelector('.theme-toggle');
-    toggle.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    if (toggle) {
+        toggle.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    }
 }

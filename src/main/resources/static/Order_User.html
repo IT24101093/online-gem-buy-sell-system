@@ -9,71 +9,108 @@
 </head>
 <body>
 
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
 
-    <div id="toast" class="toast-notification">
-        <i class="fas fa-info-circle"></i> <span id="toast-msg">Message here</span>
-    </div>
+<div id="toast" class="toast-notification">
+    <i class="fas fa-info-circle"></i> <span id="toast-msg">Message here</span>
+</div>
 
-    <div class="container animate-up">
-        <section id="order-section" class="main-card">
-            <h2 class="section-title">Order Details</h2>
-            <form id="orderForm">
-                <div class="input-group">
-                    <label>Full Name</label>
-                    <input type="text" id="custName" required placeholder="Enter your name">
-                </div>
-                
-                <div class="input-row">
-                    <div class="input-group">
-                        <label>Age</label>
-                        <input type="text" id="custAge" required placeholder="Numbers only">
-                    </div>
-                    <div class="input-group">
-                        <label>NIC Number</label>
-                        <input type="text" id="custNIC" required maxlength="12" placeholder="12 digits">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>Contact No</label>
-                    <input type="text" id="custPhone" required maxlength="10" placeholder="10 digits">
-                </div>
-
-                <div class="input-group">
-                    <label>Delivery Address</label>
-                    <textarea id="custAddress" required rows="3" placeholder="Enter full delivery address"></textarea>
-                </div>
-
-                <button type="submit" class="btn-primary">Confirm & Pay E-Bill</button>
-            </form>
-        </section>
-    </div>
-
-    <div id="confirm-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 class="modal-title">Verify Your Details</h3>
-            <div id="summary-details" class="summary-text"></div>
-            <p class="timer-text">Expires in: <span id="timer">02:00</span></p>
-            <div class="modal-btns">
-                <button class="btn-cancel" onclick="closePopup()">Cancel</button>
-                <button class="btn-confirm" onclick="finalRedirect()">Confirm</button>
+<div class="container animate-up">
+    <section id="order-section" class="main-card">
+        <h2 class="section-title">Order Details</h2>
+        <form id="orderForm">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="custName" required placeholder="Enter your name">
             </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Age</label>
+                    <input type="text" id="custAge" required placeholder="Numbers only">
+                </div>
+                <div class="input-group">
+                    <label>NIC Number</label>
+                    <input type="text" id="custNIC" required maxlength="12" placeholder="12 digits">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Contact No</label>
+                <input type="text" id="custPhone" required maxlength="10" placeholder="10 digits">
+            </div>
+
+            <div class="input-group">
+                <label>Delivery Address</label>
+                <textarea id="custAddress" required rows="3" placeholder="Enter full delivery address"></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>Shipping Region</label>
+                <select id="shippingMethod" required onchange="updateCouriers()">
+                    <option value="" disabled selected>Select a region...</option>
+                    <option value="local">Local Delivery (LKR 500)</option>
+                    <option value="international">International Delivery (LKR 5,000)</option>
+                </select>
+            </div>
+
+            <div class="input-group" id="courierGroup" style="display: none;">
+                <label>Courier Service</label>
+                <select id="courierService" required onchange="resetCalculation()">
+                </select>
+            </div>
+
+            <div class="input-group checkbox-group">
+                <input type="checkbox" id="addInsurance" onchange="resetCalculation()">
+                <label for="addInsurance">Add Shipping Insurance (2% of Order Value)</label>
+            </div>
+
+            <div id="fee-breakdown" class="summary-text" style="display: none; margin-bottom: 20px; margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Order Price:</span> <span id="calc-subtotal">LKR 0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Delivery Charge:</span> <span id="calc-shipping">LKR 0</span>
+                </div>
+                <div id="insurance-row" style="display: none; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Insurance Fee:</span> <span id="calc-insurance">LKR 0</span>
+                </div>
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; color: #00d4ff; font-size: 1.1rem;">
+                    <span>Total:</span> <span id="calc-total">LKR 0</span>
+                </div>
+            </div>
+
+            <button type="button" id="btn-calculate" class="btn-primary" onclick="calculateFee()">Calculate Fee</button>
+            <button type="submit" id="btn-confirm-submit" class="btn-primary" style="display: none;">Confirm & Pay E-Bill</button>
+        </form>
+    </section>
+</div>
+
+<div id="confirm-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="modal-title">Verify Your Details</h3>
+        <div id="summary-details" class="summary-text"></div>
+        <p class="timer-text">Expires in: <span id="timer">02:00</span></p>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closePopup()">Cancel</button>
+            <button class="btn-confirm" onclick="finalRedirect()">Confirm</button>
         </div>
     </div>
+</div>
 
-    <div id="payment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 class="modal-title"><i class="fas fa-lock"></i> Secure Payment</h3>
-            <p style="margin: 15px 0; color: #a0a0a0;">Your Order ID: <strong id="display-order-id" class="highlight-text"></strong></p>
-            <p style="font-size: 0.9rem; margin-bottom: 20px; color: #a0a0a0;">Click below to securely complete your purchase via our payment gateway.</p>
-            <button class="btn-primary" onclick="proceedToPayment()">
-                Pay Now <i class="fas fa-credit-card"></i>
-            </button>
-        </div>
+<div id="payment-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="modal-title"><i class="fas fa-lock"></i> Secure Payment</h3>
+        <p style="margin: 15px 0; color: #a0a0a0;">Your Order ID: <strong id="display-order-id" class="highlight-text"></strong></p>
+        <p style="font-size: 0.9rem; margin-bottom: 20px; color: #a0a0a0;">Click below to securely complete your purchase via our payment gateway.</p>
+        <button class="btn-primary" onclick="proceedToPayment()">
+            Pay Now <i class="fas fa-credit-card"></i>
+        </button>
     </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="Order_User.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="Order_User.js"></script>
 </body>
 </html>

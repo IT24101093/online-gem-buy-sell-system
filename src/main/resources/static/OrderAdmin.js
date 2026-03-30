@@ -1,252 +1,92 @@
-// Dummy orders data
-let orders = [
-    {
-        id: "#GEM-001",
-        name: "Nimal Perera",
-        phone: "+94 77 123 4567",
-        address: "145/7, Main Street, Negombo, Western Province",
-        status: "processing",
-        gems: "5x Ruby, 3x Sapphire",
-        amount: "₹45,000",
-        date: "2026-02-20"
-    },
-    {
-        id: "#GEM-002",
-        name: "Saman Kumara",
-        phone: "+94 71 234 5678",
-        address: "23A, Beach Road, Negombo",
-        status: "packed",
-        gems: "10x Emerald, 2x Diamond",
-        amount: "₹1,20,000",
-        date: "2026-02-19"
-    },
-    {
-        id: "#GEM-003",
-        name: "Priya Fernando",
-        phone: "+94 77 345 6789",
-        address: "78, Poruthota Road, Negombo",
-        status: "processing",
-        gems: "8x Topaz, 4x Amethyst",
-        amount: "₹32,500",
-        date: "2026-02-19"
-    },
-    {
-        id: "#GEM-004",
-        name: "Ravi Silva",
-        phone: "+94 72 456 7890",
-        address: "12, Lewis Place, Negombo",
-        status: "delivered",
-        gems: "6x Garnet, 1x Opal",
-        amount: "₹28,750",
-        date: "2026-02-18"
-    },
-    {
-        id: "#GEM-005",
-        name: "Lakmini Wickramasinghe",
-        phone: "+94 76 567 8901",
-        address: "56/3, Cemetery Road, Negombo",
-        status: "packed",
-        gems: "12x Aquamarine",
-        amount: "₹78,000",
-        date: "2026-02-18"
-    },
-    {
-        id: "#GEM-006",
-        name: "Chamal Jayasinghe",
-        phone: "+94 77 678 9012",
-        address: "89, Shalika Street, Negombo",
-        status: "processing",
-        gems: "3x Diamond, 7x Ruby",
-        amount: "₹95,000",
-        date: "2026-02-17"
-    }
-];
-
-// --- NEW: LOCALSTORAGE FUNCTIONS ---
-function loadOrdersFromStorage() {
-    const storedOrders = localStorage.getItem('adminOrders');
-    if (storedOrders) {
-        orders = JSON.parse(storedOrders);
-    } else {
-        localStorage.setItem('adminOrders', JSON.stringify(orders));
-    }
-}
-
-function saveOrdersToStorage() {
-    localStorage.setItem('adminOrders', JSON.stringify(orders));
-}
-// ------------------------------------
+const API_BASE_URL = 'http://localhost:8080/api/orders';
+let orders = [];
 
 const statusMap = {
-    'processing': 'Processing',
-    'packed': 'Packed',
-    'delivered': 'Delivered'
+    'CONFIRMED': 'Processing',
+    'PACKED': 'Packed',
+    'DELIVERED': 'Delivered'
 };
 
-function getStatusClass(status) {
-    return `status-${status}`;
-}
+async function loadOrdersFromBackend() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/all`);
+        const javaOrders = await response.json();
 
-function updateStats() {
-    const stats = orders.reduce((acc, order) => {
-        acc.total++;
-        if (acc[order.status] !== undefined) {
-            acc[order.status]++;
-        }
-        return acc;
-    }, { total: 0, processing: 0, packed: 0, delivered: 0 });
+        orders = javaOrders.map(o => ({
+            id: o.orderId,
+            displayId: "#GEM-" + String(o.orderId).padStart(3, '0'),
+            name: o.customer ? o.customer.firstName + " " + o.customer.lastName : "Unknown",
+            status: o.orderStatus,
+            gems: o.inventoryItem ? o.inventoryItem.gemType : "Gem",
+            amount: "LKR " + (o.totalAmountLkr ? o.totalAmountLkr.toLocaleString() : "0"),
+            date: o.createdAt ? o.createdAt.split('T')[0] : "N/A"
+        }));
 
-    document.getElementById('totalOrders').textContent = stats.total;
-    document.getElementById('processingOrders').textContent = stats.processing;
-    document.getElementById('packedOrders').textContent = stats.packed;
-    document.getElementById('deliveredOrders').textContent = stats.delivered;
-}
-
-function createOrderCard(order) {
-    return `
-        <div class="order-card" data-order-id="${order.id}">
-            <div class="order-header">
-                <div class="order-id">${order.id}</div>
-                <div class="status-badge ${getStatusClass(order.status)}">${statusMap[order.status] || order.status}</div>
-            </div>
-            <div class="order-details">
-                <div class="detail-item">
-                    <div class="detail-label">Customer</div>
-                    <div class="detail-value">${order.name}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Phone</div>
-                    <div class="detail-value">${order.phone}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Address</div>
-                    <div class="detail-value">${order.address}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Gems Ordered</div>
-                    <div class="detail-value">${order.gems}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Amount</div>
-                    <div class="detail-value">${order.amount}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Date</div>
-                    <div class="detail-value">${order.date}</div>
-                </div>
-            </div>
-            <div class="order-actions">
-                <button class="btn btn-status" onclick="updateStatus('${order.id}')">
-                    ${order.status === 'delivered' ? '✅ Completed' : 'Next Status'}
-                </button>
-                <button class="btn btn-delete" onclick="deleteOrder('${order.id}')">🗑️ Delete</button>
-            </div>
-        </div>
-    `;
+        updateStats();
+        renderOrders();
+    } catch (error) {
+        console.error("Backend Error:", error);
+    }
 }
 
 function renderOrders() {
     const ordersGrid = document.getElementById('ordersGrid');
-    ordersGrid.innerHTML = orders.map(createOrderCard).join('');
+    if(!ordersGrid) return;
+
+    ordersGrid.innerHTML = orders.map(order => `
+        <div class="order-card">
+            <div class="order-header">
+                <div class="order-id">${order.displayId}</div>
+                <span class="status-badge status-${order.status.toLowerCase()}">${statusMap[order.status]}</span>
+            </div>
+            <div class="order-details">
+                <p><strong>Customer:</strong> ${order.name}</p>
+                <p><strong>Item:</strong> ${order.gems}</p>
+                <p><strong>Total:</strong> <span style="color: #00ff87;">${order.amount}</span></p>
+            </div>
+            <div class="order-actions" style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-status" style="flex: 2;" onclick="changeStatus(${order.id}, '${order.status}')">Next Status</button>
+                <button class="btn btn-delete" style="flex: 1; background: #ff4d4d; color: white; border: none; border-radius: 8px; cursor: pointer;" onclick="confirmDeleteAction(${order.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
 }
 
-function updateStatus(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const statuses = ['processing', 'packed', 'delivered'];
-    const currentIndex = statuses.indexOf(order.status);
-    const nextStatus = statuses[(currentIndex + 1) % statuses.length];
-
-    order.status = nextStatus;
-    
-    // NEW: Save the updated status to browser storage
-    saveOrdersToStorage();
-
-    // Update UI
-    renderOrders();
-    updateStats();
-    
-    // Show notification
-    showNotification(`Order ${orderId} updated to ${statusMap[nextStatus]}`, 'success');
-}
-
-function deleteOrder(orderId) {
-    document.getElementById('deleteMessage').textContent = `Delete order ${orderId}? This action cannot be undone.`;
-    document.getElementById('deleteModal').style.display = 'flex';
-
+// DELETE LOGIC
+function confirmDeleteAction(orderId) {
+    const modal = document.getElementById('deleteModal');
     const confirmBtn = document.getElementById('confirmDelete');
     const cancelBtn = document.getElementById('cancelDelete');
 
-    confirmBtn.onclick = function() {
-        const index = orders.findIndex(o => o.id === orderId);
-        if (index > -1) {
-            orders.splice(index, 1);
-            
-            // NEW: Save the deletion to browser storage
-            saveOrdersToStorage();
-            
-            renderOrders();
-            updateStats();
-            showNotification(`Order ${orderId} deleted successfully`, 'deleted');
+    modal.style.display = 'flex';
+
+    confirmBtn.onclick = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${orderId}`, { method: 'DELETE' });
+            if (response.ok) {
+                modal.style.display = 'none';
+                loadOrdersFromBackend(); // Refresh list
+            }
+        } catch (error) {
+            alert("Error deleting order");
         }
-        document.getElementById('deleteModal').style.display = 'none';
-    }
+    };
 
-    cancelBtn.onclick = function() {
-        document.getElementById('deleteModal').style.display = 'none';
-    }
+    cancelBtn.onclick = () => { modal.style.display = 'none'; };
 }
 
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 30px;
-        padding: 15px 25px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 600;
-        z-index: 1001;
-        transform: translateX(400px);
-        transition: all 0.4s ease;
-        background: ${type === 'success' ? 'rgba(40, 167, 69, 0.95)' : 'rgba(220, 53, 69, 0.95)'};
-        backdrop-filter: blur(10px);
-    `;
-    notification.textContent = message;
-    document.body.appendChild(notification);
+async function changeStatus(orderId, currentStatus) {
+    let nextStatus = currentStatus === 'CONFIRMED' ? 'PACKED' : (currentStatus === 'PACKED' ? 'DELIVERED' : null);
+    if (!nextStatus) return;
 
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-
-    setTimeout(() => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 400);
-    }, 3000);
+    await fetch(`${API_BASE_URL}/${orderId}/status?status=${nextStatus}`, { method: 'PUT' });
+    loadOrdersFromBackend();
 }
 
-function toggleTheme() {
-    document.body.classList.toggle('light-mode');
-    const toggle = document.querySelector('.theme-toggle');
-    toggle.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+function updateStats() {
+    if(document.getElementById('totalOrders')) document.getElementById('totalOrders').textContent = orders.length;
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // NEW: Load the live orders when the page opens
-    loadOrdersFromStorage();
-    
-    updateStats();
-    renderOrders();
-});
-
-// Auto refresh simulation
-setInterval(() => {
-    if (Math.random() > 0.7) {
-        showNotification('New order received!', 'success');
-    }
-}, 15000);
+document.addEventListener('DOMContentLoaded', loadOrdersFromBackend);

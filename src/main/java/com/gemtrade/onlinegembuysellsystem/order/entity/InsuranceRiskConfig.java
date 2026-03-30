@@ -34,7 +34,7 @@ public class InsuranceRiskConfig {
     @Getter
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
+    //automatically set current data& time
     @PrePersist
     @PreUpdate
     public void preUpdate() {

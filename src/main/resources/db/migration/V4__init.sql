@@ -103,3 +103,4 @@ ALTER TABLE orders
 ALTER TABLE orders
     ADD CONSTRAINT fk_orders_inventory_item
         FOREIGN KEY (inventory_item_id) REFERENCES inventory_item(inventory_item_id);
+

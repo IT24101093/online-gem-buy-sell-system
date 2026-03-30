@@ -2,51 +2,37 @@ package com.gemtrade.onlinegembuysellsystem.order.entity;
 
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;  //Automatically manage timestamps
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orders")
+@Getter // Moved to class level: covers ALL fields
+@Setter // Moved to class level: covers ALL fields
 public class Order {
-    @Setter
-    @Getter
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
-    @Getter
-    @Setter
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    @Getter
-    @Setter
     @ManyToOne
     @JoinColumn(name = "delivery_service_id")
     private DeliveryService deliveryService;
 
-    @Setter
-    @Getter
     private BigDecimal deliveryFee;
-    @Setter
-    @Getter
     private BigDecimal insuranceFee;
-    @Setter
-    @Getter
     private BigDecimal totalAmountLkr;
-    @Setter
-    @Getter
     private String orderStatus;
-
-    @Setter
-    @Getter
+    //Automatically set when order is created
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -61,10 +47,7 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY) // Many orders can have the same inventory item
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inventory_item_id", referencedColumnName = "inventory_item_id")
     private InventoryItem inventoryItem;
-
-    // Getters and Setters
-
 }

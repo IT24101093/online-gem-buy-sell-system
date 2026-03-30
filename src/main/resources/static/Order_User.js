@@ -1,83 +1,101 @@
 let timerInterval;
-let currentOrderDetails = {}; // Temporarily holds order info to send to Admin
+let currentOrderDetails = {};
 
+// 1. Toast Notification Logic
 function showToast(message) {
     const toast = document.getElementById('toast');
-    document.getElementById('toast-msg').innerText = message;
-    toast.style.top = '20px';
-    setTimeout(() => {
-        toast.style.top = '-100px';
-    }, 3000);
+    const toastMsg = document.getElementById('toast-msg');
+    if (toast && toastMsg) {
+        toastMsg.innerText = message;
+        toast.style.top = '20px';
+        setTimeout(() => {
+            toast.style.top = '-100px';
+        }, 3000);
+    }
 }
 
-document.getElementById('orderForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+// 2. Shipping Dropdown Logic
+function updateCouriers() {
+    const region = document.getElementById('shippingMethod').value;
+    const courierGroup = document.getElementById('courierGroup');
+    const courierSelect = document.getElementById('courierService');
 
+    courierSelect.innerHTML = '<option value="" disabled selected>Select a courier...</option>';
+
+    if (region === 'local') {
+        const localOptions = ['Koombiyo', 'Domex', 'Pronto'];
+        localOptions.forEach(opt => {
+            courierSelect.innerHTML += `<option value="${opt}">${opt}</option>`;
+        });
+        courierGroup.style.display = 'block';
+    } else if (region === 'international') {
+        const intlOptions = ['DHL Express', 'FedEx'];
+        intlOptions.forEach(opt => {
+            courierSelect.innerHTML += `<option value="${opt}">${opt}</option>`;
+        });
+        courierGroup.style.display = 'block';
+    } else {
+        courierGroup.style.display = 'none';
+    }
+}
+
+// 3. THIS FIXES THE CALCULATE BUTTON
+function calculateFee() {
+    const form = document.getElementById('orderForm');
+
+    // Check if the form is valid (all required fields filled)
+    if (!form.checkValidity()) {
+        form.reportValidity(); // Shows "Please fill out this field" to user
+        return;
+    }
+
+    const name = document.getElementById('custName').value;
     const age = document.getElementById('custAge').value;
+    const address = document.getElementById('custAddress').value;
     const nic = document.getElementById('custNIC').value;
     const phone = document.getElementById('custPhone').value;
-    const name = document.getElementById('custName').value;
-    const address = document.getElementById('custAddress').value;
 
-    if (isNaN(age) || age <= 0) {
-        showToast("Age must be a valid number.");
-        return;
-    }
-    if (nic.length !== 12 || isNaN(nic)) {
-        showToast("NIC must be exactly 12 numbers.");
-        return;
-    }
-    if (phone.length !== 10 || isNaN(phone)) {
-        showToast("Contact must be 10 numbers.");
-        return;
-    }
-
-    // Generate Order ID automatically
-    const orderId = "#GEM-" + Math.floor(1000 + Math.random() * 9000);
-
-    // Save details to our temporary object
+    // Prepare data for Backend DTO
     currentOrderDetails = {
-        id: orderId,
-        name: name,
-        phone: "+94 " + phone,
-        address: address,
-        status: "processing", // Sends to the 'Processing' column in Admin
-        gems: "Pending Items", 
-        amount: "Pending LKR",
-        date: new Date().toISOString().split('T')[0] // Today's Date
+        customerDTO: {
+            firstName: name.split(' ')[0],
+            lastName: name.split(' ').slice(1).join(' ') || "Customer",
+            deliveryAddress: address,
+            contactNo: phone,
+            nic: nic,
+            age: parseInt(age)
+        },
+        orderDTO: {
+            inventoryId: 1,
+            deliveryServiceId: 1
+        }
     };
 
-    // If we have cart data from the previous page, attach it to the order
-    const storedCart = JSON.parse(localStorage.getItem('orderItems') || '[]');
-    if(storedCart.length > 0) {
-        const total = storedCart.reduce((sum, item) => sum + item.price, 0);
-        currentOrderDetails.amount = `LKR ${total.toLocaleString()}`;
-        currentOrderDetails.gems = storedCart.map(i => i.name).join(', ');
-    }
-
-    // Show details in the confirm popup
+    // Populate Summary Modal
     document.getElementById('summary-details').innerHTML = `
-        <p style="text-align:left;">
-        <strong>Order ID:</strong> ${orderId}<br>
-        <strong>Name:</strong> ${name}<br>
-        <strong>Address:</strong> ${address}</p>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Age:</strong> ${age}</p>
+        <p><strong>Address:</strong> ${address}</p>
+        <p><strong>NIC:</strong> ${nic}</p>
     `;
 
+    // Show the Modal
     document.getElementById('confirm-modal').style.display = 'flex';
-    startTimer(120); // 2 minute timer
-});
+    startTimer(120);
+}
 
+// 4. Timer & Modal Control
 function startTimer(duration) {
     let timer = duration, min, sec;
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        min = Math.floor(timer / 60);
-        sec = timer % 60;
-        document.getElementById('timer').textContent = `${min < 10 ? '0'+min : min}:${sec < 10 ? '0'+sec : sec}`;
+        min = parseInt(timer / 60, 10);
+        sec = parseInt(timer % 60, 10);
+        document.getElementById('timer').textContent = `${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`;
         if (--timer < 0) {
             clearInterval(timerInterval);
             closePopup();
-            showToast("Session expired. Please try again.");
+            showToast("Session expired.");
         }
     }, 1000);
 }
@@ -88,45 +106,98 @@ function closePopup() {
 }
 
 function finalRedirect() {
-    // 1. Stop timer and hide confirm popup
-    clearInterval(timerInterval);
     document.getElementById('confirm-modal').style.display = 'none';
-    
-    // 2. Show loading message
-    showToast("Processing Secure Connection...");
-    
-    // 3. Put the Order ID into the new payment modal
-    document.getElementById('display-order-id').innerText = currentOrderDetails.id;
-    
-    // 4. Show the payment modal after 1.5 seconds
-    setTimeout(() => {
-        document.getElementById('payment-modal').style.display = 'flex';
-    }, 1500);
+    document.getElementById('display-order-id').innerText = "PENDING...";
+    document.getElementById('payment-modal').style.display = 'flex';
 }
 
-// NEW FUNCTION: Handles the click on "Pay Now"
-function proceedToPayment() {
-    // 1. Save this order so the Admin Dashboard can see it
-    let existingOrders = JSON.parse(localStorage.getItem('adminOrders') || '[]');
-    existingOrders.push(currentOrderDetails);
-    localStorage.setItem('adminOrders', JSON.stringify(existingOrders));
+// 5. Backend Connection
+async function proceedToPayment() {
+    showToast("Processing with Database...");
 
-    // 2. Clear out the user's cart now that the order is placed
-    localStorage.removeItem('orderItems');
+    try {
+        const response = await fetch('http://localhost:8080/api/orders/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentOrderDetails)
+        });
 
-    // 3. Show redirect message
-    showToast("Redirecting to Payment Gateway...");
-    
-    // 4. Redirect to a Dummy Payment Gateway or Success Page
-    setTimeout(() => {
-        // You can change this URL to an actual payment gateway later (like Stripe/PayHere)
-        window.location.href = "OrderCart.html";
-    }, 1500);
+        if (response.ok) {
+            const data = await response.json();
+            showToast("Order #" + data.orderId + " Created!");
+
+            // Clean up cart
+            localStorage.removeItem('orderItems');
+
+            setTimeout(() => {
+                // UPDATED: Pass the orderId as a URL parameter (?id=...)
+                window.location.href = `payment-success.html?id=${data.orderId}`;
+            }, 2000);
+        } else {
+            const errorData = await response.json();
+            // Displays your Java validation error
+            showToast("Error: " + (errorData.age || "Invalid Details"));
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+    } catch (error) {
+        showToast("Backend Offline! Check IntelliJ.");
+    }
 }
 
-// NEW: Theme toggle logic to match Admin/Cart dashboard
 function toggleTheme() {
     document.body.classList.toggle('light-mode');
     const toggle = document.querySelector('.theme-toggle');
-    toggle.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    if (toggle) {
+        toggle.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+    }
 }
+
+// 6. Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    // Stop form from doing a default refresh
+    const orderForm = document.getElementById('orderForm');
+    if (orderForm) {
+        orderForm.onsubmit = (e) => e.preventDefault();
+    }
+});
+
+
+// 5. DELETE FROM DATABASE
+async function deleteOrder(orderId) {
+    const displayId = "#GEM-" + String(orderId).padStart(3, '0');
+
+    // Using your existing Modal logic
+    const modal = document.getElementById('deleteModal');
+    if(modal) {
+        document.getElementById('deleteMessage').textContent = `Delete order ${displayId}? This will remove it from MySQL permanently.`;
+        modal.style.display = 'flex';
+    }
+
+    // Set the confirm button action
+    document.getElementById('confirmDelete').onclick = async function() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${orderId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showNotification(`Order ${displayId} deleted successfully`, 'success');
+                // Refresh the list immediately from the database
+                loadOrdersFromBackend();
+            } else {
+                showNotification("Could not delete. Check Backend logs.", "error");
+            }
+        } catch (error) {
+            console.error("Delete Error:", error);
+            showNotification("Server Error during deletion.", "error");
+        }
+
+        if(modal) modal.style.display = 'none';
+    }
+
+    // Set the cancel button action
+    document.getElementById('cancelDelete').onclick = () => {
+        if(modal) modal.style.display = 'none';
+    };
+}
+

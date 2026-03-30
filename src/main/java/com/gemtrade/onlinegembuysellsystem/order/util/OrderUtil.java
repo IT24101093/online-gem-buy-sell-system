@@ -7,78 +7,76 @@ import com.gemtrade.onlinegembuysellsystem.order.entity.CourierShippingConfig;
 import com.gemtrade.onlinegembuysellsystem.order.entity.InsuranceRiskConfig;
 import com.gemtrade.onlinegembuysellsystem.order.repository.CourierShippingConfigRepository;
 import com.gemtrade.onlinegembuysellsystem.order.repository.InsuranceRiskConfigRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
 public class OrderUtil {
 
+    public static void calculateOrder(OrderDTO orderDTO,
+                                      InventoryItemService inventoryItemService,
+                                      CourierShippingConfigRepository courierRepository,
+                                      InsuranceRiskConfigRepository insuranceRepository) {
 
-    private static InventoryItemService inventoryItemService;
-
-
-    private static CourierShippingConfigRepository courierRepository;
-
-    private static InsuranceRiskConfigRepository insuranceRepository;
-    //calculateInsuranceFEE
-    //calculatetotal
-    public static void calculateOrder(OrderDTO orderDTO) {
         Optional<InventoryItem> inventoryItem = inventoryItemService.getInventoryItemByInventoryId(orderDTO.getInventoryId());
-        BigDecimal weightCt = new BigDecimal("0");
-        String gemType = null;
-        /// ////////////////////////////////////////////////ADD price from market place //////////
-        BigDecimal estimatedPrice = new BigDecimal(20); ////need to get this price by passing inventoryID
-        if (inventoryItem.isPresent()) {
-            weightCt = inventoryItem.get().getWeightCt();
-            gemType = inventoryItem.get().getGemType();
 
+        if (inventoryItem.isPresent()) {
+            InventoryItem item = inventoryItem.get();
+            BigDecimal gemPrice = item.getEstimatedValueLkr(); // Get real price from DB
+            BigDecimal weight = item.getWeightCt();
+            String type = item.getGemType();
+
+            // 1. Calculate Fees
+            calculateDeliveryFee(orderDTO, weight, courierRepository);
+            calculateInsuranceFee(orderDTO, gemPrice, type, insuranceRepository);
+
+            // 2. Calculate Final Total (Price + Delivery + Insurance)
+            BigDecimal total = gemPrice
+                    .add(orderDTO.getDeliveryFee())
+                    .add(orderDTO.getInsuranceFee());
+
+            orderDTO.setTotalAmountLkr(total);
+
+            // 3. Optional: Set names for the UI
+            orderDTO.setCourierName("DHL Global Express");
+            orderDTO.setInsuranceProvider("Ceylon Gem Insurance");
+        } else {
+            // Handle case where inventoryId is wrong
+            orderDTO.setTotalAmountLkr(BigDecimal.ZERO);
         }
-        calculateDeliveryFee(orderDTO, weightCt);
-        calculateInsuranceFee(orderDTO, estimatedPrice, gemType);
-        calculateTotal(orderDTO);
     }
 
-    private static void calculateDeliveryFee(OrderDTO orderDTO, BigDecimal weightCt) {
-        // Look up configuration from DB based on Region (e.g., 'INTERNATIONAL')
+    private static void calculateDeliveryFee(OrderDTO orderDTO, BigDecimal weightCt, CourierShippingConfigRepository courierRepository) {
         Optional<CourierShippingConfig> config = courierRepository.findByRegionName("INTERNATIONAL");
 
         if (config.isPresent()) {
             BigDecimal base = config.get().getBaseCourierFee();
             BigDecimal markup = config.get().getWeightUnitMarkup();
-
-            // Formula: Base Fee + (Weight * Markup)
             BigDecimal finalFee = base.add(weightCt.multiply(markup));
             orderDTO.setDeliveryFee(finalFee);
         } else {
-            orderDTO.setDeliveryFee(new BigDecimal("5000")); // Fallback
+            orderDTO.setDeliveryFee(new BigDecimal("5000"));
         }
     }
 
-    private static void calculateInsuranceFee(OrderDTO orderDTO, BigDecimal estimatedPrice, String gemType) {
+    private static void calculateInsuranceFee(OrderDTO orderDTO, BigDecimal estimatedPrice, String gemType, InsuranceRiskConfigRepository insuranceRepository) {
+        if (gemType == null) {
+            orderDTO.setInsuranceFee(BigDecimal.ZERO);
+            return;
+        }
 
-        // Look up Risk Multiplier from DB based on Gem Type (e.g., 'DIAMOND')
         Optional<InsuranceRiskConfig> config = insuranceRepository.findByGemType(gemType);
-
         if (config.isPresent()) {
             BigDecimal multiplier = config.get().getRiskMultiplier();
-
-            // Formula: Market Value * Risk Multiplier (e.g., 0.02 for 2%)
-            BigDecimal finalInsurance = estimatedPrice.multiply(multiplier);
-            orderDTO.setInsuranceFee(finalInsurance);
+            orderDTO.setInsuranceFee(estimatedPrice.multiply(multiplier));
         } else {
-            orderDTO.setInsuranceFee(estimatedPrice.multiply(new BigDecimal("0.02"))); // Fallback 2%
+            orderDTO.setInsuranceFee(estimatedPrice.multiply(new BigDecimal("0.02")));
         }
     }
 
-    private static void calculateTotal(OrderDTO orderDTO) {
-
-        // value of gem + deliveryfee +insuranceFee
-
-        BigDecimal estimatedPrice = new BigDecimal(20); ////need to get this price by passing inventoryID
+    private static void calculateTotal(OrderDTO orderDTO, BigDecimal estimatedPrice) {
         BigDecimal insuranceFee = orderDTO.getInsuranceFee() != null ? orderDTO.getInsuranceFee() : BigDecimal.ZERO;
         BigDecimal deliveryFee = orderDTO.getDeliveryFee() != null ? orderDTO.getDeliveryFee() : BigDecimal.ZERO;
-        BigDecimal total = insuranceFee.add(estimatedPrice).add(deliveryFee);
-        orderDTO.setTotalAmountLkr(total);
+        orderDTO.setTotalAmountLkr(insuranceFee.add(estimatedPrice).add(deliveryFee));
     }
 }

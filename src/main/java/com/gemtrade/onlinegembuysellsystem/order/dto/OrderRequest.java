@@ -1,31 +1,19 @@
 package com.gemtrade.onlinegembuysellsystem.order.dto;
 
+import jakarta.validation.Valid;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 public class OrderRequest {
-    private String name;
-    private String phone;
-    private String nic;
-    private String address;
-    private Integer age;
-    private Double amount;
-    private String deliveryType; // For Sir's Modification
-    private Long insuranceAgentId;
-    @Getter
-    @Setter
-    private CustomerDTO customerDTO;// For Sir's Modification
+    // These individual fields are likely old or redundant now
+    // since you are using CustomerDTO and OrderDTO.
+
+    @Valid // <--- THIS IS THE KEY: It tells Spring to check rules inside CustomerDTO
+    private CustomerDTO customerDTO;
+
     private OrderDTO orderDTO;
 
-    public CustomerDTO getCustomerDetails() {
-        return customerDTO;
-    }
-
-    public void setCustomerDetails(CustomerDTO customerDTO) {
-        this.customerDTO = customerDTO;
-    }
-
+    // For Sir's Modification: keeping these if your logic still uses them
+    private String deliveryType;
+    private Long insuranceAgentId;
 }
-
