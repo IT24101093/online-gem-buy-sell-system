@@ -284,7 +284,6 @@
   }
 
   async function publishItem(item) {
-    // 1. Confirm with the user
     const result = await Swal.fire({
       title: 'Push to Marketplace?',
       text: "This will send the gem details to the admin for pricing.",
@@ -298,7 +297,8 @@
     if (!result.isConfirmed) return;
 
     try {
-      // 2. Create the Marketplace Draft payload
+      // 1. Create the Marketplace Draft payload
+      // These names must match DraftRequestDto.java exactly
       const draftPayload = {
         inventoryItemId: item.inventoryItemId,
         gemstoneName: item.gemType,
@@ -307,18 +307,25 @@
         suggestedPriceLkr: item.estimatedValueLkr
       };
 
-      // 3. POST to Marketplace Drafts
+      // 2. POST to Marketplace Drafts
+      // Targets @PostMapping in MarketplaceController.java
       const draftResponse = await fetch('http://localhost:8080/api/marketplace/drafts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(draftPayload)
       });
 
-      if (!draftResponse.ok) throw new Error("Failed to create marketplace draft");
+      if (!draftResponse.ok) {
+        const errorMsg = await draftResponse.text();
+        console.error("Marketplace Draft Error:", errorMsg);
+        throw new Error("Failed to create marketplace draft: " + errorMsg);
+      }
 
-      // 4. Update the Inventory Status to PENDING_MARKET
-      // Note: Using the inner enum name PENDING_MARKET exactly as defined in InventoryItem.java
-      const statusResponse = await fetch(`http://localhost:8080/api/inventory/items/${item.inventoryItemId}/status?status=PENDING_MARKET`, {
+      // 3. Update the Inventory Status to PENDING_MARKET
+      // Matches @PutMapping("/{itemId}/status") in InventoryItemController.java
+      const statusUrl = `http://localhost:8080/api/inventory/items/${item.inventoryItemId}/status?status=PENDING_MARKET`;
+
+      const statusResponse = await fetch(statusUrl, {
         method: 'PUT'
       });
 
@@ -330,15 +337,16 @@
           confirmButtonColor: '#059669'
         });
 
-        // 5. Refresh the UI to trigger the render() logic that shows the badge
-        refresh();
+        refresh(); // Refresh the UI to show the new status badge
       } else {
+        const errorMsg = await statusResponse.text();
+        console.error("Inventory Status Error:", errorMsg);
         throw new Error("Draft created, but failed to update inventory status.");
       }
 
     } catch (error) {
-      console.error("Error during publish:", error);
-      Swal.fire('Error', 'Something went wrong during the push process.', 'error');
+      console.error("Error during publish process:", error);
+      Swal.fire('Error', error.message || 'Something went wrong during the push process.', 'error');
     }
   }
 

@@ -1,30 +1,33 @@
 package com.gemtrade.onlinegembuysellsystem.marketplace.service;
 
-import com.gemtrade.onlinegembuysellsystem.marketplace.dto.GemListingDTO;
-import com.gemtrade.onlinegembuysellsystem.marketplace.dto.GemVariantDTO;
-import com.gemtrade.onlinegembuysellsystem.marketplace.dto.MarketplaceDraftDTO;
-import com.gemtrade.onlinegembuysellsystem.marketplace.dto.SuggestionRequestDTO;
+
+
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryImage;
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem;
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.ValidationReport.ColorTone;
+import com.gemtrade.onlinegembuysellsystem.inventory.repository.InventoryItemRepository;
+import com.gemtrade.onlinegembuysellsystem.marketplace.dto.*;
 import com.gemtrade.onlinegembuysellsystem.marketplace.entity.*;
-import com.gemtrade.onlinegembuysellsystem.marketplace.repository.GemCaratVariantRepository;
-import com.gemtrade.onlinegembuysellsystem.marketplace.repository.InventoryItemRepository;
-import com.gemtrade.onlinegembuysellsystem.marketplace.repository.MarketplaceListingDraftRepository;
-import com.gemtrade.onlinegembuysellsystem.marketplace.repository.MarketplaceListingRepository;
+import com.gemtrade.onlinegembuysellsystem.marketplace.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+
 public class MarketplaceService {
 
     private final MarketplaceListingRepository listingRepo;
     private final MarketplaceListingDraftRepository draftRepo;
-    private final InventoryItemRepository inventoryRepo;
+    private final MarketplaceInventoryRepository inventoryRepo;
     private final GemCaratVariantRepository variantRepo;   // NEW – Feature 3
+    private final InventoryItemRepository inventoryItemRepo;
 
     /**
      * @param search      partial name or category match
@@ -197,18 +200,22 @@ public class MarketplaceService {
     }
 
     public List<MarketplaceDraftDTO> getPendingDrafts() {
-        return draftRepo.findByStatus(MarketplaceListingDraft.DraftStatus.PENDING)
-                .stream()
-                .map(d -> MarketplaceDraftDTO.builder()
-                        .draftId(d.getDraftId())
-                        .gemstoneName(d.getGemstoneName())
-                        .category(d.getCategory())
-                        .spec((d.getInventoryItem().getWeightCt() != null
-                                ? d.getInventoryItem().getWeightCt() + "ct " : "") +
-                                d.getInventoryItem().getGemType())
-                        .suggestedPrice(d.getSuggestedPriceLkr())
-                        .build())
-                .collect(Collectors.toList());
+        return draftRepo.findByStatus("PENDING").stream().map(draft -> {
+
+            // Extract the image dynamically from the linked inventory item
+            String imageUrl = draft.getPrimaryImageUrl();
+
+            return MarketplaceDraftDTO.builder()
+                    .draftId(draft.getDraftId())
+                    .inventoryItemId(draft.getInventoryItem() != null ? draft.getInventoryItem().getInventoryItemId() : null)
+                    .gemstoneName(draft.getGemstoneName())
+                    .category(draft.getCategory())
+                    .spec(draft.getDescriptionSnapshot())
+                    .suggestedPriceLkr(draft.getSuggestedPriceLkr())
+                    .status(draft.getStatus())
+                    .mainImageUrl(imageUrl) // <-- THIS IS THE FIX: Set the image URL in the DTO
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     public List<GemListingDTO> getActiveListingsForAdmin() {
@@ -229,75 +236,154 @@ public class MarketplaceService {
 
     @Transactional
     public void deleteListing(Long listingId) {
-        if (!listingRepo.existsById(listingId)) {
-            throw new RuntimeException("Listing not found: " + listingId);
+        // 1. Find the listing
+        MarketplaceListing listing = listingRepo.findById(listingId)
+                .orElseThrow(() -> new RuntimeException("Listing not found"));
+
+        // 2. Get the linked inventory item and the draft
+        InventoryItem item = listing.getInventoryItem();
+        MarketplaceListingDraft draft = listing.getDraft(); // We need to delete this too
+
+        // 3. Update the Inventory Item status back to IN_STOCK
+        if (item != null) {
+            item.setStatus(InventoryItem.Status.IN_STOCK);
+            inventoryItemRepo.save(item);
         }
-        listingRepo.deleteById(listingId);
+
+        // 4. Delete the active listing
+        listingRepo.delete(listing);
+
+        // 5. Delete the draft record
+        // This removes the unique constraint block so the gem can be pushed again
+        if (draft != null) {
+            draftRepo.delete(draft);
+        }
     }
+
 
     @Transactional
     public void publishGem(Long draftId, BigDecimal adminPrice) {
         MarketplaceListingDraft draft = draftRepo.findById(draftId)
-                .orElseThrow(() -> new RuntimeException("Draft not found: " + draftId));
+                .orElseThrow(() -> new RuntimeException("Draft not found"));
 
-        InventoryItem item = draft.getInventoryItem();
-        item.setStatus(InventoryItem.InventoryStatus.PUBLISHED);
+        InventoryItem inventory = draft.getInventoryItem();
 
-        if (item.getImages() == null || item.getImages().isEmpty()) {
-            InventoryImage img = new InventoryImage();
-            img.setInventoryItem(item);
-            img.setImagePath(resolveDefaultImagePath(draft.getGemstoneName()));
-            img.setIsPrimary(true);
-            img.setSortOrder(0);
-            item.getImages().add(img);
+        // 1. Ensure we have a ColorTone (fallback to OTHER)
+        ColorTone tone = ColorTone.OTHER;
+        if (inventory.getValidationReport() != null && inventory.getValidationReport().getColorTone() != null) {
+            tone = inventory.getValidationReport().getColorTone();
         }
 
-        MarketplaceListing listing = new MarketplaceListing();
-        listing.setDraft(draft);
-        listing.setInventoryItem(item);
-        listing.setGemstoneName(draft.getGemstoneName());
-        listing.setCategory(draft.getCategory());
-        listing.setDescription(draft.getDescriptionSnapshot());
-        listing.setPriceLkr(adminPrice);
-        listing.setMainImageUrl(getPrimaryImage(item));
-
-        if (item.getValidationReport() != null) {
-            listing.setColorTone(item.getValidationReport().getColorTone());
-        } else {
-            listing.setColorTone(ColorTone.OTHER);
-        }
-
-        listing.setStatus(MarketplaceListing.ListingStatus.ACTIVE);
-
-        draft.setStatus(MarketplaceListingDraft.DraftStatus.APPROVED);
-        draft.setAdminPriceLkr(adminPrice);
+        // 2. Build the listing EXPLICITLY
+        MarketplaceListing listing = MarketplaceListing.builder()
+                .draft(draft)
+                .inventoryItem(inventory)
+                .gemstoneName(draft.getGemstoneName())
+                .category(draft.getCategory())
+                .description(inventory.getDescription())
+                .priceLkr(adminPrice)
+                .mainImageUrl(getPrimaryImage(inventory))
+                .colorTone(tone)             // Explicitly set
+                .origin("Sri Lanka")         // Explicitly set to satisfy NOT NULL
+                .publishedAt(LocalDateTime.now())
+                .status(MarketplaceListing.ListingStatus.ACTIVE)
+                .build();
 
         listingRepo.save(listing);
+        InventoryItem item = draft.getInventoryItem();
+        item.setStatus(InventoryItem.Status.PUBLISHED); // This updates the SQL table
+        inventoryItemRepo.save(item);
+
+        // 3. Mark draft as APPROVED (Fixing the crash here!)
+        draft.setStatus("APPROVED"); // ❌ Used to be "PUBLISHED"
+        draft.setAdminPriceLkr(adminPrice);
         draftRepo.save(draft);
-        inventoryRepo.save(item);
     }
+
+    /** Helper to find the image in the inventory system */
+    private String getPrimaryImageFromInventory(InventoryItem item) {
+        if (item.getImages() == null || item.getImages().isEmpty()) {
+            return "/gem-photos/default.jpg";
+        }
+
+        String path = item.getImages().get(0).getImagePath();
+
+        // Ensure path starts with / so browser goes to localhost:8080/uploads
+        // instead of localhost:8080/inventory-component/uploads
+        if (path != null && !path.startsWith("/")) {
+            return "/" + path;
+        }
+        return path;
+    }
+    // Inside MarketplaceService.java
+
+    /**
+     * Creates a new draft from the inventory item.
+     */
+    public void createDraft(DraftRequestDto dto) {
+        MarketplaceListingDraft draft = new MarketplaceListingDraft();
+
+        // Use the exact field names from your Dto
+        InventoryItem item = inventoryItemRepo.findById(dto.getInventoryItemId())
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        draft.setInventoryItem(item);
+        draft.setGemstoneName(dto.getGemstoneName());
+        draft.setCategory(dto.getCategory());
+        draft.setDescriptionSnapshot(dto.getDescriptionSnapshot());
+        draft.setSuggestedPriceLkr(dto.getSuggestedPriceLkr());
+        draft.setStatus("PENDING");
+
+        draftRepo.save(draft);
+    }
+
+    /**
+     * Marks a gem as sold in both the draft and inventory records.
+     */
+    /**
+     * Marks a gem as sold in both the draft and inventory records.
+     */
+    @Transactional
+    public void markAsSold(Long draftId) {
+        MarketplaceListingDraft draft = draftRepo.findById(draftId)
+                .orElseThrow(() -> new RuntimeException("Draft not found"));
+
+        // Keep the draft status safely within the allowed database limits
+        draft.setStatus("APPROVED"); // ❌ Used to be "SOLD"
+
+        if (draft.getInventoryItem() != null) {
+            // It is completely fine to set the Inventory Item to SOLD,
+            // because the Inventory table has a different set of allowed words!
+            draft.getInventoryItem().setStatus(InventoryItem.Status.SOLD);
+        }
+
+        draftRepo.save(draft);
+    }
+    // Update this method in MarketplaceService.java
+    // In MarketplaceService.java
     private GemListingDTO toGemDTO(MarketplaceListing l) {
+        // Standardize the image URL path
+        String imageUrl = l.getMainImageUrl();
+        if (imageUrl != null && !imageUrl.startsWith("/") && !imageUrl.startsWith("http")) {
+            imageUrl = "/gem-photos/" + imageUrl;
+        }
+
         return GemListingDTO.builder()
                 .listingId(l.getListingId())
                 .name(l.getGemstoneName())
                 .category(l.getCategory())
                 .description(l.getDescription())
                 .price(l.getPriceLkr())
-                .mainImageUrl(l.getMainImageUrl())
-                .colorTone(l.getColorTone().name())
-                .caratWeight(l.getInventoryItem() != null && l.getInventoryItem().getWeightCt() != null
-                        ? l.getInventoryItem().getWeightCt().doubleValue() : 0.0)
-                .origin(l.getOrigin())
+                .mainImageUrl(imageUrl != null ? imageUrl : "/gem-photos/default.jpg")
+                .colorTone(l.getColorTone() != null ? l.getColorTone().name() : "OTHER")
+                .origin(l.getOrigin() != null ? l.getOrigin() : "Sri Lanka")
+                // Fetch weight from the linked inventory item
+                .caratWeight(l.getInventoryItem() != null ?
+                        l.getInventoryItem().getWeightCt().doubleValue() : 0.0)
                 .build();
     }
 
-    private String getPrimaryImage(InventoryItem item) {
-        return item.getImages().stream()
-                .filter(InventoryImage::getIsPrimary)
-                .findFirst()
-                .map(InventoryImage::getImagePath)
-                .orElse("/gem-photos/default.jpg");
-    }
+
 
     private String resolveDefaultImagePath(String gemstoneName) {
         if (gemstoneName == null) return "/gem-photos/default.jpg";
@@ -312,4 +398,26 @@ public class MarketplaceService {
         if (name.contains("teal sapphire"))        return "/gem-photos/image8.jpg";
         return "/gem-photos/default.jpg";
     }
-}
+
+    private String getPrimaryImage(InventoryItem item) {
+        if (item == null || item.getImages() == null || item.getImages().isEmpty()) {
+            return "/gem-photos/default.jpg";
+        }
+
+        // Attempt to find the primary image path
+        String path = item.getImages().stream()
+                .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+                .map(InventoryImage::getImagePath)
+                .findFirst()
+                .orElse(item.getImages().get(0).getImagePath());
+
+        if (path == null) return "/gem-photos/default.jpg";
+
+        // Ensure the path is correctly formatted for the frontend
+        if (!path.startsWith("/") && !path.startsWith("http")) {
+            return "/gem-photos/" + path;
+        }
+        return path;
+    }
+} // This should be the final closing brace. No more characters after this.
+

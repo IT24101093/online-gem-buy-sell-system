@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 import java.util.List;
 
@@ -57,21 +59,54 @@ public class JewelleryAdminController {
      * }
      */
     @PostMapping
-    public ResponseEntity<JewelleryDTO> addJewellery(@Valid @RequestBody JewelleryDTO dto) {
-        JewelleryDTO created = jewelleryService.addJewellery(dto);
+    public ResponseEntity<JewelleryDTO> addJewellery(
+            @RequestParam("imageFile") MultipartFile imageFile,
+            @RequestParam("jewelleryType") String jewelleryType,
+            @RequestParam("metalColour") String metalColour,
+            @RequestParam("priceLkr") java.math.BigDecimal priceLkr,
+            @RequestParam("gemstoneName") String gemstoneName,
+            @RequestParam("description") String description,
+            @RequestParam(value = "gemCategories", required = false) List<String> gemCategories) throws IOException {
+
+        JewelleryDTO dto = JewelleryDTO.builder()
+                .jewelleryType(jewelleryType)
+                .metalColour(metalColour)
+                .priceLkr(priceLkr)
+                .gemstoneName(gemstoneName)
+                .description(description)
+                .gemCategories(gemCategories)
+                .build();
+
+        // Call the updated service method
+        JewelleryDTO created = jewelleryService.addJewellery(dto, imageFile);
         return ResponseEntity.ok(created);
     }
-
     /**
      * PUT /api/admin/jewellery/{id}
      * Replaces all fields of an existing jewellery item.
      * Gem categories are replaced entirely.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateJewellery(
+    public ResponseEntity<JewelleryDTO> updateJewellery(
             @PathVariable Long id,
-            @RequestBody JewelleryDTO dto) {
-        JewelleryDTO updated = jewelleryService.updateJewellery(id, dto);
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            @RequestParam("jewelleryType") String jewelleryType,
+            @RequestParam("metalColour") String metalColour,
+            @RequestParam("priceLkr") java.math.BigDecimal priceLkr,
+            @RequestParam("gemstoneName") String gemstoneName,
+            @RequestParam("description") String description,
+            @RequestParam(value = "gemCategories", required = false) List<String> gemCategories) throws IOException {
+
+        JewelleryDTO dto = JewelleryDTO.builder()
+                .jewelleryType(jewelleryType)
+                .metalColour(metalColour)
+                .priceLkr(priceLkr)
+                .gemstoneName(gemstoneName)
+                .description(description)
+                .gemCategories(gemCategories)
+                .build();
+
+        JewelleryDTO updated = jewelleryService.updateJewellery(id, dto, imageFile);
         return ResponseEntity.ok(updated);
     }
 

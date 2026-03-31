@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface MarketplaceListingDraftRepository extends JpaRepository<MarketplaceListingDraft, Long> {
-    List<MarketplaceListingDraft> findByStatus(MarketplaceListingDraft.DraftStatus status);
+    // Change parameter from DraftStatus to String
+    List<MarketplaceListingDraft> findByStatus(String status);
 }

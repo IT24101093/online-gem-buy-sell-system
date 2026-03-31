@@ -33,23 +33,23 @@ public class SmartAnalysisEngineService {
         if (dto.getLengthMm() == null || dto.getWidthMm() == null || dto.getDepthMm() == null) {
             throw new RuntimeException("lengthMm, widthMm, depthMm are required");
         }
-
+        // 1. Volume Calculation
         BigDecimal volumeMm3 = dto.getLengthMm()
                 .multiply(dto.getWidthMm())
                 .multiply(dto.getDepthMm())
                 .setScale(4, RoundingMode.HALF_UP);
-
+        // 2. Fetching Constants from Database
         BigDecimal sg = specificGravityRepository.findByMaterialIgnoreCase(dto.getConfirmedGemType())
                 .map(SpecificGravity::getSgValue)
                 .orElse(DEFAULT_SG);
-
+        // 3. The Carat Estimation Formula
         BigDecimal shapeFactor = (dto.getRoughShape() == null || dto.getRoughShape().isBlank())
                 ? DEFAULT_SHAPE_FACTOR
                 : shapeFactorRepository.findByShapeIgnoreCase(dto.getRoughShape())
                 .map(ShapeFactor::getFactor)
                 .orElse(DEFAULT_SHAPE_FACTOR);
 
-        // consistent formula (same as your Day 10)
+        // consistent formula
         BigDecimal estimatedCarat = volumeMm3
                 .multiply(sg)
                 .multiply(shapeFactor)
@@ -79,8 +79,9 @@ public class SmartAnalysisEngineService {
                 .map(YieldFactor::getYieldPercent)
                 .orElse(DEFAULT_YIELD_PERCENT);
 
-        BigDecimal basePricePerCarat = pickBasePrice(dto.getConfirmedGemType(), finalWeightCt);
+        BigDecimal basePricePerCarat = pickBasePrice(dto.getConfirmedGemType(), finalWeightCt);//look for base price
 
+        //apply multiplyer for base price
         BigDecimal mColor = lookupMultiplier(Multiplier.Category.COLOR, dto.getColorGrade());
         BigDecimal mClarity = lookupMultiplier(Multiplier.Category.CLARITY, dto.getClarityGrade());
         BigDecimal mCut = lookupMultiplier(Multiplier.Category.CUT, dto.getCutGrade());
@@ -88,6 +89,7 @@ public class SmartAnalysisEngineService {
         BigDecimal adjustedPricePerCarat = basePricePerCarat
                 .multiply(mColor).multiply(mClarity).multiply(mCut)
                 .setScale(2, RoundingMode.HALF_UP);
+          //apply estimated value
 
         BigDecimal estimatedValue = adjustedPricePerCarat.multiply(finalWeightCt)
                 .setScale(2, RoundingMode.HALF_UP);

@@ -164,21 +164,36 @@ function showCartToast(message) {
 
 function toImageUrl(gem) {
     if (gem.mainImageUrl) {
-        return gem.mainImageUrl;
+        let url = gem.mainImageUrl;
+
+        // FIX: If the backend accidentally combined both folders, clean it up!
+        // This takes "/gem-88photos/uploads/items/..." and fixes it to just "/uploads/items/..."
+        if (url.includes('uploads/items/')) {
+            return '/' + url.substring(url.indexOf('uploads/items/'));
+        }
+
+        if (url.startsWith('/') || url.startsWith('http')) {
+            return url;
+        } else {
+            return '/uploads/' + url;
+        }
     }
+
+    // Handle the local demo gems
     if (gem.img) {
         return gem.img.startsWith('/gem-photos/') ? gem.img : `/gem-photos/${gem.img}`;
     }
-    return '/gem-photos/image4.jpg';
-}
 
+    // Reliable fallback
+    return 'https://placehold.co/400x300?text=No+Image';
+}
 function displayGems(items) {
     currentDisplayedGems = items;
     const grid = document.getElementById('gem-market');
     grid.innerHTML = items.map((gem, i) => `
         <div class="gem-card group animate__animated animate__fadeInUp" style="animation-delay: ${i * 0.1}s">
             <div class="relative overflow-hidden bg-slate-100 mb-4 aspect-[4/5] rounded-sm">
-                <img src="${toImageUrl(gem)}" class="w-full h-full object-cover transition duration-1000" alt="${gem.name}">
+               <img src="${toImageUrl(gem)}" class="w-full h-full object-cover transition duration-1000" alt="${gem.name}" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">
                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
                     <button onclick="openGemDetails(${i})" class="bg-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-amber-500 hover:text-white transition">View Details</button>
                 </div>

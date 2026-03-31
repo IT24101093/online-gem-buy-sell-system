@@ -7,7 +7,6 @@ import com.gemtrade.onlinegembuysellsystem.inventory.dto.SellerRequestDto;
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.GemCertificate;
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryImage;
 import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem;
-import com.gemtrade.onlinegembuysellsystem.inventory.entity.Seller;
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.GemCertificateRepository;
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.InventoryImageRepository;
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.InventoryItemRepository;
@@ -15,6 +14,7 @@ import com.gemtrade.onlinegembuysellsystem.inventory.repository.SellerRepository
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.gemtrade.onlinegembuysellsystem.seller.entity.Seller;
 
 import java.util.List;
 import java.util.Map;

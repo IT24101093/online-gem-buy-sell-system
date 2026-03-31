@@ -24,14 +24,16 @@ public class AdminMarketplaceController {
         return service.getPendingDrafts();
     }
 
-    @PostMapping("/publish/{draftId}")
+    // Change this section in AdminMarketplaceController.java
+    // In AdminMarketplaceController.java
+
+    @PutMapping("/drafts/{draftId}/approve") // 1. Change from @PostMapping to @PutMapping and update path
     public ResponseEntity<String> publish(
             @PathVariable Long draftId,
-            @RequestParam BigDecimal price) {
+            @RequestParam(name = "adminPrice") BigDecimal price) { // 2. Ensure name matches 'adminPrice' from JS
         service.publishGem(draftId, price);
         return ResponseEntity.ok("Published successfully");
     }
-
     // ── Active Listings ────────────────────────────────────────────────────────
 
     @GetMapping("/listings")

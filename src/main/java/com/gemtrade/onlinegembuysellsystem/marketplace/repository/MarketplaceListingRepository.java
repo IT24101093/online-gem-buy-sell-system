@@ -1,6 +1,6 @@
 package com.gemtrade.onlinegembuysellsystem.marketplace.repository;
 
-import com.gemtrade.onlinegembuysellsystem.marketplace.entity.ColorTone;
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.ValidationReport.ColorTone;
 import com.gemtrade.onlinegembuysellsystem.marketplace.entity.MarketplaceListing;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

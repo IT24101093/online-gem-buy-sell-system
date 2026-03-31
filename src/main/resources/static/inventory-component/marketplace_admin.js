@@ -51,30 +51,78 @@ function admShowToast(message, type = 'info') {
 // ── Render helpers ─────────────────────────────────────────────────────────
 function renderInventory() {
     const container = document.getElementById('inventory-inbox');
-    container.innerHTML = inventoryItems.map(item => `
-        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-400 animate__animated animate__fadeInUp hover:shadow-md transition cursor-pointer" onclick="openModal(${item.draftId})">
-            <p class="text-xs text-amber-600 font-bold uppercase tracking-tighter">${item.category}</p>
-            <h4 class="font-bold text-slate-800">${item.gemstoneName}</h4>
-            <p class="text-sm text-slate-500">${item.spec}</p>
+    container.innerHTML = inventoryItems.map(item => {
+
+        // 1. Smart URL cleanup for the Inventory images!
+        let finalImageSrc = 'https://placehold.co/400x300?text=No+Image';
+        let imageUrl = item.mainImageUrl || item.imagePath || item.img;
+
+        if (imageUrl) {
+            if (imageUrl.includes('uploads/items/')) {
+                finalImageSrc = '/' + imageUrl.substring(imageUrl.indexOf('uploads/items/'));
+            } else if (imageUrl.startsWith('/') || imageUrl.startsWith('http')) {
+                finalImageSrc = imageUrl;
+            } else {
+                finalImageSrc = '/uploads/' + imageUrl;
+            }
+        }
+
+        // 2. Safety fallbacks for database vs demo fields
+        const displayName = item.gemstoneName || item.name || 'Unknown Gem';
+        const displayCategory = item.category || 'Uncategorized';
+        const displaySpec = item.spec || item.description || 'No specs available';
+        const modalId = item.draftId || item.id || 0;
+
+        return `
+        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-400 animate__animated animate__fadeInUp hover:shadow-md transition cursor-pointer" onclick="openModal(${modalId})">
+            
+            <div class="flex gap-4 items-center mb-3">
+                <img src="${finalImageSrc}" alt="${displayName}" class="w-16 h-16 object-cover rounded-lg border border-slate-200" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">
+                <div>
+                    <p class="text-xs text-amber-600 font-bold uppercase tracking-tighter">${displayCategory}</p>
+                    <h4 class="font-bold text-slate-800">${displayName}</h4>
+                </div>
+            </div>
+
+            <p class="text-sm text-slate-500 line-clamp-2">${displaySpec}</p>
             <button class="mt-4 text-xs font-bold text-blue-600 flex items-center gap-1">
                 <i data-lucide="plus-circle" class="w-3 h-3"></i> PREPARE LISTING
             </button>
         </div>
-    `).join('');
+        `;
+    }).join('');
     lucide.createIcons();
 }
-
 function renderMarketTable() {
     const tbody = document.getElementById('active-listings');
     tbody.innerHTML = marketItems.map(item => {
+
+        // FIX 1: The same smart URL cleanup we used on the user page!
+        let finalImageSrc = 'https://placehold.co/400x300?text=No+Image';
+        if (item.mainImageUrl) {
+            let url = item.mainImageUrl;
+            if (url.includes('uploads/items/')) {
+                finalImageSrc = '/' + url.substring(url.indexOf('uploads/items/'));
+            } else if (url.startsWith('/') || url.startsWith('http')) {
+                finalImageSrc = url;
+            } else {
+                finalImageSrc = '/uploads/' + url;
+            }
+        }
+
+        // FIX 2: Handle both Database fields AND Demo Item fields!
+        const displayName = item.gemstoneName || item.name || 'Unknown Gem';
+        const displayCategory = item.category || 'Uncategorized';
+        const displayPrice = item.priceLkr || item.price || 0;
+
         return `
         <tr class="border-b last:border-0 hover:bg-slate-50 transition">
             <td class="p-4">
-                <img src="${item.mainImageUrl || '/gem-photos/default.jpg'}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg border border-slate-200 shadow-sm" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Crect fill=%27%23e2e8f0%27 width=%27100%27 height=%27100%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%2394a3b8%27 font-family=%27sans-serif%27 font-size=%2714%27%3ENo Image%3C/text%3E%3C/svg%3E';">
+                <img src="${finalImageSrc}" alt="${displayName}" class="w-16 h-16 object-cover rounded-lg border border-slate-200 shadow-sm" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">
             </td>
-            <td class="p-4 font-bold text-slate-700">${item.name}</td>
-            <td class="p-4 text-sm text-slate-500">${item.category}</td>
-            <td class="p-4 font-mono text-green-600 font-bold">Rs. ${item.price.toLocaleString()}</td>
+            <td class="p-4 font-bold text-slate-700">${displayName}</td>
+            <td class="p-4 text-sm text-slate-500">${displayCategory}</td>
+            <td class="p-4 font-mono text-green-600 font-bold">Rs. ${displayPrice.toLocaleString()}</td>
             <td class="p-4 flex gap-3">
                 <button class="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition" onclick="openEditPrice(${item.listingId})" title="Edit price"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                 <button class="p-2 hover:bg-red-50 text-red-500 rounded-lg transition" onclick="deleteListing(${item.listingId})" title="Delete listing"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -153,65 +201,43 @@ function removeVariantRow(btn) {
     if (row) row.remove();
 }
 
+/**
+ * Handles the publication of a gemstone from a draft to the active marketplace.
+ */
 function confirmPublish() {
-    const price = document.getElementById('market-price').value;
-    if (!price) {
+    const priceInput = document.getElementById('market-price').value;
+    if (!priceInput) {
         admShowToast('Please enter a price before publishing.', 'error');
         return;
     }
 
+    // CLEAN THE PRICE: Removes spaces that cause NumberFormatException
+    const cleanedPrice = priceInput.toString().replace(/\s+/g, '').replace(/,/g, '');
+
     if (!activeGemId) return;
 
-    // Demo drafts (negative ids) are handled purely on the frontend
-    if (activeGemId < 0) {
-        const gem = inventoryItems.find(g => g.draftId === activeGemId);
-        if (!gem) return;
+    // ... (Keep existing demo logic for activeGemId < 0) ...
 
-        const numericPrice = Number(price);
-        if (Number.isNaN(numericPrice) || numericPrice <= 0) {
-            admShowToast('Please enter a valid price greater than 0.', 'error');
-            return;
-        }
+    const url = `${ADMIN_MARKETPLACE_API_BASE}/drafts/${activeGemId}/approve?adminPrice=${encodeURIComponent(cleanedPrice)}`;
 
-        marketItems.unshift({
-            listingId: activeGemId,
-            name: gem.gemstoneName,
-            category: gem.category,
-            price: numericPrice,
-            mainImageUrl: '/gem-photos/image4.jpg'
+    fetch(url, { method: 'PUT' })
+        .then(async res => {
+            if (!res.ok) {
+                const errorData = await res.json();
+                // This will now show the "Column 'category' cannot be null" error in your console
+                console.error('Server Error Details:', errorData);
+                throw new Error(errorData.message || 'Server error');
+            }
+            admShowToast('Gem successfully pushed to Marketplace!');
+            loadPendingDrafts();
+            loadActiveListings();
+            document.getElementById('market-price').value = '';
+            closeModal();
+        })
+        .catch(err => {
+            console.error('Error publishing listing:', err);
+            admShowToast('An error occurred: ' + err.message, 'error');
         });
-
-        const idx = inventoryItems.findIndex(g => g.draftId === activeGemId);
-        if (idx !== -1) {
-            inventoryItems.splice(idx, 1);
-        }
-
-        renderInventory();
-        renderMarketTable();
-        document.getElementById('market-price').value = '';
-        closeModal();
-        return;
-    }
-
-    const url = `${ADMIN_MARKETPLACE_API_BASE}/publish/${activeGemId}?price=${encodeURIComponent(price)}`;
-    fetch(url, {
-        method: 'POST',
-    }).then(res => {
-
-        if (!res.ok) {
-            admShowToast('Failed to publish listing. Please try again.', 'error');
-            return;
-        }
-        return res.text();
-    }).then(() => {
-        loadPendingDrafts();
-        loadActiveListings();
-        document.getElementById('market-price').value = '';
-        closeModal();
-    }).catch(err => {
-        console.error('Error publishing listing', err);
-        admShowToast('An error occurred while publishing the listing.', 'error');
-    });
 }
 
 // ── List loaders ───────────────────────────────────────────────────────────

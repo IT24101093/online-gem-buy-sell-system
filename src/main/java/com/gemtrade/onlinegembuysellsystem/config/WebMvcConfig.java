@@ -17,13 +17,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // This makes the /uploads/** URL show files from the local uploads folder,
-        // so saved images can be opened in the browser and used by the frontend.
+        // Keep your existing uploads mapping
         String cleaned = StringUtils.trimWhitespace(uploadDir);
         Path uploadPath = Paths.get(cleaned).toAbsolutePath().normalize();
-
-        // Map URL: /uploads/**  ->  Local folder: uploads/
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(uploadPath.toUri().toString());
+
+        String userDir = System.getProperty("user.dir");
+        Path gemPhotosPath = Paths.get(userDir, "src", "main", "resources", "static", "gem-photos");
+        String gemPhotosUri = gemPhotosPath.toAbsolutePath().toUri().toString();
+
+        registry.addResourceHandler("/gem-photos/**")
+                .addResourceLocations(gemPhotosUri) // Use the file:/// URI instead of classpath
+                .setCachePeriod(0);
     }
 }

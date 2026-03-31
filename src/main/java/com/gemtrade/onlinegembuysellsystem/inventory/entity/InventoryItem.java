@@ -7,6 +7,12 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.gemtrade.onlinegembuysellsystem.seller.entity.Seller;
+import com.gemtrade.onlinegembuysellsystem.inventory.entity.ValidationReport;
+
+
 
 @Entity
 @Table(name = "inventory_item")
@@ -48,6 +54,12 @@ public class InventoryItem {
 
     @Column(name = "description_updated_at")
     private LocalDateTime descriptionUpdatedAt;
+    @OneToMany(mappedBy = "inventoryItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<InventoryImage> images;
+
+    // Add this field to InventoryItem.java
+    @OneToOne(mappedBy = "inventoryItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ValidationReport validationReport;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")

@@ -21,12 +21,12 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class SmartAnalysisDetectService {
-
+  //CONNECT WITH FAST API AND CONVERT
     private final RestTemplate restTemplate;
 
     @Value("${ai.predict.base-url}")
     private String aiBaseUrl;
-
+      //commiunicate with fast api
     public SmartAnalysisDetectResponseDto detect(MultipartFile file) {
         validateImage(file);
 
@@ -79,7 +79,7 @@ public class SmartAnalysisDetectService {
             throw new RuntimeException("Failed to call AI prediction service", e);
         }
     }
-
+      //image validation
     private void validateImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Image file is required");
@@ -93,7 +93,11 @@ public class SmartAnalysisDetectService {
             throw new IllegalArgumentException("Only JPG, PNG, and WEBP images are allowed");
         }
     }
-
+    /**
+     * Maps the raw JSON-like Map response from the Python FastAPI AI service
+     * into a strongly-typed Java DTO. Handles data type conversion and
+     * extracts top 3 predictions for application use.
+     */
     private SmartAnalysisDetectResponseDto mapResponse(Map body) {
         if (body == null) {
             throw new RuntimeException("AI prediction service returned an empty response");

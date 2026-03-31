@@ -133,7 +133,7 @@ function previewJewelleryImage(event) {
  * Reads all form fields, validates them, then POSTs to the backend API.
  * On success the table is refreshed and the modal is closed.
  */
-function saveJewellery() {
+async function saveJewellery() {
     const type = document.getElementById('jwl-type').value.trim();
     const metal = document.getElementById('jwl-metal').value.trim();
     const priceRaw = document.getElementById('jwl-price').value.trim();
@@ -144,64 +144,69 @@ function saveJewellery() {
     const catSelect = document.getElementById('jwl-gem-categories');
     const categories = Array.from(catSelect.selectedOptions).map(o => o.value);
 
-    // ── Validation (custom toast instead of alert) ──
-    if (!type) {
-        jwlAdminToast('Please select a Jewellery Type.', 'error');
-        return;
+    // 1. Get the actual file from the input
+    const imageInput = document.getElementById('jwl-image-input');
+    const imageFile = imageInput.files[0];
+
+    // ── Validation ──
+    if (!type) return jwlAdminToast('Please select a Jewellery Type.', 'error');
+    if (!metal) return jwlAdminToast('Please select a Metal Colour.', 'error');
+    if (categories.length === 0) return jwlAdminToast('Please select at least one Gem Category.', 'error');
+
+    // Only require a new image if we aren't editing an existing item
+    if (!editingJewelleryId && !imageFile) {
+        return jwlAdminToast('Please select an image file to upload.', 'error');
     }
-    if (!metal) {
-        jwlAdminToast('Please select a Metal Colour.', 'error');
-        return;
-    }
-    if (categories.length === 0) {
-        jwlAdminToast('Please select at least one Gem Category.', 'error');
-        return;
-    }
+
     const price = Number(priceRaw);
     if (!priceRaw || Number.isNaN(price) || price <= 0) {
-        jwlAdminToast('Please enter a valid price greater than 0.', 'error');
-        return;
+        return jwlAdminToast('Please enter a valid price greater than 0.', 'error');
     }
 
-    // Build the DTO matching the backend's JewelleryDTO shape
-    const dto = {
-        jewelleryType: type,
-        metalColour: metal,
-        priceLkr: price,
-        gemstoneName: gemstone || null,
-        description: description || null,
-        gemCategories: categories,
-        imagePath: selectedImageName
-            ? `gem-photos/${selectedImageName}`
-            : currentImagePath
-    };
+    // 2. USE FORMDATA INSTEAD OF JSON
+    const formData = new FormData();
+
+    // Add the text fields (Names must match @RequestParam in your Controller)
+    formData.append('jewelleryType', type);
+    formData.append('metalColour', metal);
+    formData.append('priceLkr', price);
+    formData.append('gemstoneName', gemstone || "");
+    formData.append('description', description || "");
+
+    // Add categories as individual entries for the List<String>
+    categories.forEach(cat => formData.append('gemCategories', cat));
+
+    // Add the physical file
+    if (imageFile) {
+        formData.append('imageFile', imageFile);
+    }
 
     const method = editingJewelleryId ? 'PUT' : 'POST';
+    const url = editingJewelleryId ? `${JEWELLERY_API}/${editingJewelleryId}` : JEWELLERY_API;
 
-    const url = editingJewelleryId
-        ? `${JEWELLERY_API}/${editingJewelleryId}`
-        : JEWELLERY_API;
-
-    fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dto)
-    })
-        .then(res => {
-            if (!res.ok) throw new Error('Server returned ' + res.status);
-            return res.json();
-        })
-        .then(() => {
-            selectedImageName = null;
-            editingJewelleryId = null;
-            closeAddJewelleryModal();
-            loadJewelleryFromBackend();   // refresh table from DB
-            jwlAdminToast('Jewellery item added successfully.');
-        })
-        .catch(err => {
-            console.error('Error saving jewellery', err);
-            jwlAdminToast('Failed to save jewellery item. Please try again.', 'error');
+    try {
+        const response = await fetch(url, {
+            method: method,
+            body: formData
+            // IMPORTANT: Remove 'Content-Type' header.
+            // Browser sets it automatically for FormData.
         });
+
+        if (!response.ok) throw new Error('Server returned ' + response.status);
+
+        // Clean up variables
+        selectedImageName = null;
+        currentImagePath = null;
+        editingJewelleryId = null;
+
+        closeAddJewelleryModal();
+        loadJewelleryFromBackend();
+        jwlAdminToast('Jewellery item saved and image uploaded successfully.');
+
+    } catch (err) {
+        console.error('Error saving jewellery', err);
+        jwlAdminToast('Failed to save jewellery item. Please try again.', 'error');
+    }
 }
 
 function openEditJewellery(id) {
@@ -297,53 +302,77 @@ document.addEventListener('click', function (e) {
  * Renders the jewellery management table with backend data.
  * @param {Array} items – array of JewelleryDTO objects from the API
  */
+// ── Render Table ───────────────────────────────────────────────────────────
+/**
+ * Renders the jewellery management table with backend data.
+ * @param {Array} items – array of JewelleryDTO objects from the API
+ */
+// ── Render Table ───────────────────────────────────────────────────────────
+/**
+ * Renders the jewellery management table with backend data.
+ * @param {Array} items – array of JewelleryDTO objects from the API
+ */
 function renderJewelleryTable(items) {
     const tbody = document.getElementById('jewellery-table-body');
     const empty = document.getElementById('jewellery-empty');
     const countEl = document.getElementById('jewellery-count');
 
-    countEl.textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+    if (countEl) {
+        countEl.textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+    }
 
     if (items.length === 0) {
         tbody.innerHTML = '';
-        empty.classList.remove('hidden');
+        if (empty) empty.classList.remove('hidden');
         lucide.createIcons();
         return;
     }
 
-    empty.classList.add('hidden');
+    if (empty) empty.classList.add('hidden');
 
-    tbody.innerHTML = items.map(item => `
-        <tr class="border-b last:border-0 hover:bg-slate-50 transition animate__animated animate__fadeIn">
-            <!-- Image -->
-            <td class="p-4">
-                ${item.imagePath
-            ? `<img src="${item.imagePath}" alt="${item.jewelleryType}" class="jwl-thumb">`
-            : `<div class="jwl-thumb-placeholder"><span>No<br>Image</span></div>`
+    tbody.innerHTML = items.map(item => {
+
+        // ✨ SMART URL CLEANUP (Handles both uploads AND gem-photos!)
+        let finalImageSrc = 'https://placehold.co/400x300?text=No+Image';
+        let url = item.imagePath;
+        if (url) {
+            if (url.includes('uploads/')) {
+                finalImageSrc = '/' + url.substring(url.indexOf('uploads/'));
+            } else if (url.includes('gem-photos/')) {
+                // NEW: If it's a demo image, make sure it points directly to the gem-photos folder!
+                finalImageSrc = '/' + url.substring(url.indexOf('gem-photos/'));
+            } else if (url.startsWith('/') || url.startsWith('http')) {
+                finalImageSrc = url;
+            } else {
+                finalImageSrc = '/uploads/' + url;
+            }
         }
+
+        return `
+        <tr class="border-b last:border-0 hover:bg-slate-50 transition animate__animated animate__fadeIn">
+            <td class="p-4">
+                <img src="${finalImageSrc}" 
+                     alt="${item.jewelleryType}" 
+                     class="w-16 h-16 object-cover rounded-lg border border-slate-200 shadow-sm"
+                     onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">
             </td>
 
-            <!-- Type -->
             <td class="p-4 font-bold text-slate-700">${item.jewelleryType}</td>
 
-            <!-- Metal -->
             <td class="p-4">
                 <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
                     ${metalIcon(item.metalColour)} ${item.metalColour}
                 </span>
             </td>
 
-            <!-- Price -->
             <td class="p-4 font-mono text-green-600 font-bold">
                 ${item.priceLkr != null ? 'Rs. ' + Number(item.priceLkr).toLocaleString() : '—'}
             </td>
 
-            <!-- Gem Categories -->
             <td class="p-4">
                 ${(item.gemCategories || []).map(c => `<span class="cat-badge">${c}</span>`).join('')}
             </td>
 
-            <!-- Actions -->
             <td class="p-4 flex gap-2">
                 <button
                     class="p-2 hover:bg-blue-50 text-blue-500 rounded-lg transition"
@@ -359,7 +388,8 @@ function renderJewelleryTable(items) {
                 </button>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 
     lucide.createIcons();
 }

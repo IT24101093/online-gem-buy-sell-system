@@ -166,32 +166,40 @@ function renderJewellery(items) {
 
     empty.classList.add('hidden');
 
-    grid.innerHTML = items.map((item, i) => `
-        <!-- Jewellery Card – mirrors gem-card structure exactly -->
-        <div class="jwl-user-card group animate__animated animate__fadeInUp" style="animation-delay:${i * 0.07}s">
+    grid.innerHTML = items.map((item, i) => {
+        // ✨ SMART URL CLEANUP
+        let finalImageSrc = null;
+        let url = item.imageData || item.imagePath; // <-- Checks both just to be perfectly safe!
+        if (url) {
+            if (url.includes('uploads/')) {
+                finalImageSrc = '/' + url.substring(url.indexOf('uploads/'));
+            } else if (url.includes('gem-photos/')) {
+                finalImageSrc = '/' + url.substring(url.indexOf('gem-photos/'));
+            } else if (url.startsWith('/') || url.startsWith('http')) {
+                finalImageSrc = url;
+            } else {
+                finalImageSrc = '/uploads/' + url;
+            }
+        }
 
-            <!-- Image / Gradient Placeholder -->
-            <div class="relative overflow-hidden bg-slate-100 mb-4 aspect-[4/5] rounded-sm cursor-pointer"
-                 onclick="openJwlDetail(${i})">
-                ${item.imageData
-            ? `<img src="${item.imageData}" alt="${item.type}"
-                            class="w-full h-full object-cover transition duration-1000">`
-            : `<div class="w-full h-full flex flex-col items-center justify-center transition duration-1000"
-                              style="background:${METAL_GRADIENTS[item.metal] || METAL_GRADIENTS.Gold}">
+        return `
+        <div class="jwl-user-card group animate__animated animate__fadeInUp" style="animation-delay:${i * 0.07}s">
+            
+            <div class="relative overflow-hidden bg-slate-100 mb-4 aspect-[4/5] rounded-sm cursor-pointer" onclick="openJwlDetail(${i})">
+                ${finalImageSrc
+            ? `<img src="${finalImageSrc}" alt="${item.type}" class="w-full h-full object-cover transition duration-1000" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">`
+            : `<div class="w-full h-full flex flex-col items-center justify-center transition duration-1000" style="background:${METAL_GRADIENTS[item.metal] || METAL_GRADIENTS.Gold}">
                            <span class="text-white text-opacity-80 font-serif text-2xl mb-2">${iconForType(item.type)}</span>
                            <span class="text-white text-xs font-bold uppercase tracking-widest opacity-75">${item.type}</span>
                        </div>`
         }
-                <!-- Hover overlay – same as gem marketplace -->
                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
-                    <button onclick="openJwlDetail(${i})"
-                        class="bg-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-amber-500 hover:text-white transition">
+                    <button class="bg-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-amber-500 hover:text-white transition">
                         View Details
                     </button>
                 </div>
             </div>
 
-            <!-- Card Text -->
             <p class="text-[10px] uppercase tracking-[0.2em] text-amber-600 font-bold mb-1">${item.type} · ${item.metal}</p>
             <h3 class="font-serif text-lg text-slate-800 mb-1">${item.gemstone}</h3>
             <p class="text-sm text-slate-500 mb-2">
@@ -200,13 +208,12 @@ function renderJewellery(items) {
             </p>
             <p class="font-bold text-blue-900 mb-3">Rs. ${item.price.toLocaleString()}</p>
 
-            <!-- Add to Cart -->
-            <button onclick="addJwlToCart(${i})"
-                class="w-full py-2 bg-blue-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition">
+            <button onclick="addJwlToCart(${i})" class="w-full py-2 bg-blue-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition">
                 Add to Cart
             </button>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────
@@ -232,49 +239,70 @@ function openJwlDetail(index) {
     const modal = document.getElementById('jwl-detail-modal');
     const content = document.getElementById('jwl-detail-content');
 
+    // ✨ SMART URL CLEANUP
+    let finalImageSrc = null;
+    let url = item.imageData || item.imagePath; // <-- Checks both just to be perfectly safe!
+    if (url) {
+        if (url.includes('uploads/')) {
+            finalImageSrc = '/' + url.substring(url.indexOf('uploads/'));
+        } else if (url.includes('gem-photos/')) {
+            finalImageSrc = '/' + url.substring(url.indexOf('gem-photos/'));
+        } else if (url.startsWith('/') || url.startsWith('http')) {
+            finalImageSrc = url;
+        } else {
+            finalImageSrc = '/uploads/' + url;
+        }
+    }
+
+    // ✨ HANDLE DB VS DEMO FIELDS
+    const displayType = item.type || item.jewelleryType || 'Jewellery';
+    const displayMetal = item.metal || item.metalColour || 'Gold';
+    const displayGemstone = item.gemstone || item.gemstoneName || 'Unknown Gem';
+    const displayPrice = item.price || item.priceLkr || 0;
+    const displayCategories = item.categories || item.gemCategories || [];
+    const displayDescription = item.description || 'No description available.';
+
     content.innerHTML = `
         <div class="flex flex-col md:flex-row gap-8">
-            <!-- Image / placeholder -->
             <div class="md:w-1/2 aspect-[4/5] rounded-lg overflow-hidden">
-                ${item.imageData
-            ? `<img src="${item.imageData}" alt="${item.type}" class="w-full h-full object-cover">`
-            : `<div class="w-full h-full flex flex-col items-center justify-center rounded-lg"
-                              style="background:${METAL_GRADIENTS[item.metal] || METAL_GRADIENTS.Gold}">
-                           <span class="text-white font-serif text-5xl mb-3">${iconForType(item.type)}</span>
-                           <span class="text-white text-sm font-bold uppercase tracking-widest opacity-80">${item.type}</span>
+                ${finalImageSrc
+        ? `<img src="${finalImageSrc}" alt="${displayType}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">`
+        : `<div class="w-full h-full flex flex-col items-center justify-center rounded-lg"
+                              style="background:${METAL_GRADIENTS[displayMetal] || METAL_GRADIENTS.Gold}">
+                           <span class="text-white font-serif text-5xl mb-3">${iconForType(displayType)}</span>
+                           <span class="text-white text-sm font-bold uppercase tracking-widest opacity-80">${displayType}</span>
                        </div>`
-        }
+    }
             </div>
 
-            <!-- Info -->
             <div class="md:w-1/2 flex flex-col gap-5">
                 <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-amber-600 font-bold mb-2">${item.type}</p>
-                    <h2 class="font-serif text-3xl text-slate-800 mb-2">${item.gemstone}</h2>
-                    <p class="font-bold text-2xl text-blue-900">Rs. ${item.price.toLocaleString()}</p>
+                    <p class="text-xs uppercase tracking-[0.2em] text-amber-600 font-bold mb-2">${displayType}</p>
+                    <h2 class="font-serif text-3xl text-slate-800 mb-2">${displayGemstone}</h2>
+                    <p class="font-bold text-2xl text-blue-900">Rs. ${Number(displayPrice).toLocaleString()}</p>
                 </div>
 
                 <div class="space-y-3 border-t border-slate-200 pt-5">
                     <div class="flex justify-between">
                         <span class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Metal</span>
                         <span class="font-bold text-slate-800 flex items-center gap-1">
-                            <span class="metal-dot" style="background:${METAL_COLOURS[item.metal] || '#cbd5e1'}"></span>
-                            ${item.metal}
+                            <span class="metal-dot" style="background:${METAL_COLOURS[displayMetal] || '#cbd5e1'}"></span>
+                            ${displayMetal}
                         </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Jewellery Type</span>
-                        <span class="font-bold text-slate-800">${item.type}</span>
+                        <span class="font-bold text-slate-800">${displayType}</span>
                     </div>
                     <div class="flex justify-between items-start">
                         <span class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Suitable Gems</span>
-                        <span class="text-right font-bold text-slate-800">${(item.categories || []).join(', ')}</span>
+                        <span class="text-right font-bold text-slate-800">${displayCategories.join(', ')}</span>
                     </div>
                 </div>
 
                 <div class="border-t border-slate-200 pt-5">
                     <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Description</h3>
-                    <p class="text-slate-700 leading-relaxed text-sm">${item.description || 'No description available.'}</p>
+                    <p class="text-slate-700 leading-relaxed text-sm">${displayDescription}</p>
                 </div>
 
                 <div class="flex gap-3 pt-2">

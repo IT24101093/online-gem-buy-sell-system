@@ -7,6 +7,9 @@ import com.gemtrade.onlinegembuysellsystem.marketplace.repository.JewelleryItemR
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.*;
+import java.nio.file.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,32 +49,44 @@ public class JewelleryService {
      * Categories list in the DTO becomes JewelleryGemCategory child rows.
      */
     @Transactional
-    public JewelleryDTO addJewellery(JewelleryDTO dto) {
+    public JewelleryDTO addJewellery(JewelleryDTO dto, MultipartFile imageFile) throws IOException {
+        // 1. Determine filename and path
+        String fileName = imageFile.getOriginalFilename();
+        String relativePath = "gem-photos/" + fileName;
+
+        // 2. Build the Entity
         JewelleryItem item = JewelleryItem.builder()
                 .jewelleryType(dto.getJewelleryType())
                 .metalColour(dto.getMetalColour())
-                .imagePath(dto.getImagePath())
+                .imagePath(relativePath) // This saves the URL path to the DB
                 .priceLkr(dto.getPriceLkr())
                 .gemstoneName(dto.getGemstoneName())
                 .description(dto.getDescription())
                 .build();
 
-        // Defensive initialisation: @Builder.Default on gemCategories is not always
-        // honoured by Lombok when building without explicit list assignment.
-        // Ensure the list is non-null before adding child categories.
         if (item.getGemCategories() == null) {
             item.setGemCategories(new java.util.ArrayList<>());
         }
 
-        // Attach gem categories
         if (dto.getGemCategories() != null) {
             dto.getGemCategories().forEach(cat -> {
-                JewelleryGemCategory category = JewelleryGemCategory.builder()
+                item.getGemCategories().add(JewelleryGemCategory.builder()
                         .jewelleryItem(item)
                         .categoryName(cat)
-                        .build();
-                item.getGemCategories().add(category);
+                        .build());
             });
+        }
+
+        // 3. Save the actual file to the physical disk
+        // This points to your project folder
+        Path uploadPath = Paths.get("src/main/resources/static/gem-photos/");
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        try (InputStream inputStream = imageFile.getInputStream()) {
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
         return toDTO(jewelleryRepo.save(item));
@@ -85,32 +100,42 @@ public class JewelleryService {
      * Gem categories are replaced entirely (orphanRemoval handles deletion of old rows).
      */
     @Transactional
-    public JewelleryDTO updateJewellery(Long id, JewelleryDTO dto) {
+    public JewelleryDTO updateJewellery(Long id, JewelleryDTO dto, MultipartFile imageFile) throws IOException {
         JewelleryItem item = jewelleryRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Jewellery item not found: " + id));
+                .orElseThrow(() -> new RuntimeException("Item not found"));
 
+        // 1. Update text fields
         item.setJewelleryType(dto.getJewelleryType());
         item.setMetalColour(dto.getMetalColour());
-        item.setImagePath(dto.getImagePath());
         item.setPriceLkr(dto.getPriceLkr());
         item.setGemstoneName(dto.getGemstoneName());
         item.setDescription(dto.getDescription());
 
-        // Replace categories: clear old ones (orphanRemoval deletes them) then add new
+        // 2. Handle Image (Only if a new file was uploaded)
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = imageFile.getOriginalFilename();
+            Path uploadPath = Paths.get("src/main/resources/static/gem-photos/");
+
+            try (InputStream inputStream = imageFile.getInputStream()) {
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            item.setImagePath("gem-photos/" + fileName);
+        }
+
+        // 3. Update Categories
         item.getGemCategories().clear();
         if (dto.getGemCategories() != null) {
             dto.getGemCategories().forEach(cat -> {
-                JewelleryGemCategory category = JewelleryGemCategory.builder()
+                item.getGemCategories().add(JewelleryGemCategory.builder()
                         .jewelleryItem(item)
                         .categoryName(cat)
-                        .build();
-                item.getGemCategories().add(category);
+                        .build());
             });
         }
 
         return toDTO(jewelleryRepo.save(item));
     }
-
     // ── Delete ─────────────────────────────────────────────────────────────────
 
     /** Deletes a jewellery item and all its associated gem categories (cascade). */

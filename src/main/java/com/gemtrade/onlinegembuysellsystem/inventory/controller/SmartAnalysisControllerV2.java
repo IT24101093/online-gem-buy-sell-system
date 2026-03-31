@@ -25,12 +25,12 @@ public class SmartAnalysisControllerV2 {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<SmartAnalysisDetectResponseDto> detect(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(detectService.detect(file));
+        return ResponseEntity.ok(detectService.detect(file)); // accept physical image
     }
 
     @PostMapping("/run")
     public ResponseEntity<SmartAnalysisRunResponseDto> run(@RequestBody SmartAnalysisRunRequestDto dto) {
-        return ResponseEntity.ok(engine.run(dto));
+        return ResponseEntity.ok(engine.run(dto)); // allow user to preview calculation
     }
 
     @PostMapping("/save")

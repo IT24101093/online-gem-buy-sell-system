@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SmartAnalysisRunResponseDto {
     private String confirmedGemType;
-
+//for math
     private BigDecimal specificGravityUsed;
     private BigDecimal shapeFactorUsed;
     private BigDecimal volumeMm3;
