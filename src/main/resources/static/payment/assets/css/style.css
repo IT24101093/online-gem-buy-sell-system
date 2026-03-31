@@ -1,27 +1,37 @@
 :root{
+    /* Brand-like palette (matches provided UI: navy + light surfaces) */
+    --bg: #f6f7fb;
+    --bg2: #eef2f7;
 
-    --bg: #4e4e75;
-    --bg2: #8484a3;
-    --card:rgba(255,255,255,.06);
-    --card2:rgba(255,255,255,.08);
-    --line:rgba(255,255,255,.12);
+    --card: #ffffff;
+    --card2: #ffffff;
+    --line: rgba(15, 23, 42, 0.12); /* slate-900 @ 12% */
 
-    --text:#f6f2ea;
-    --muted:rgba(246,242,234,.72);
+    --text:#0f172a;   /* slate-900 */
+    --muted: rgba(15, 23, 42, 0.62);
 
-    --gold:#c9a23a;
-    --gold2:#f4db8a;
-    --success:#2ee59d;
-    --danger:#ff6b6b;
+    --accent: #1e3a8a;   /* blue-900-ish */
+    --accent2: #0b1a33;  /* deeper navy for header */
+    --accentSoft: rgba(30, 58, 138, 0.10);
 
-    --shadow: 0 24px 80px rgba(189, 163, 163, 0.55);
+    /* Keep semantic colors */
+    --success:#16a34a;
+    --danger:#dc2626;
+
+    /* Legacy variables used across pages (mapped to new brand) */
+    --gold: var(--accent);
+    --gold2: var(--accent);
+
+    --shadow: 0 20px 60px rgba(2, 8, 23, 0.12);
     --radius:22px;
 
-    --serif: ui-serif, Georgia, "Times New Roman", serif;
-    --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    --serif: "Playfair Display", ui-serif, Georgia, "Times New Roman", serif;
+    --sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
     --max:1180px;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@600;700;800;900&display=swap');
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
@@ -29,20 +39,17 @@ body{
     margin:0;
     color:var(--text);
     font-family:var(--sans);
-
     background:
-            radial-gradient(900px 520px at 15% -10%, rgba(201,162,58,.22), transparent 60%),
-            radial-gradient(850px 520px at 85% 0%, rgba(244,219,138,.14), transparent 55%),
-            radial-gradient(1100px 700px at 50% 120%, rgba(255,255,255,.08), transparent 60%),
+            radial-gradient(1000px 600px at 20% -10%, rgba(30,58,138,.10), transparent 55%),
+            radial-gradient(900px 520px at 85% 0%, rgba(30,58,138,.06), transparent 55%),
             linear-gradient(180deg, var(--bg), var(--bg2));
 }
 
 /* ---------- Topbar ---------- */
 .topbar{
     position:sticky; top:0; z-index:50;
-    background: rgba(7,7,10,.70);
-    backdrop-filter: blur(12px);
-    border-bottom:1px solid var(--line);
+    background: var(--accent2);
+    border-bottom: 1px solid rgba(255,255,255,.10);
 }
 .topbar-inner{
     width:min(var(--max), calc(100% - 32px));
@@ -61,12 +68,12 @@ body{
     width:36px; height:36px;
     border-radius:14px;
     display:grid; place-items:center;
-    background: linear-gradient(180deg, rgba(244,219,138,.25), rgba(201,162,58,.10));
-    border:1px solid rgba(201,162,58,.35);
-    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    background: rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 .brand-badge span{
-    color:var(--gold2);
+    color: rgba(255,255,255,.95);
     font-weight:900;
     font-family:var(--serif);
 }
@@ -75,10 +82,11 @@ body{
     font-family:var(--serif);
     font-size:18px;
     letter-spacing:.4px;
+    color: rgba(255,255,255,.95);
 }
 .brand-sub{
     font-size:12px;
-    color:var(--muted);
+    color: rgba(255,255,255,.70);
 }
 
 .nav{
@@ -90,19 +98,20 @@ body{
     padding:10px 12px;
     border-radius:999px;
     border:1px solid transparent;
-    color:var(--muted);
+    color: rgba(255,255,255,.78);
     font-weight:600;
     font-size:13px;
+    text-decoration:none;
 }
 .nav a:hover{
-    color:var(--text);
-    border-color:rgba(255,255,255,.14);
-    background: rgba(255,255,255,.04);
+    color: rgba(255,255,255,.95);
+    border-color:rgba(255,255,255,.18);
+    background: rgba(255,255,255,.08);
 }
 .nav a.active{
-    color:var(--text);
-    border-color:rgba(201,162,58,.45);
-    background: rgba(201,162,58,.12);
+    color: rgba(255,255,255,.95);
+    border-color: rgba(255,255,255,.24);
+    background: rgba(255,255,255,.12);
 }
 
 /* ---------- Layout ---------- */
@@ -142,21 +151,21 @@ body{
     display:flex; align-items:center; gap:10px;
     padding:10px 12px;
     border-radius:999px;
-    border:1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.04);
-    color:rgba(246,242,234,.84);
+    border:1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255,255,255,.72);
+    color: rgba(15, 23, 42, 0.78);
     font-size:13px;
     font-weight:650;
 }
 .step-dot{
     width:10px; height:10px; border-radius:999px;
-    background: rgba(255,255,255,.28);
+    background: rgba(15, 23, 42, 0.22);
 }
 .step.active{
-    border-color: rgba(201,162,58,.48);
-    background: rgba(201,162,58,.12);
+    border-color: rgba(30,58,138,.35);
+    background: var(--accentSoft);
 }
-.step.active .step-dot{ background: var(--gold2); }
+.step.active .step-dot{ background: var(--accent); }
 
 .grid{
     display:grid;
@@ -174,9 +183,7 @@ body{
 .card{
     border-radius:var(--radius);
     border:1px solid var(--line);
-    background:
-            linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
-            var(--card);
+    background: var(--card);
     box-shadow: var(--shadow);
     overflow:hidden;
 }
@@ -198,10 +205,9 @@ body{
 .card-body{ padding:16px 18px 18px; }
 
 .card.accent{
-    border-color: rgba(201,162,58,.30);
+    border-color: rgba(30,58,138,.18);
     background:
-            radial-gradient(900px 400px at 50% 0%, rgba(201,162,58,.18), transparent 62%),
-            linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+            radial-gradient(900px 400px at 50% 0%, rgba(30,58,138,.10), transparent 62%),
             var(--card2);
 }
 
@@ -224,7 +230,7 @@ body{
 .field{ display:flex; flex-direction:column; gap:7px; }
 label{
     font-size:12px;
-    color:rgba(246,242,234,.82);
+    color: rgba(15, 23, 42, 0.78);
     font-weight:700;
     letter-spacing:.2px;
 }
@@ -233,19 +239,20 @@ input, select{
     width:100%;
     padding:12px 12px;
     border-radius:14px;
-    border:1px solid rgba(255,255,255,.12);
-    background: rgba(0,0,0,.22);
-    color:var(--text);
+    border:1px solid rgba(15, 23, 42, 0.14);
+    background: rgba(255,255,255,.92);
+    color: var(--text);
     outline:none;
     font-size:14px;
 }
 input:focus, select:focus{
-    border-color: rgba(201,162,58,.65);
-    box-shadow: 0 0 0 4px rgba(201,162,58,.14);
+    border-color: rgba(30,58,138,.55);
+    box-shadow: 0 0 0 4px rgba(30,58,138,.14);
 }
 
 .hint{ color:rgba(246,242,234,.56); font-size:12px; }
 .error{ color: var(--danger); font-size:12px; min-height:16px; }
+.hint{ color: rgba(15, 23, 42, 0.55); }
 
 .pills{
     display:flex;
@@ -259,10 +266,10 @@ input:focus, select:focus{
     align-items:center;
     padding:10px 12px;
     border-radius:14px;
-    border:1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.04);
+    border:1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255,255,255,.75);
     font-size:13px;
-    color:rgba(246,242,234,.86);
+    color: rgba(15, 23, 42, 0.80);
 }
 .pill input{ width:auto; }
 
@@ -277,12 +284,12 @@ input:focus, select:focus{
     justify-content:space-between;
     gap:12px;
     font-size:14px;
-    color:rgba(246,242,234,.86);
+    color: rgba(15, 23, 42, 0.80);
 }
-.row strong{ color:rgba(246,242,234,.96); }
+.row strong{ color: rgba(15, 23, 42, 0.92); }
 .divider{
     height:1px;
-    background: rgba(255,255,255,.12);
+    background: rgba(15, 23, 42, 0.12);
     margin:12px 0;
 }
 .total{
@@ -290,17 +297,17 @@ input:focus, select:focus{
     letter-spacing:.2px;
 }
 .total strong{
-    color:var(--gold2);
-    text-shadow: 0 8px 28px rgba(201,162,58,.25);
+    color: var(--accent);
+    text-shadow: 0 10px 26px rgba(30,58,138,.18);
 }
 
 .notice{
     margin-top:12px;
     padding:12px 12px;
     border-radius:16px;
-    border:1px dashed rgba(201,162,58,.48);
-    background: rgba(201,162,58,.10);
-    color: rgba(246,242,234,.90);
+    border:1px dashed rgba(30,58,138,.32);
+    background: rgba(30,58,138,.06);
+    color: rgba(15, 23, 42, 0.86);
     line-height:1.5;
 }
 
@@ -314,9 +321,9 @@ input:focus, select:focus{
 
 .btn{
     cursor:pointer;
-    border:1px solid rgba(201,162,58,.60);
-    background: linear-gradient(180deg, rgba(244,219,138,.22), rgba(201,162,58,.10));
-    color:var(--text);
+    border:1px solid rgba(30,58,138,.75);
+    background: linear-gradient(180deg, rgba(30,58,138,.95), rgba(30,58,138,.85));
+    color: rgba(255,255,255,.96);
     padding:12px 14px;
     border-radius:16px;
     font-weight:800;
@@ -331,9 +338,9 @@ input:focus, select:focus{
 .btn:active{ transform: translateY(1px); }
 
 .btn.ghost{
-    border-color: rgba(255,255,255,.18);
-    background: rgba(255,255,255,.06);
-    color:rgba(246,242,234,.90);
+    border-color: rgba(15, 23, 42, 0.18);
+    background: rgba(255,255,255,.82);
+    color: rgba(15, 23, 42, 0.86);
 }
 
 .btn.wide{ width:100%; }
@@ -341,6 +348,24 @@ input:focus, select:focus{
 a.btn{
     text-decoration:none;
 }
+
+a.ghost,
+.ghost{
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 12px;
+    border-radius:16px;
+    border:1px solid rgba(15, 23, 42, 0.18);
+    background: rgba(255,255,255,.82);
+    color: rgba(15, 23, 42, 0.86);
+    text-decoration:none;
+    font-weight:800;
+    letter-spacing:.2px;
+    font-size:14px;
+}
+.ghost:hover{ filter:brightness(1.03); }
 
 a[aria-disabled="true"]{
     pointer-events:none;
@@ -351,12 +376,12 @@ a[aria-disabled="true"]{
 /* ===== Payment card mock ===== */
 .pay-card{
     border-radius: 20px;
-    border:1px solid rgba(255,255,255,.12);
+    border:1px solid rgba(15, 23, 42, 0.12);
     background:
-            radial-gradient(900px 300px at 20% 0%, rgba(201,162,58,.18), transparent 55%),
-            linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+            radial-gradient(900px 300px at 20% 0%, rgba(30,58,138,.12), transparent 55%),
+            linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
     padding:16px;
-    box-shadow: 0 18px 60px rgba(0,0,0,.45);
+    box-shadow: 0 18px 60px rgba(2, 8, 23, 0.14);
 }
 
 .pay-card-top{
@@ -369,20 +394,20 @@ a[aria-disabled="true"]{
     width:46px;
     height:34px;
     border-radius:10px;
-    border:1px solid rgba(255,255,255,.18);
-    background: linear-gradient(180deg, rgba(244,219,138,.22), rgba(201,162,58,.10));
+    border:1px solid rgba(15, 23, 42, 0.18);
+    background: linear-gradient(180deg, rgba(30,58,138,.22), rgba(30,58,138,.10));
 }
 .visa{
     font-weight:900;
     letter-spacing:2px;
-    color: rgba(246,242,234,.9);
+    color: rgba(15, 23, 42, 0.85);
 }
 
 .pay-card-num{
     font-size:18px;
     letter-spacing:2px;
     margin-bottom:16px;
-    color: rgba(246,242,234,.95);
+    color: rgba(15, 23, 42, 0.92);
 }
 .pay-card-bottom{
     display:flex;
@@ -391,14 +416,14 @@ a[aria-disabled="true"]{
 }
 .pay-card-label{
     font-size:11px;
-    color: rgba(246,242,234,.55);
+    color: rgba(15, 23, 42, 0.55);
     letter-spacing:1px;
 }
 .pay-card-val{
     font-weight:850;
     font-size:13px;
     margin-top:4px;
-    color: rgba(246,242,234,.92);
+    color: rgba(15, 23, 42, 0.90);
 }
 
 /* ===== Receipt / Invoice ===== */
@@ -413,16 +438,16 @@ a[aria-disabled="true"]{
 .badge-pill{
     padding:10px 14px;
     border-radius:999px;
-    border:1px solid rgba(201,162,58,.45);
-    background: rgba(201,162,58,.12);
+    border:1px solid rgba(30,58,138,.35);
+    background: rgba(30,58,138,.08);
     font-weight:900;
     letter-spacing:.3px;
 }
 
 .invoice{
     border-radius: 20px;
-    border:1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.04);
+    border:1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255,255,255,.82);
     padding:16px;
 }
 .invoice-row{
@@ -439,14 +464,14 @@ a[aria-disabled="true"]{
 .invoice-right{
     text-align:right;
     font-weight:800;
-    color: rgba(246,242,234,.9);
+    color: rgba(15, 23, 42, 0.90);
 }
 .invoice-status{
     display:inline-flex;
     padding:8px 12px;
     border-radius:999px;
-    border:1px solid rgba(255,255,255,.16);
-    background: rgba(255,255,255,.05);
+    border:1px solid rgba(15, 23, 42, 0.14);
+    background: rgba(15, 23, 42, 0.04);
     font-weight:900;
 }
 
@@ -483,8 +508,8 @@ a[aria-disabled="true"]{
 
 /* ---------- Footer ---------- */
 .footer{
-    border-top:1px solid rgba(255,255,255,.10);
+    border-top:1px solid rgba(15, 23, 42, 0.10);
     padding:16px 18px;
     display:flex; justify-content:space-between;
-    color:rgba(246,242,234,.60);
+    color: rgba(15, 23, 42, 0.60);
 }

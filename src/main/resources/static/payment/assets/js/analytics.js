@@ -22,7 +22,7 @@ function renderBalanceChart(gemValue, cashValue, liabilities) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#fff' } }
+                legend: { position: 'bottom', labels: { color: '#000000' } }
             }
         }
     });
