@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management | Jaya Gems</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="cart-style.css">
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+
+    <div id="toast" class="toast-notification">
+        <i class="fas fa-check-circle"></i> Redirecting to secure checkout...
+    </div>
+
+    <nav class="menu-bar">
+        <div class="logo">JAYA<span>GEMS</span></div>
+        <ul class="nav-links">
+            <li class="filter-btn active" onclick="filterItems('all', this)">All Items</li>
+            <li class="filter-btn" onclick="filterItems('Precious', this)">Precious</li>
+            <li class="filter-btn" onclick="filterItems('Semi-Precious', this)">Semi-Precious</li>
+        </ul>
+        <div class="user-profile-info">
+            <div><strong>User:</strong> Dharmathilaka</div>
+            <div><strong>ID:</strong> #GL-8821</div>
+        </div>
+    </nav>
+
+    <main class="cart-container">
+        <section class="view-details-section">
+            <button class="btn-view-details" onclick="goToDetails()">
+                <i class="fas fa-list-alt"></i> View Order Details
+            </button>
+        </section>
+
+        <div id="cart-list" class="cart-tile-grid"></div>
+
+        <aside class="cart-summary">
+            <div class="summary-box">
+                <div class="summary-row total">
+                    <span>Total Price</span>
+                    <span id="total-display">LKR 0.00</span>
+                </div>
+                <button class="btn-checkout" onclick="openFeedback()">
+                    Process Order <i class="fas fa-rocket"></i>
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="success-icon"><i class="fas fa-shopping-cart"></i></div>
+            <h2>Ready for Checkout!</h2>
+            <p class="payment-msg">Please proceed to enter your billing details.</p>
+            <button class="btn-submit" onclick="submitFeedback()">Proceed to Details</button>
+        </div>
+    </div>
+
+    <script src="cart-script.js"></script>
+</body>
+</html>

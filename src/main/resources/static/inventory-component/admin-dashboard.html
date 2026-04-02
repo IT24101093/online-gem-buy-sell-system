@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gem Management - Admin Orders</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ Order Management</h1>
+            <p>Real-time order processing dashboard</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">12</div>
+                <div>Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="processingOrders">4</div>
+                <div>Processing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="packedOrders">5</div>
+                <div>Packed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="deliveredOrders">3</div>
+                <div>Delivered</div>
+            </div>
+        </div>
+
+        <div class="orders-grid" id="ordersGrid">
+            <!-- Orders will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete order <span id="deleteOrderIdText"></span>? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-delete" id="confirmDeleteBtn">Delete Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html>

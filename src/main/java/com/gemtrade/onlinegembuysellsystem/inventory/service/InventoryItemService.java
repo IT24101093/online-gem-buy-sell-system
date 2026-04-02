@@ -6,11 +6,18 @@ import com.gemtrade.onlinegembuysellsystem.inventory.entity.InventoryItem.Status
 import com.gemtrade.onlinegembuysellsystem.inventory.repository.InventoryItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 @Service
 public class InventoryItemService {
 
     private final InventoryItemRepository inventoryItemRepository;
+
+
+    //for order util to find the inventory id
+    public Optional<InventoryItem> getInventoryItemByInventoryId(Long itemId) {
+        return inventoryItemRepository.findById(itemId);
+    }
 
     public InventoryItemService(InventoryItemRepository inventoryItemRepository) {
         this.inventoryItemRepository = inventoryItemRepository;
