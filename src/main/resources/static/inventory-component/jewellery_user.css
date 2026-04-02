@@ -36,29 +36,124 @@ h1, h2, h3, .font-serif {
     opacity: 0.9;
 }
 
-/* ── Gold border accent (active nav link, section dividers) ─────────── */
+/* ── Gold border accent (used outside nav where needed) ─────────────── */
 .gold-border {
     border-bottom: 2px solid #d4af37;
 }
 
-/* ── Navigation underline animation ─────────────────────────────────── */
-nav a {
-    position: relative;
+/* ── Navigation links: blue hover/active text, no underline ─────────── */
+.jwl-nav-links a {
+    color: rgba(226, 232, 240, 0.92);
+    text-decoration: none;
 }
 
-nav a::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 1px;
-    bottom: -4px;
-    left: 0;
-    background-color: #d4af37;
-    transition: width 0.3s ease;
+.jwl-nav-links a:hover {
+    color: #93c5fd; /* blue-300 */
 }
 
-nav a:hover::after {
-    width: 100%;
+.jwl-nav-links a.jwl-nav-active {
+    color: #93c5fd;
+    font-weight: 800;
+}
+
+.jwl-nav-links a.jwl-nav-active:hover {
+    color: #bfdbfe; /* blue-200 */
+}
+
+/* ── Marketplace-like dark navbar ───────────────────────────────────── */
+.jwl-nav {
+    background: rgba(15, 23, 42, 0.92); /* slate-900 */
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25); /* slate-400 */
+    color: #f8fafc; /* slate-50 */
+}
+
+/* ── Sidebar layout (filters on the left, grid on the right) ───────── */
+.jwl-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.jwl-sidebar {
+    position: sticky;
+    top: 96px; /* sits below sticky nav */
+    align-self: start;
+    padding: 6px 0;
+}
+
+.jwl-filter-input {
+    padding: 12px 12px;
+    background: #f8fafc; /* slate-50 */
+    border: 1px solid #93c5fd; /* blue-300 */
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.jwl-filter-input:focus {
+    border-color: #1d4ed8; /* blue-700 */
+    box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.16);
+    background: #ffffff;
+}
+
+.jwl-filter-select {
+    padding: 12px 12px;
+    background: #ffffff;
+    border: 1px solid #93c5fd; /* blue-300 */
+    border-radius: 10px;
+    outline: none;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #334155; /* slate-700 */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.jwl-filter-select:focus {
+    border-color: #1d4ed8; /* blue-700 */
+    box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.16);
+}
+
+.jwl-apply-btn {
+    padding: 12px 14px;
+    border-radius: 2px;
+    background: #0d308f; /* blue-700 */
+    color: #ffffff;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.jwl-apply-btn:hover {
+    background: #1e40af; /* blue-800 */
+    transform: translateY(-1px);
+}
+
+.jwl-apply-btn:active {
+    transform: translateY(0);
+}
+
+#jwl-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.jwl-reset-link {
+    color: #102e83; /* blue-700 */
+    font-weight: 600;
+}
+
+.jwl-reset-link:hover {
+    color: #1e40af; /* blue-800 */
+}
+
+.jwl-user-card .text-amber-600,
+#jwl-detail-content .text-amber-600 {
+    color: #1e3a8a !important; /* marketplace dark blue */
 }
 
 /* ── Cart count badge ────────────────────────────────────────────────── */
@@ -88,8 +183,13 @@ nav a:hover::after {
     background-color: #f8fafc;
 }
 
-/* ── Add-to-cart button on each card ────────────────────────────────── */
-.jwl-user-card button {
+/* ── Card: no Add to Cart under image (match marketplace; use modal only) ─ */
+.jwl-user-card > button.w-full.bg-blue-900 {
+    display: none !important;
+}
+
+/* ── View Details overlay button on card image ─────────────────────── */
+.jwl-user-card .relative button {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -135,6 +235,23 @@ nav a:hover::after {
 /* ── Responsive grid adjustments ────────────────────────────────────── */
 @media (max-width: 640px) {
     #jwl-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
         gap: 2rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .jwl-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .jwl-sidebar {
+        position: relative;
+        top: auto;
+    }
+
+    #jwl-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

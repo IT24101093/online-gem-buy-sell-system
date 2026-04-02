@@ -1,8 +1,9 @@
 /* Custom User Storefront Styling */
 
 :root {
-    --royal-blue: #1e3a8a;
-    --luxury-gold: #d4af37;
+    --royal-blue: #020f32;
+    /* Switched accent from yellow/gold to blue */
+    --luxury-gold: #03123a;
     --soft-white: #ffffff;
 }
 
@@ -57,6 +58,32 @@ h1, h2, h3, .font-serif {
     width: 100%;
     border-bottom-color: var(--luxury-gold);
     padding-left: 10px;
+}
+
+/* Override Tailwind amber utilities to use blue accent instead */
+.text-amber-600 {
+    color: #062067 !important;
+}
+
+.hover\:text-amber-600:hover,
+.hover\:text-amber-700:hover {
+    color: #062067 !important;
+}
+
+.bg-amber-500 {
+    background-color: #062067 !important;
+}
+
+.focus\:border-amber-500:focus {
+    border-color: #062067 !important;
+}
+
+.focus\:ring-amber-300:focus {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4) !important;
+}
+
+.hover\:border-amber-400:hover {
+    border-color: #1d4ed8 !important;
 }
 
 /* Navigation Underline Effect */

@@ -45,7 +45,4 @@ src/main/resources/application-mysql.properties
 target/
 
 
-src/main/java/com/gemtrade/onlinegembuysellsystem/marketplace/controller/MarketplaceController.java
-src/main/java/com/gemtrade/onlinegembuysellsystem/marketplace/dto/DraftRequestDto.java
-src/main/java/com/gemtrade/onlinegembuysellsystem/marketplace/entity/MarketplaceListingDraft.java
-src/main/java/com/gemtrade/onlinegembuysellsystem/marketplace/repository/MarketplaceListingDraftRepository.java
+

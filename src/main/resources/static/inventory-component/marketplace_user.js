@@ -167,7 +167,7 @@ function toImageUrl(gem) {
         let url = gem.mainImageUrl;
 
         // FIX: If the backend accidentally combined both folders, clean it up!
-        // This takes "/gem-88photos/uploads/items/..." and fixes it to just "/uploads/items/..."
+        // This takes "/gem-photos/uploads/items/..." and fixes it to just "/uploads/items/..."
         if (url.includes('uploads/items/')) {
             return '/' + url.substring(url.indexOf('uploads/items/'));
         }
