@@ -3,119 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GemLuxe | Secure Checkout</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>JayaGems | Secure Checkout</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="order.css">
 </head>
 <body>
 
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+<div id="toast" class="toast">
+    <i data-lucide="info" class="icon"></i>
+    <span id="toast-msg">Message here</span>
+</div>
 
-    <div id="toast" class="toast-notification">
-        <i class="fas fa-info-circle"></i> <span id="toast-msg">Message here</span>
+<nav class="cart-nav">
+    <div class="logo">JAYAGEMS</div>
+    <div class="nav-links">
+        <a href="marketplace_user.html">Shop All</a>
+        <a href="jewellery_user.html">Jewellery</a>
+        <a href="order-details.html" class="active-link">MY ORDERS</a>
+    </div>
+    <div class="user-info">
+        <span>User: Dharmathilaka</span> | <span class="highlight-id">#GL-8821</span>
+    </div>
+</nav>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h2>Secure Checkout</h2>
+        <button onclick="window.location.href='cart.html'" class="btn btn-dark">
+            <i data-lucide="arrow-left" class="icon"></i> Back to Cart
+        </button>
     </div>
 
-    <div class="container animate-up">
-        <section id="order-section" class="main-card">
-            <h2 class="section-title">Order Details</h2>
-            <form id="orderForm">
+    <div class="cart-layout animate__animated animate__fadeInUp">
+
+        <div class="form-section">
+            <form id="orderForm" class="checkout-form">
                 <div class="input-group">
                     <label>Full Name</label>
-                    <input type="text" id="custName" required placeholder="Enter your name">
+                    <input type="text" id="custName" class="form-input" required placeholder="Enter your full name">
                 </div>
-                
-                <div class="input-row">
-    <div class="input-group">
-        <label>Age</label>
-        <input type="number" id="custAge" required min="1" max="120" placeholder="Numbers only">
-    </div>
 
-<div class="input-group">
-    <label>NIC Number</label>
-    <input type="text" id="custNIC" required 
-           maxlength="12" 
-           placeholder="11 digits + last letter (e.g. 20037500077V)"
-           pattern="^[0-9]{11}[vVxX]$"
-           title="Enter 11 digits followed by a letter (V or X)">
-</div>
-</div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Age</label>
+                        <input type="number" id="custAge" class="form-input" required min="1" max="120" placeholder="e.g. 35">
+                    </div>
+                    <div class="input-group">
+                        <label>NIC Number</label>
+                        <input type="text" id="custNIC" class="form-input" required maxlength="12" placeholder="e.g. 20037500077V">
+                    </div>
+                </div>
 
                 <div class="input-group">
                     <label>Contact No</label>
-                    <input type="text" id="custPhone" required maxlength="10" placeholder="10 digits">
+                    <input type="text" id="custPhone" class="form-input" required maxlength="10" placeholder="10 digits">
                 </div>
 
                 <div class="input-group">
                     <label>Delivery Address</label>
-                    <textarea id="custAddress" required rows="3" placeholder="Enter full delivery address"></textarea>
+                    <textarea id="custAddress" class="form-input" required rows="3" placeholder="Enter full delivery address"></textarea>
                 </div>
 
-                <div class="input-group">
-                    <label>Shipping Region</label>
-                    <select id="shippingMethod" required onchange="updateCouriers()">
-                        <option value="" disabled selected>Select a region...</option>
-                        <option value="local">Local Delivery (LKR 500)</option>
-                        <option value="international">International Delivery (LKR 5,000)</option>
-                    </select>
-                </div>
-
-                <div class="input-group" id="courierGroup" style="display: none;">
-                    <label>Courier Service</label>
-                    <select id="courierService" required onchange="resetCalculation()">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Shipping Region</label>
+                        <select id="shippingMethod" class="form-input" required onchange="updateCouriers()">
+                            <option value="" disabled selected>Select a region...</option>
+                            <option value="local">Local Delivery (LKR 500)</option>
+                            <option value="international">International Delivery (LKR 5,000)</option>
                         </select>
-                </div>
+                    </div>
 
-                <div class="input-group checkbox-group">
-                    <input type="checkbox" id="addInsurance" onchange="resetCalculation()">
-                    <label for="addInsurance">Add Shipping Insurance (2% of Order Value)</label>
-                </div>
-
-                <div id="fee-breakdown" class="summary-text" style="display: none; margin-bottom: 20px; margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span>Order Price:</span> <span id="calc-subtotal">LKR 0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span>Delivery Charge:</span> <span id="calc-shipping">LKR 0</span>
-                    </div>
-                    <div id="insurance-row" style="display: none; justify-content: space-between; margin-bottom: 5px;">
-                        <span>Insurance Fee:</span> <span id="calc-insurance">LKR 0</span>
-                    </div>
-                    <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: #00d4ff; font-size: 1.1rem;">
-                        <span>Total:</span> <span id="calc-total">LKR 0</span>
+                    <div class="input-group" id="courierGroup" style="display: none;">
+                        <label>Courier Service</label>
+                        <select id="courierService" class="form-input" required onchange="resetCalculation()">
+                        </select>
                     </div>
                 </div>
 
-                <button type="button" id="btn-calculate" class="btn-primary" onclick="calculateFee()">Calculate Fee</button>
-                <button type="submit" id="btn-confirm-submit" class="btn-primary" style="display: none;">Confirm & Pay E-Bill</button>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="addInsurance" class="item-checkbox" onchange="resetCalculation()">
+                    <label for="addInsurance" style="margin-bottom: 0;">Add Shipping Insurance (2% of Order Value)</label>
+                </div>
+
+                <button type="button" id="btn-calculate" class="btn btn-dark btn-full" onclick="calculateFee()">
+                    Calculate Final Fee
+                </button>
+                <button type="button" id="btn-confirm-submit" class="btn btn-accent btn-full" style="display: none;" onclick="document.getElementById('confirm-modal').style.display='flex'">
+                    Confirm & Generate E-Bill
+                </button>
             </form>
-        </section>
-    </div> 
+        </div>
 
-    <div id="confirm-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 class="modal-title">Verify Your Details</h3>
-            <div id="summary-details" class="summary-text"></div>
-            <p class="timer-text">Expires in: <span id="timer">02:00</span></p>
-            <div class="modal-btns">
-                <button class="btn-cancel" onclick="closePopup()">Cancel</button>
-                <button class="btn-confirm" onclick="finalRedirect()">Confirm</button>
+        <div class="order-summary">
+            <h3>Fee Breakdown</h3>
+
+            <div id="fee-breakdown" style="display: none;">
+                <div class="summary-row">
+                    <span class="summary-label">Order Price</span>
+                    <span id="calc-subtotal" class="summary-value-small">LKR 0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Delivery</span>
+                    <span id="calc-shipping" class="summary-value-small">LKR 0</span>
+                </div>
+                <div class="summary-row" id="insurance-row" style="display: none;">
+                    <span class="summary-label">Insurance</span>
+                    <span id="calc-insurance" class="summary-value-small">LKR 0</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="summary-row" style="margin-bottom: 0; padding-top: 1rem;">
+                    <span class="summary-label" style="color: var(--royal-blue);">Total Amount</span>
+                    <span id="calc-total" class="summary-value">LKR 0</span>
+                </div>
+            </div>
+
+            <div id="pending-msg" class="pending-box">
+                <div class="modal-icon" style="background: transparent; margin-bottom: 0.5rem; color: #94a3b8;">
+                    <i data-lucide="calculator"></i>
+                </div>
+                Please fill in your details and click calculate to view the breakdown.
             </div>
         </div>
     </div>
-    
-    <div id="payment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 class="modal-title"><i class="fas fa-lock"></i> Secure Payment</h3>
-            <p style="margin: 15px 0; color: #a0a0a0;">Your Order ID: <strong id="display-order-id" class="highlight-text"></strong></p>
-            <p style="font-size: 0.9rem; margin-bottom: 20px; color: #a0a0a0;">Click below to securely complete your purchase via our payment gateway.</p>
-            <button class="btn-primary" onclick="proceedToPayment()">
-                Pay Now <i class="fas fa-credit-card"></i>
-            </button>
+</div>
+
+<div id="confirm-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content animate__animated animate__zoomIn">
+        <div class="modal-icon">
+            <i data-lucide="file-check-2"></i>
+        </div>
+        <h2>Verify Your Details</h2>
+        <div id="summary-details" class="summary-text-box">
+        </div>
+
+        <p class="timer-text">
+            Expires in: <span id="timer">02:00</span>
+        </p>
+
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-dark" style="flex: 1;" onclick="closePopup()">Cancel</button>
+            <button class="btn btn-accent" style="flex: 1;" onclick="finalRedirect()">Confirm Details</button>
         </div>
     </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="order.js"></script>
+<div id="payment-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content animate__animated animate__zoomIn">
+        <div class="modal-icon" style="background-color: #f0fdf4; color: #16a34a;">
+            <i data-lucide="shield-check"></i>
+        </div>
+        <h2>Secure Payment</h2>
+        <p style="color: #64748b; margin-bottom: 0.5rem; font-size: 0.875rem;">
+            Your Order ID: <strong id="display-order-id" style="color: var(--accent-blue);"></strong>
+        </p>
+        <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.875rem; line-height: 1.6;">
+            Click below to securely complete your purchase via our payment gateway.
+        </p>
+
+        <button class="btn btn-accent btn-full" onclick="proceedToPayment()">
+            Pay Now <i data-lucide="credit-card" class="icon" style="margin-left: 0.5rem;"></i>
+        </button>
+    </div>
+</div>
+
+<script src="order.js"></script>
+<script>
+    lucide.createIcons();
+
+    // Minor logic hook: When they click calculate, hide the pending message
+    // (your existing order.js handles showing the fee-breakdown box).
+    document.getElementById('btn-calculate').addEventListener('click', () => {
+        if(document.getElementById('custName').value && document.getElementById('shippingMethod').value) {
+            document.getElementById('pending-msg').style.display = 'none';
+        }
+    });
+</script>
 </body>
 </html>

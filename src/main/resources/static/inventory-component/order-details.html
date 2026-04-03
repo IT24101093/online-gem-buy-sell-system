@@ -3,54 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details | Jaya Gems</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>JayaGems | Order Status Board</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="order-details.css">
 </head>
 <body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
 
-    <nav class="menu-bar">
-        <div class="logo">JAYA<span>GEMS</span></div>
-        <button class="btn-back" onclick="window.location.href='cart.html'">
-            <i class="fas fa-arrow-left"></i> Back to Cart
+<nav class="cart-nav">
+    <div class="logo">JAYAGEMS</div>
+    <div class="nav-links">
+        <a href="marketplace_user.html">Shop All</a>
+        <a href="jewellery_user.html">Jewellery</a>
+        <a href="order-details.html" class="active-link">MY ORDERS</a>
+    </div>
+    <div class="user-info">
+        <span>User: Dharmathilaka</span> | <span class="highlight-id">#GL-8821</span>
+    </div>
+</nav>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h2>Order Status Board</h2>
+        <button onclick="window.location.href='cart.html'" class="btn btn-dark">
+            <i data-lucide="arrow-left" class="icon"></i> Back to Cart
         </button>
-    </nav>
-
-    <div class="header-title">
-        <h1>Order Status Board</h1>
-        <p>Track your gems in real-time</p>"/sav
     </div>
 
-    <main class="board-container">
-        <div class="status-column processing-col">
-            <div class="column-header">
-                <h2><i class="fas fa-cog fa-spin"></i> Processing</h2>
+    <main class="board-container animate__animated animate__fadeInUp">
+
+        <div class="status-column">
+            <div class="column-header border-processing">
+                <div class="flex-center">
+                    <i data-lucide="loader-2" class="spin-icon"></i>
+                    <h3>Processing</h3>
+                </div>
                 <span class="count" id="count-processing">0</span>
             </div>
             <div class="item-list" id="list-processing">
-                </div>
+            </div>
         </div>
 
-        <div class="status-column packed-col">
-            <div class="column-header">
-                <h2><i class="fas fa-box"></i> Packed</h2>
+        <div class="status-column">
+            <div class="column-header border-packed">
+                <div class="flex-center">
+                    <i data-lucide="package"></i>
+                    <h3>Packed</h3>
+                </div>
                 <span class="count" id="count-packed">0</span>
             </div>
             <div class="item-list" id="list-packed">
-                </div>
+            </div>
         </div>
 
-        <div class="status-column delivered-col">
-            <div class="column-header">
-                <h2><i class="fas fa-truck"></i> Delivered</h2>
+        <div class="status-column">
+            <div class="column-header border-delivered">
+                <div class="flex-center">
+                    <i data-lucide="truck"></i>
+                    <h3>Delivered</h3>
+                </div>
                 <span class="count" id="count-delivered">0</span>
             </div>
             <div class="item-list" id="list-delivered">
-                </div>
+            </div>
         </div>
-    </main>
 
-    <script src="order-details.js"></script>
+    </main>
+</div>
+
+<script src="order-details.js"></script>
+<script>
+    lucide.createIcons();
+</script>
 </body>
 </html>

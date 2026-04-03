@@ -46,7 +46,7 @@ function createOrderCard(order) {
     return `
         <div class="order-card" data-order-id="${order.orderId}">
             <div class="order-header">
-                <div class="order-id">#GEM-${order.orderId}</div>
+                <div class="order-id">Order ID: #${order.orderId}</div>
                 <div class="status-badge ${getStatusClass(order.status)}">${statusMap[order.status] || order.status}</div>
             </div>
             <div class="order-details">
@@ -187,3 +187,31 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', () => {
     fetchOrders();
 });
+
+
+// Opens and closes the entire blurred background menu
+function toggleAdminMenu() {
+    const overlay = document.getElementById('admin-menu-overlay');
+    overlay.classList.toggle('hidden');
+}
+
+// Opens and closes the nested "Inventory" sub-menu
+// Opens and closes the entire blurred background menu
+function toggleAdminMenu() {
+    const overlay = document.getElementById('admin-menu-overlay');
+    overlay.classList.toggle('hidden');
+}
+
+// Dynamically opens/closes any sub-menu and flips its specific arrow
+function toggleSubMenu(submenuId, arrowId) {
+    const subMenu = document.getElementById(submenuId);
+    const arrow = document.getElementById(arrowId);
+
+    if (subMenu.classList.contains('hidden')) {
+        subMenu.classList.remove('hidden');
+        arrow.style.transform = 'rotate(180deg)'; // Flips the arrow up
+    } else {
+        subMenu.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)'; // Flips arrow down
+    }
+}

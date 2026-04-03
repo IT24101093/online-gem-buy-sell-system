@@ -3,53 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gem Management - Admin Orders</title>
+    <title>JayaGems | Admin Order Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="admin-styles.css">
 </head>
 <body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
-    
-    <div class="container">
-        <div class="header">
-            <h1>🛍️ Order Management</h1>
-            <p>Real-time order processing dashboard</p>
+
+<nav class="cart-nav" style="z-index: 40;">
+    <div class="logo">JAYAGEMS <span style="font-size: 0.8rem; color: #60a5fa;">ADMIN</span></div>
+    <div class="user-info" style="display: flex; align-items: center; gap: 1.5rem;">
+        <span>Admin: Dharmathilaka</span>
+        <button onclick="toggleAdminMenu()" class="btn btn-accent" style="padding: 0.5rem 1rem;">
+            <i data-lucide="grid" class="icon"></i> Menu
+        </button>
+    </div>
+</nav>
+
+<div id="admin-menu-overlay" class="menu-overlay hidden">
+    <div class="menu-content animate__animated animate__fadeInDown animate__faster">
+
+        <div class="menu-header">
+            <h2>Admin Navigation</h2>
+            <button onclick="toggleAdminMenu()" class="close-btn">
+                <i data-lucide="x"></i>
+            </button>
         </div>
 
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalOrders">12</div>
-                <div>Total Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="processingOrders">4</div>
-                <div>Processing</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="packedOrders">5</div>
-                <div>Packed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="deliveredOrders">3</div>
-                <div>Delivered</div>
-            </div>
-        </div>
+        <div class="menu-grid">
+            <a href="admin-dashboard.html" class="menu-card">
+                <i data-lucide="shopping-bag" class="menu-card-icon"></i>
+                <h3>Order Management</h3>
+                <p>View and update all customer orders</p>
+            </a>
 
-        <div class="orders-grid" id="ordersGrid">
-            <!-- Orders will be populated by JavaScript -->
+            <a href="payment-admin.html" class="menu-card">
+                <i data-lucide="credit-card" class="menu-card-icon"></i>
+                <h3>Payments</h3>
+                <p>Manage transactions and refunds</p>
+            </a>
+
+            <div class="menu-card" onclick="toggleSubMenu('inventory-sub', 'inv-arrow')">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <i data-lucide="boxes" class="menu-card-icon"></i>
+                        <h3>Inventory</h3>
+                        <p>Manage all gemstones in stock</p>
+                    </div>
+                    <i data-lucide="chevron-down" id="inv-arrow" style="transition: transform 0.3s;"></i>
+                </div>
+
+                <div id="inventory-sub" class="sub-menu hidden" onclick="event.stopPropagation()">
+                    <a href="inventory.html"><i data-lucide="list"></i> View All Inventory</a>
+                    <a href="add-gem.html"><i data-lucide="award"></i> Add Certified Gem</a>
+                    <a href="Smart-Analysis.html"><i data-lucide="cpu"></i> Smart Analysis (Uncertified)</a>
+                </div>
+            </div>
+
+            <div class="menu-card" onclick="toggleSubMenu('market-sub', 'market-arrow')">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <i data-lucide="store" class="menu-card-icon"></i>
+                        <h3>Marketplace Admin</h3>
+                        <p>Manage live store items</p>
+                    </div>
+                    <i data-lucide="chevron-down" id="market-arrow" style="transition: transform 0.3s;"></i>
+                </div>
+
+                <div id="market-sub" class="sub-menu hidden" onclick="event.stopPropagation()">
+                    <a href="marketplace_admin.html"><i data-lucide="gem"></i> Gem Management</a>
+                    <a href="jewellery_admin.html"><i data-lucide="crown"></i> Jewellery Management</a>
+                </div>
+            </div>
+
+            <a href="feedback-admin.html" class="menu-card">
+                <i data-lucide="message-square" class="menu-card-icon"></i>
+                <h3>Feedback</h3>
+                <p>Read customer reviews</p>
+            </a>
+
+            <a href="marketplace_user.html" class="menu-card" style="background-color: #f8fafc; border-color: var(--accent-blue);">
+                <i data-lucide="external-link" class="menu-card-icon"></i>
+                <h3>View Live Store</h3>
+                <p>See the marketplace as a customer</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container animate__animated animate__fadeInUp">
+    <div class="header">
+        <h1 style="color: var(--royal-blue);"><i data-lucide="clipboard-list" style="display: inline; width: 2rem; height: 2rem;"></i> Order Management</h1>
+        <p style="color: #64748b;">Real-time order processing dashboard</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalOrders">0</div>
+            <div>Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="processingOrders" style="color: var(--processing);">0</div>
+            <div>Processing</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="packedOrders" style="color: var(--packed);">0</div>
+            <div>Packed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="deliveredOrders" style="color: var(--delivered);">0</div>
+            <div>Delivered</div>
         </div>
     </div>
 
-    <div id="deleteModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Confirm Delete</h3>
-            <p>Are you sure you want to delete order <span id="deleteOrderIdText"></span>? This action cannot be undone.</p>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                <button class="btn btn-delete" id="confirmDeleteBtn">Delete Now</button>
-            </div>
+    <div class="orders-grid" id="ordersGrid">
+    </div>
+</div>
+
+<div id="deleteModal" class="modal-overlay hidden">
+    <div class="modal-content animate__animated animate__zoomIn">
+        <div class="modal-icon" style="color: #ef4444; background-color: #fef2f2;">
+            <i data-lucide="alert-triangle"></i>
+        </div>
+        <h2>Confirm Delete</h2>
+        <p style="color: #64748b; margin-bottom: 2rem;">Are you sure you want to delete <strong style="color: var(--royal-blue);" id="deleteOrderIdText"></strong>? This action cannot be undone.</p>
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-dark" style="flex: 1;" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" style="flex: 1;" id="confirmDeleteBtn">Delete Now</button>
         </div>
     </div>
+</div>
 
-    <script src="admin-script.js"></script>
+<script src="admin-script.js"></script>
+<script>
+    lucide.createIcons();
+</script>
 </body>
 </html>

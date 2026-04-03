@@ -1,21 +1,14 @@
-// Database of items using .jpg to match your uploaded files
-const cartItems = [
-    { id: 1, name: "Natural Royal Ruby", price: 150000, type: "Precious", img: "image1.png" },
+// Changed to 'let' so we can modify the array when deleting items
+let cartItems = [
+    { id: 1, name: "Natural Royal Ruby", price: 150000, type: "Precious", img: "image1.jpg" },
     { id: 2, name: "Blue Velvet Sapphire", price: 220000, type: "Precious", img: "image2.jpg" },
     { id: 3, name: "Imperial Topaz", price: 120000, type: "Semi-Precious", img: "image3.jpg" },
     { id: 4, name: "Purple Amethyst", price: 90000, type: "Semi-Precious", img: "image5.jpg" }
 ];
 
-// Initial render on page load
 document.addEventListener("DOMContentLoaded", () => {
     renderCart("all");
 });
-
-function filterItems(category, element) {
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    element.classList.add('active');
-    renderCart(category);
-}
 
 function renderCart(filter = "all") {
     const list = document.getElementById('cart-list');
@@ -24,40 +17,60 @@ function renderCart(filter = "all") {
 
     const filteredItems = filter === "all" ? cartItems : cartItems.filter(item => item.type === filter);
 
-    filteredItems.forEach((item, index) => {
+    // Show empty message if no items are left
+    if(filteredItems.length === 0) {
+        list.innerHTML = `<p style="padding: 2rem; color: #64748b; font-weight: 600;">Your cart is empty.</p>`;
+    }
+
+    filteredItems.forEach((item) => {
         totalPrice += item.price;
-        // Added animation delay based on index for the cascading entrance effect
+        // Clean semantic HTML injection with checkbox added
         list.innerHTML += `
-            <div class="cart-item" style="animation-delay: ${index * 0.1}s">
-                <img src="${item.img}" class="item-img" alt="${item.name}" onerror="this.src='https://via.placeholder.com/200'">
-                <div class="item-info">
-                    <small>${item.type}</small>
-                    <h3>${item.name}</h3>
-                    <p>LKR ${item.price.toLocaleString()}</p>
+            <div class="cart-item animate__animated animate__fadeInUp">
+                <div class="item-details">
+                    <input type="checkbox" class="item-checkbox" data-id="${item.id}">
+                    
+                    <img src="${item.img}" alt="${item.name}" class="item-img" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
+                    <div>
+                        <p class="item-type">${item.type}</p>
+                        <h4 class="item-title">${item.name}</h4>
+                    </div>
+                </div>
+                <div class="item-price">
+                    LKR ${item.price.toLocaleString()}
                 </div>
             </div>
         `;
     });
 
     document.getElementById('total-display').innerText = `LKR ${totalPrice.toLocaleString()}`;
+
+    // Re-initialize Lucide icons in case any are added dynamically
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
-// RESTORED: This makes your "View Order Details" button work again!
 function goToDetails() {
     window.location.href = 'order-details.html';
 }
 
 function openFeedback() {
-    document.getElementById('feedback-modal').style.display = 'flex';
+    // Reveal Modal via CSS class
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.remove('hidden');
 }
 
 function submitFeedback() {
-    document.getElementById('feedback-modal').style.display = 'none';
-    
-    const toast = document.getElementById('toast');
-    toast.style.top = '100px'; // Adjusted slightly for the new theme layout
+    // Hide Modal via CSS class
+    const modal = document.getElementById('feedback-modal');
+    modal.classList.add('hidden');
 
-    // Save cart items to local storage so the checkout page can read the price
+    // Animate Toast via CSS class
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+
+    // Save CURRENT items to pass to order.html / order.js (deleted items won't be passed!)
     localStorage.setItem('orderItems', JSON.stringify(cartItems));
 
     setTimeout(() => {
@@ -65,20 +78,46 @@ function submitFeedback() {
     }, 1500);
 }
 
-// NEW: Theme toggle logic to match Admin dashboard
-function toggleTheme() {
-    document.body.classList.toggle('light-mode');
-    const toggle = document.querySelector('.theme-toggle');
-    toggle.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
-}
-async function askBotForDiscount(currentPrice) {
-    const res = await fetch('http://localhost:8080/api/orders/negotiate', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ price: currentPrice })
-    });
-    const data = await res.json();
-    document.getElementById('total-display').innerText = `LKR ${data.newPrice}`;
-    alert(data.reply);
+// Function to delete selected items
+// --- Custom Deletion Logic ---
+
+let itemsToDelete = []; // Temporarily store the IDs to delete
+
+// 1. Triggered when the "Delete Selected" button is clicked
+function deleteSelected() {
+    const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+
+    if (checkedBoxes.length === 0) {
+        // Show our custom Alert Modal instead of the ugly browser alert
+        document.getElementById('alert-modal').classList.remove('hidden');
+        return;
+    }
+
+    // Grab IDs and prep the custom Confirm Modal
+    itemsToDelete = Array.from(checkedBoxes).map(box => parseInt(box.getAttribute('data-id')));
+    document.getElementById('confirm-message').innerText = `Are you sure you want to remove ${checkedBoxes.length} item(s) from your cart?`;
+    document.getElementById('confirm-modal').classList.remove('hidden');
 }
 
+// 2. Close the Alert Modal
+function closeAlertModal() {
+    document.getElementById('alert-modal').classList.add('hidden');
+}
+
+// 3. Close the Confirm Modal without deleting
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    itemsToDelete = []; // Clear the temporary list
+}
+
+// 4. Actually delete the items if they click "Yes, Delete"
+function executeDelete() {
+    // Filter the cartItems array to KEEP only the items that were NOT selected
+    cartItems = cartItems.filter(item => !itemsToDelete.includes(item.id));
+
+    // Re-render the cart
+    renderCart("all");
+
+    // Close the modal
+    closeConfirmModal();
+}
