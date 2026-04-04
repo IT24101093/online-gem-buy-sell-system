@@ -168,43 +168,50 @@ function finalRedirect() {
 }
 
 async function proceedToPayment() {
-    // 1. Get the exact values from your HTML inputs
+    // 1. UI Protection: Disable button to prevent double-submissions during DB operations
+    const payButton = document.getElementById('btn-proceed');
+    if (payButton) payButton.disabled = true;
+
+    // 2. Get Form Values
     const fullName = document.getElementById('custName').value;
-    const age = parseInt(document.getElementById('custAge').value);
-    const nic = document.getElementById('custNIC').value;
+    const ageValue = document.getElementById('custAge').value;
+    const nic = document.getElementById('custNIC').value.trim();
     const phone = document.getElementById('custPhone').value;
     const address = document.getElementById('custAddress').value;
 
+    // 3. Process Name Parts
     const nameParts = fullName.trim().split(" ");
     const firstName = nameParts[0] || "Unknown";
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Unknown";
 
-    // NEW: Get the item the user is trying to buy from localStorage
+    // 4. Get Cart Data from LocalStorage
+    const savedCartId = localStorage.getItem('myCartId');
     const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
-    // Assuming they are buying the first item in the cart
-    const purchasedItem = cartItems.length > 0 ? cartItems[0] : null;
-    const gemId = purchasedItem ? purchasedItem.id : 1; // Fallback to 1 if empty
 
-    // 2. Build the JSON payload EXACTLY as the backend expects
+    // Use the first item ID as the 'primary' inventoryId for the Order record
+    const purchasedItem = cartItems.length > 0 ? cartItems[0] : null;
+    const gemId = purchasedItem ? purchasedItem.id : 0;
+
+    // 5. Build Payload (Validations are assumed to be done before calling this)
     const payload = {
         customerDTO: {
             firstName: firstName,
             lastName: lastName,
             deliveryAddress: address,
             nic: nic,
-            age: age,
+            age: parseInt(ageValue) || 0,
             contactNo: phone
         },
         orderDTO: {
-            inventoryId: gemId, // <--- THIS FIXES THE CRASH!
-            deliveryServiceId: 1 // Adding a default delivery service ID just in case your backend requires it
+            inventoryId: gemId,
+            deliveryServiceId: 1,
+            cartId: savedCartId ? parseInt(savedCartId) : null
         }
     };
 
-    showToast("Connecting to secure server...");
+    showToast("Processing payment...");
 
     try {
-        // 3. Send the HTTP request to your Spring Boot backend
         const response = await fetch('http://localhost:8080/api/orders/create', {
             method: 'POST',
             headers: {
@@ -214,32 +221,34 @@ async function proceedToPayment() {
         });
 
         if (response.ok) {
-            // Successfully saved in the database!
-            const savedOrder = await response.json();
+            // SUCCESS: The backend has moved items to order_item and deleted the cart
 
-            // Clean up cart
+            // 6. Clear Local Storage
             localStorage.removeItem('orderItems');
+            localStorage.removeItem('myCartId');
+
             showToast("Payment successful! Order Saved.");
 
+            // Redirect to success page
             setTimeout(() => {
                 window.location.href = "payment-success.html";
             }, 1500);
 
         } else {
-            // Validation failed on backend (e.g., age < 18, wrong phone length)
-            const errorData = await response.json();
-            console.error("Backend validation errors:", errorData);
+            // Re-enable button if server returns an error (e.g., 400 or 500)
+            if (payButton) payButton.disabled = false;
 
-            // Show the first error to the user
+            const errorData = await response.json();
             const firstError = Object.values(errorData)[0];
             showToast("Error: " + (firstError || "Failed to process order."));
         }
     } catch (error) {
+        // Re-enable button if there is a network error
+        if (payButton) payButton.disabled = false;
         console.error("Network error:", error);
-        showToast("Error connecting to server. Is the backend running?");
+        showToast("Error connecting to server.");
     }
 }
-
 function toggleTheme() {
     document.body.classList.toggle('light-mode');
     const toggle = document.querySelector('.theme-toggle');

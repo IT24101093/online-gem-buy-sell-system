@@ -25,10 +25,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         String userDir = System.getProperty("user.dir");
         Path gemPhotosPath = Paths.get(userDir, "src", "main", "resources", "static", "gem-photos");
-        String gemPhotosUri = gemPhotosPath.toAbsolutePath().toUri().toString();
+
 
         registry.addResourceHandler("/gem-photos/**")
-                .addResourceLocations(gemPhotosUri) // Use the file:/// URI instead of classpath
-                .setCachePeriod(0);
+                .addResourceLocations(gemPhotosPath.toAbsolutePath().toUri().toString())
+                .setCachePeriod(0); // Disable caching so new images load immediately
     }
 }

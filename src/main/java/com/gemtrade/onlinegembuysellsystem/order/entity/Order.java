@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.gemtrade.onlinegembuysellsystem.cart.entity.Cart;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,6 +21,11 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
+
+    // 2. PLACE THE RELATIONSHIP HERE
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id")
+    private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)

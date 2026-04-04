@@ -167,10 +167,12 @@ function renderJewellery(items) {
     empty.classList.add('hidden');
 
     grid.innerHTML = items.map((item, i) => {
-        // ✨ SMART URL CLEANUP
+        // ✨ UPDATED SMART URL CLEANUP
         let finalImageSrc = null;
-        let url = item.imageData || item.imagePath; // <-- Checks both just to be perfectly safe!
-        if (url) {
+        let url = item.imageData || item.imagePath;
+
+        // 🛑 REMOVE DEFAULT JPG REFERENCE: Added !url.includes('default.jpg')
+        if (url && !url.includes('default.jpg')) {
             if (url.includes('uploads/')) {
                 finalImageSrc = '/' + url.substring(url.indexOf('uploads/'));
             } else if (url.includes('gem-photos/')) {
@@ -188,6 +190,7 @@ function renderJewellery(items) {
             <div class="relative overflow-hidden bg-slate-100 mb-4 aspect-[4/5] rounded-sm cursor-pointer" onclick="openJwlDetail(${i})">
                 ${finalImageSrc
             ? `<img src="${finalImageSrc}" alt="${item.type}" class="w-full h-full object-cover transition duration-1000" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">`
+            // 🎨 If finalImageSrc is null (because it was default.jpg), this gradient block runs:
             : `<div class="w-full h-full flex flex-col items-center justify-center transition duration-1000" style="background:${METAL_GRADIENTS[item.metal] || METAL_GRADIENTS.Gold}">
                            <span class="text-white text-opacity-80 font-serif text-2xl mb-2">${iconForType(item.type)}</span>
                            <span class="text-white text-xs font-bold uppercase tracking-widest opacity-75">${item.type}</span>
@@ -336,14 +339,45 @@ document.addEventListener('click', e => {
 });
 
 // ── Cart helpers ───────────────────────────────────────────────────────
-function addJwlToCart(index) {
+async function addJwlToCart(index) {
     const item = displayedJewellery[index];
     if (!item) return;
-    jwlCart.push(item);
-    updateJwlCartCount();
-    showJwlToast(`${item.gemstone} (${item.type}) added to cart.`);
-}
 
+    // Get existing cartId or use null for a new one
+    const myCartId = localStorage.getItem('myCartId');
+
+    // This object MUST match your Java 'AddToCartRequest' fields exactly
+    const cartData = {
+        cartId: myCartId ? parseInt(myCartId) : null,
+        jewelleryId: item.id, // Your DTO needs this field
+        listingId: null,      // Since this is Jewellery, not a Gem
+        gemName: item.gemstone,
+        unitPriceLkr: item.price
+    };
+
+    try {
+        const response = await fetch('http://localhost:8080/api/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(cartData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            // Save the cartId returned by the backend for future additions
+            localStorage.setItem('myCartId', result.cartId);
+
+            showJwlToast(`${item.gemstone} added to cart!`);
+            console.log("Server Response (Cart ID):", result.cartId);
+        } else {
+            console.error("Add to cart failed. Status:", response.status);
+        }
+    } catch (err) {
+        console.error("Network error:", err);
+    }
+}
 function updateJwlCartCount() {
     const badge = document.getElementById('jwl-cart-count');
     if (badge) badge.textContent = jwlCart.length;

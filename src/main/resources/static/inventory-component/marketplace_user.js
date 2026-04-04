@@ -208,9 +208,12 @@ function displayGems(items) {
 function addToCart(index) {
     const gem = currentDisplayedGems[index];
     if (!gem) return;
-    cart.push(gem);
-    updateCartCount();
-    showCartToast(`${gem.name} was added to your cart.`);
+
+    // Grab the REAL database ID if the backend provided it, otherwise fallback to index + 1
+    const realDatabaseId = gem.listingId || gem.id || (index + 1);
+
+    // Call our backend connection!
+    addGemToDatabaseCart(realDatabaseId, gem.name, gem.price);
 }
 
 function openGemDetails(index) {
@@ -635,11 +638,13 @@ function _clientSideSuggest(colorPref, budgetPref) {
 
 /** Add a gem to cart by name (used from suggestion results). */
 function addToCartByGem(gemName) {
-    const gem = allGems.find(g => g.name === gemName);
+    // 1. Find the gem by its name in your array
+    const gem = storeGems.find(g => g.name === gemName) || allGems.find(g => g.name === gemName);
     if (!gem) return;
-    cart.push(gem);
-    updateCartCount();
-    showCartToast(`${gem.name} was added to your cart.`);
+
+    // 2. Call our new database function!
+    // (We use a random number like 999 if we can't find an index, just so the DB doesn't crash on null)
+    addGemToDatabaseCart(gem.listingId || gem.id || 999, gem.name, gem.price);
 }
 
 // Close suggestion modal when clicking the backdrop
@@ -647,3 +652,61 @@ document.addEventListener('click', function (e) {
     const suggModal = document.getElementById('suggestion-modal');
     if (e.target === suggModal) closeSuggestionModal();
 });
+
+
+
+// ─── NEW: Backend Integration for Cart ───────────────────────────────────
+
+async function addGemToDatabaseCart(listingId, gemName, price) {
+    // 1. Get the existing Cart ID from the browser (if they already started shopping)
+    let currentCartId = localStorage.getItem('myCartId');
+
+    // 2. Prepare the data to match our AddToCartRequest.java DTO
+    const requestBody = {
+        cartId: currentCartId ? parseInt(currentCartId) : null,
+        listingId: listingId,
+        gemName: gemName,
+        unitPriceLkr: price
+    };
+
+    try {
+        // 3. Send to our Spring Boot CartController
+        const response = await fetch('http://localhost:8080/api/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+
+            // 4. Save the returned Cart ID so the browser remembers it!
+            localStorage.setItem('myCartId', data.cartId);
+
+            // 5. Trigger the beautiful green toast you already have in marketplace_user.html
+            showCartToast(`${gemName} added to cart!`);
+        } else {
+            alert("Failed to add item to cart. Please try again.");
+        }
+    } catch (error) {
+        console.error("Error connecting to backend cart:", error);
+        alert("Server error. Please make sure the backend is running.");
+    }
+}
+
+// Helper to show your existing toast notification
+function showCartToast(message) {
+    const toast = document.getElementById('cart-toast');
+    const toastMessage = document.getElementById('cart-toast-message');
+    if(toast && toastMessage) {
+        toastMessage.innerText = message;
+        toast.classList.remove('opacity-0', 'pointer-events-none');
+
+        // Hide it after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'pointer-events-none');
+        }, 3000);
+    }
+}

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 public class OrderDTO {
 
     private Long customerId;
+    private Long cartId;
     private Long inventoryId;
     private Long inventoryItemId;
     private Long deliveryServiceId;
