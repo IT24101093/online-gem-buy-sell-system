@@ -12,6 +12,8 @@ import com.gemtrade.onlinegembuysellsystem.cart.repository.CartRepository;
 import com.gemtrade.onlinegembuysellsystem.cart.repository.CartItemRepository;
 import com.gemtrade.onlinegembuysellsystem.cart.entity.Cart;
 import com.gemtrade.onlinegembuysellsystem.cart.entity.CartItem;
+import org.springframework.scheduling.annotation.Scheduled;
+import java.time.LocalDateTime;
 
 
 import java.util.List;
@@ -141,3 +143,5 @@ public class CartService {
         }
     }
 }
+
+

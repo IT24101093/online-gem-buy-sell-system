@@ -95,11 +95,15 @@ public class OrderService {
         if (cart.getCartItems() != null && !cart.getCartItems().isEmpty()) {
             String sql = "INSERT INTO order_item (order_id, listing_id, gem_name, unit_price_lkr) VALUES (?, ?, ?, ?)";
 
+            // 1. Use a unique variable name so it doesn't conflict with any other "sql" variables
+            String insertOrderItemSql = "INSERT INTO order_item (order_id, listing_id, jewellery_id, gem_name, unit_price_lkr) VALUES (?, ?, ?, ?, ?)";
+
+            // 2. Loop through the cart items and send BOTH IDs
             for (CartItem cartItem : cart.getCartItems()) {
-                Long finalId = (cartItem.getListingId() != null) ? cartItem.getListingId() : cartItem.getJewelleryId();
-                jdbcTemplate.update(sql,
+                jdbcTemplate.update(insertOrderItemSql,
                         savedOrder.getOrderId(),
-                        finalId,
+                        cartItem.getListingId(),     // Will be a number for Gems, null for Jewellery
+                        cartItem.getJewelleryId(),   // Will be a number for Jewellery, null for Gems
                         cartItem.getGemName(),
                         cartItem.getUnitPriceLkr()
                 );
@@ -112,7 +116,7 @@ public class OrderService {
         try {
             // Remove items from the cart_item table using direct SQL
             // (prevents Hibernate from complaining about deleted child entities)
-            jdbcTemplate.update("DELETE FROM cart_item WHERE cart_id = ?", cart.getCartId());
+            //jdbcTemplate.update("DELETE FROM cart_item WHERE cart_id = ?", cart.getCartId());
 
             // Update Cart state so it doesn't appear in the "Active Cart" queries
             cart.setCustomer(customer);

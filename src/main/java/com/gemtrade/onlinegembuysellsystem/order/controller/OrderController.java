@@ -11,7 +11,10 @@ import com.gemtrade.onlinegembuysellsystem.order.util.OrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List; // Fixes "cannot find symbol: class List"
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.gemtrade.onlinegembuysellsystem.order.entity.Order; // Fixes "cannot find symbol: class Order"
@@ -25,12 +28,19 @@ public class OrderController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<Order> createOrder(@Valid @RequestBody OrderRequest req) {
-        // Spring will now automatically check the data in 'req'
-        return ResponseEntity.ok(orderService.createOrderWithCustomerAndDelivery(
+    public ResponseEntity<Map<String, String>> createOrder(@Valid @RequestBody OrderRequest req) {
+        // 1. Save the order to the database using your existing service method
+        Order savedOrder = orderService.createOrderWithCustomerAndDelivery(
                 req.getOrderDTO(),
                 req.getCustomerDTO()
-        ));
+        );
+
+        // 2. Return a simple, safe JSON response instead of the entire Entity graph!
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Order placed successfully");
+        response.put("orderId", String.valueOf(savedOrder.getOrderId()));
+
+        return ResponseEntity.ok(response);
     }
 
     // Add this to your OrderController.java
