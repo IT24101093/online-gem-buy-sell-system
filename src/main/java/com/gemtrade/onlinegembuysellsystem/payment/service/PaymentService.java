@@ -3,6 +3,9 @@ package com.gemtrade.onlinegembuysellsystem.payment.service;
 import com.gemtrade.onlinegembuysellsystem.payment.entity.PaymentTransaction;
 import com.gemtrade.onlinegembuysellsystem.payment.repository.PaymentTransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,24 +36,27 @@ public class PaymentService {
 
         // 2. Logic based on payment method
         if ("CARD".equalsIgnoreCase(payment.getMethod())) {
-            // Check card number using Luhn algorithm
             if (!isValidLuhn(payment.getCardNumber())) {
                 throw new IllegalArgumentException("Invalid Credit Card Number.");
             }
             payment.setStatus("SUCCESS");
+
+            // --- THE TRIGGER ---
+            // Since it's a SUCCESS, we move money from Liability to Asset
+            fulfillFinancialTransaction(payment.getOrderId(), payment.getTotalAmountLkr().doubleValue());
+
         }
         else if ("CASH".equalsIgnoreCase(payment.getMethod())) {
-            payment.setStatus("PENDING"); // Cash is pending until delivery
-
-            // Fix for the SQL "gateway_name cannot be null" error
-            // We set these manually since there is no online gateway for Cash
+            payment.setStatus("PENDING");
             payment.setGatewayName("Cash On Delivery");
             payment.setGatewayReference("COD-" + System.currentTimeMillis());
+
+            // Note: We do NOT trigger fulfillFinancialTransaction here
+            // because the cash hasn't been collected yet.
+            // It stays in 'corporate_liabilities' (the Red Slice).
         }
 
-        // 3. Set timestamp and Save (No setUpdatedAt used here)
         payment.setCreatedAt(LocalDateTime.now());
-
         return repository.save(payment);
     }
     public PaymentTransaction findById(Long id) {
@@ -99,5 +105,33 @@ public class PaymentService {
         report.put("balance", balance);
 
         return report;
+    }
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+
+    @Transactional
+    public void fulfillFinancialTransaction(Long orderId, Double amount) {
+        try {
+            // 1. Remove the pending liability from the corporate_liabilities table
+            // We look for the description we created in OrderService
+            String deleteLiabilitySql = "DELETE FROM corporate_liabilities WHERE description LIKE ?";
+            jdbcTemplate.update(deleteLiabilitySql, "%Order #" + orderId + "%");
+
+            // 2. Move the money to Corporate Assets (Cash at Bank)
+            // We use an "Upsert" logic (Insert or Update if exists)
+            String updateAssetSql = "INSERT INTO corporate_assets (name, category, value_lkr) " +
+                    "VALUES ('Cash at Bank', 'CURRENT', ?) " +
+                    "ON DUPLICATE KEY UPDATE value_lkr = value_lkr + ?";
+
+            jdbcTemplate.update(updateAssetSql, amount, amount);
+
+            System.out.println("Financial sync complete: Order #" + orderId + " moved to Assets.");
+
+        } catch (Exception e) {
+            // Log the error so you don't lose track of the money if the DB fails
+            System.err.println("Finance Sync Error for Order " + orderId + ": " + e.getMessage());
+        }
     }
 }

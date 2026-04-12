@@ -37,6 +37,31 @@ function qualityMultiplier(grade){
 // ---------- Checkout Page Logic ----------
 // ---------- Checkout Page Logic ----------
 function initCheckout(){
+    // --- 1. LOAD DATA FROM LOCAL STORAGE ---
+    const orderId = localStorage.getItem('currentOrderId');
+    const baseTotal = parseFloat(localStorage.getItem('currentOrderTotal')) || 0;
+
+    // --- 2. POPULATE THE UI ---
+    if (orderId) {
+        // You can display the order ID somewhere if you add an element for it
+        console.log("Processing Payment for Order:", orderId);
+        console.log("Loaded Total Amount:", baseTotal); // Let's check if it loads correctly!
+
+        // Update the summary amounts in form.html
+        const sumBase = document.getElementById('sumBase');
+        const sumTotal = document.getElementById('sumTotal');
+        const goPayBtn = document.getElementById('goPay');
+
+        if (sumBase) sumBase.textContent = money(baseTotal);
+        if (sumTotal) sumTotal.textContent = money(baseTotal);
+
+        // Enable the proceed button now that we have real data
+        if (goPayBtn) {
+            goPayBtn.setAttribute('aria-disabled', 'false');
+        }
+    }
+
+
     const btnCalc = byId("btnCalculate");
     const btnReset = byId("btnReset");
     if (!btnCalc || !btnReset) return;
@@ -48,7 +73,7 @@ function initCheckout(){
         
         // --- MOCK INCOMING DATA FROM ORDER COMPONENT ---
         // Change this line later to pull the actual amount from your order component
-        let base = 50000; 
+        let base = parseFloat(localStorage.getItem('currentOrderTotal')) || 0;
         
         // User inputs
         const promo = (promoInput.value || "").trim().toUpperCase();
@@ -154,22 +179,31 @@ function initPayment(){
         const email = (byId("email").value || "").trim();
         const phone = (byId("phone").value || "").trim();
 
-        // 2. Prepare the payload (Hardcoding Order ID 1 for now)
+        // 1. Retrieve the real Order ID AND Total we saved during the Order step
+        const realOrderId = parseInt(localStorage.getItem('currentOrderId'));
+        const realOrderTotal = parseFloat(localStorage.getItem('currentOrderTotal')) || 0;
+
+// 2. Prepare the payload
         const payload = {
-            orderId: 1, // HARDCODED for testing as planned
-            subtotalLkr: data.base,
-            addonsLkr: data.addons,
-            shippingLkr: data.shipping || 0,
-            taxLkr: data.tax || 0,
-            discountLkr: data.totalDiscount || 0,
-            totalAmountLkr: data.total,
+            orderId: realOrderId,
+            subtotalLkr: realOrderTotal,    // 🟢 Pulls directly from storage, not 'data.base'
+            addonsLkr: 0,                   // 🟢 Hardcoded to 0 to avoid undefined errors
+            shippingLkr: 0,
+            taxLkr: 0,
+            discountLkr: 0,
+            totalAmountLkr: realOrderTotal, // 🟢 Pulls directly from storage, not 'data.total'
             method: method,
-            // These ensure your MySQL constraints are satisfied
-            gatewayName: method === "CARD" ? "Stripe" : "Cash On Delivery",
+            gatewayName: method === "CARD" ? "STRIPE" : "CASH",
             gatewayReference: "REF-" + Date.now(),
-            // Sending number so the Java Backend can run isValidLuhn()
             cardNumber: method === "CARD" ? onlyDigits(number) : null
         };
+
+// Quick safety check
+        if (!payload.orderId) {
+            console.error("Missing Order ID!");
+            setErr("cardErr", "Invalid Order Session. Please go back to checkout.");
+            return;
+        }
 
         try {
             // 3. Send request to Java Backend

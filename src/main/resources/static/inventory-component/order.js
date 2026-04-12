@@ -236,17 +236,27 @@ async function proceedToPayment() {
         });
 
         if (response.ok) {
-            // SUCCESS: The backend has moved items to order_item and deleted the cart
+            const savedOrder = await response.json();
 
-            // 6. Clear Local Storage
+            // 🔍 Let's print exactly what Java is sending back so we can see it!
+            console.log("DEBUG - Backend returned this Order data:", savedOrder);
+
+            // 🟢 THE MAGIC LINE: Check every possible name Java might use.
+            // If Java didn't send the price back, safely fall back to the frontend's calculatedTotal!
+            const finalPriceToSave = savedOrder.totalAmountLkr || savedOrder.totalAmount || savedOrder.amount || calculatedTotal;
+
+            // Clear old Cart data
             localStorage.removeItem('orderItems');
             localStorage.removeItem('myCartId');
 
-            showToast("Payment successful! Order Saved.");
+            // Save the newly found ID and Price
+            localStorage.setItem('currentOrderId', savedOrder.orderId || savedOrder.id);
+            localStorage.setItem('currentOrderTotal', finalPriceToSave);
 
-            // Redirect to success page
+            showToast("Order Placed! Redirecting to payment...");
+
             setTimeout(() => {
-                window.location.href = "payment-success.html";
+                window.location.href = "/payment/form.html";
             }, 1500);
 
         } else {

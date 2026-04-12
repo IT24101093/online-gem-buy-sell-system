@@ -91,6 +91,23 @@ public class OrderService {
         // Save Order first to generate the ID for Step 6
         Order savedOrder = orderRepository.save(order);
 
+        try {
+            // Record this order as a Corporate Liability
+            String liabilitySql = "INSERT INTO corporate_liabilities (description, amount_lkr, due_date) VALUES (?, ?, ?)";
+
+            // We set a due date for 7 days from now as a default
+            java.sql.Date dueDate = java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(7));
+            String description = "Pending Payment for Order #" + savedOrder.getOrderId();
+
+            jdbcTemplate.update(liabilitySql,
+                    description,
+                    savedOrder.getTotalAmountLkr(),
+                    dueDate
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to record corporate liability: " + e.getMessage());
+        }
+
         // 6. POPULATE order_item TABLE via JdbcTemplate (Option 1)
         if (cart.getCartItems() != null && !cart.getCartItems().isEmpty()) {
             String sql = "INSERT INTO order_item (order_id, listing_id, gem_name, unit_price_lkr) VALUES (?, ?, ?, ?)";

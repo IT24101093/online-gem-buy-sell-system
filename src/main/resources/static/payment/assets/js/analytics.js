@@ -82,32 +82,41 @@ async function loadAnalytics() {
 // combined another dep with function
 async function syncModules(income, loss) {
     try {
-        // 1. Fetch from your specific Asset/Liability Tables
-        const assetRes = await fetch('http://localhost:8080/api/corporate/assets')
-            .catch(() => ({ json: () => ({ gemInventoryValue: 7500000, bankBalance: income }) }));
+        // 1. Fetch from the new Finance Controller
+        // This single call now gets both Liabilities and extra Asset data
+        const financeRes = await fetch('http://localhost:8080/api/finance/summary')
+            .catch(() => ({
+                json: () => ({ totalPending: 0, totalAssetsValue: 7500000 })
+            }));
 
-        const liabilityRes = await fetch('http://localhost:8080/api/corporate/liabilities')
-            .catch(() => ({ json: () => ({ totalLiabilities: 0 }) }));
+        const financeData = await financeRes.json();
 
-        const assetData = await assetRes.json();
-        const liabilityData = await liabilityRes.json();
+        // 2. Map the data
+        // totalPending comes from corporate_liabilities (Red Slice)
+        const pendingPay = financeData.totalPending || 0;
 
-        // 2. Map the data to your UI variables
-        const stockValue = assetData.gemInventoryValue || 0;
-        const currentCash = assetData.bankBalance || income; // Use live income if bank is 0
-        const totalDebt = liabilityData.totalLiabilities || 0;
+        // totalAssetsValue comes from corporate_assets (Gold Slice)
+        const stockValue = financeData.totalAssetsValue || 0;
 
-        const totalAssets = stockValue + currentCash;
+        // Income is passed from the monthly payment analytics (Green Slice)
+        const totalAssets = stockValue + income;
 
-        // 3. Update the UI Text
-        if(document.getElementById('assetGems')) document.getElementById('assetGems').textContent = money(stockValue);
-        if(document.getElementById('assetCash')) document.getElementById('assetCash').textContent = money(currentCash);
-        if(document.getElementById('liabilityOrders')) document.getElementById('liabilityOrders').textContent = money(totalDebt);
-        if(document.getElementById('totalAssets')) document.getElementById('totalAssets').textContent = money(totalAssets);
+        // 3. Update the Balance Sheet UI elements
+        if(document.getElementById('assetGems'))
+            document.getElementById('assetGems').textContent = money(stockValue);
 
-        // 4. Update the Chart
-        // Gold: Gems | Green: Bank Cash | Red: Liabilities (COD/Debts)
-        renderBalanceChart(stockValue, currentCash, totalDebt);
+        if(document.getElementById('assetCash'))
+            document.getElementById('assetCash').textContent = money(income);
+
+        if(document.getElementById('liabilityOrders'))
+            document.getElementById('liabilityOrders').textContent = money(pendingPay);
+
+        if(document.getElementById('totalAssets'))
+            document.getElementById('totalAssets').textContent = money(totalAssets);
+
+        // 4. Re-render the Chart with real data
+        // Gold = Gems/Stock | Green = Paid Cash | Red = Liabilities (COD/Confirmed)
+        renderBalanceChart(stockValue, income, pendingPay);
 
     } catch (err) {
         console.warn("Integration Error:", err);
