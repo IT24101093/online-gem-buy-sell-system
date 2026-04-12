@@ -55,7 +55,7 @@ public class OrderService {
     @Transactional
     public Order createOrderWithCustomerAndDelivery(OrderDTO dto, CustomerDTO customerDTO) {
         // 1. Calculate fees using utility
-        OrderUtil.calculateOrder(dto, inventoryItemService, courierRepository, insuranceRepository);
+        //OrderUtil.calculateOrder(dto, inventoryItemService, courierRepository, insuranceRepository);
 
         // 2. Save Customer
         Customer customer = new Customer();

@@ -188,11 +188,21 @@ async function proceedToPayment() {
     const savedCartId = localStorage.getItem('myCartId');
     const cartItems = JSON.parse(localStorage.getItem('orderItems') || '[]');
 
-    // Use the first item ID as the 'primary' inventoryId for the Order record
     const purchasedItem = cartItems.length > 0 ? cartItems[0] : null;
     const gemId = purchasedItem ? purchasedItem.id : 0;
 
-    // 5. Build Payload (Validations are assumed to be done before calling this)
+    // --- RECALCULATE FEES TO SEND TO BACKEND ---
+    const shippingMethod = document.getElementById('shippingMethod').value;
+    const deliveryFee = (shippingMethod === 'local') ? 500 : 5000;
+
+    const isInsured = document.getElementById('addInsurance').checked;
+    const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+    const insuranceFee = isInsured ? (cartTotal * 0.02) : 0;
+
+    // calculatedTotal is already calculated globally in your script
+    // -------------------------------------------
+
+    // 5. Build Payload
     const payload = {
         customerDTO: {
             firstName: firstName,
@@ -204,8 +214,13 @@ async function proceedToPayment() {
         },
         orderDTO: {
             inventoryId: gemId,
-            deliveryServiceId: 1,
-            cartId: savedCartId ? parseInt(savedCartId) : null
+            deliveryServiceId: 1, // Safe to leave as 1 just to satisfy the database constraint
+            cartId: savedCartId ? parseInt(savedCartId) : null,
+
+            // --- NEW: Add the exact pricing fields from the frontend ---
+            deliveryFee: deliveryFee,
+            insuranceFee: insuranceFee,
+            totalAmountLkr: calculatedTotal
         }
     };
 
