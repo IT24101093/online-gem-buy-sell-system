@@ -1,0 +1,414 @@
+/* =========================================
+   1. FONTS & VARIABLES
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600;700&display=swap');
+
+:root {
+    --royal-blue: #020f32;
+    --luxury-gold: #03123a;
+    --accent-blue: #062067;
+    --soft-white: #ffffff;
+    --bg-light: #f8fafc;
+    --processing: #f59e0b; /* Amber */
+    --packed: #3b82f6;     /* Blue */
+    --delivered: #10b981;  /* Green */
+}
+
+/* =========================================
+   2. GLOBAL RESET & BASE
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--royal-blue);
+    min-height: 100vh;
+}
+
+h1, h2, h3, .logo {
+    font-family: 'Playfair Display', serif;
+    margin: 0;
+}
+
+/* =========================================
+   3. TOP NAVIGATION BAR
+   ========================================= */
+.cart-nav {
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--royal-blue);
+    position: sticky;
+    top: 0;
+    background-color: rgba(2, 15, 50, 0.95);
+    backdrop-filter: blur(12px);
+    z-index: 50;
+    color: var(--soft-white);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.user-info {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #cbd5e1;
+}
+
+/* =========================================
+   4. DASHBOARD LAYOUT & STATS
+   ========================================= */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem;
+}
+
+.header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    font-weight: 600;
+    color: #475569;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--royal-blue);
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+/* =========================================
+   5. ORDER CARDS
+   ========================================= */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.order-card {
+    background-color: white !important;
+    border: 2px solid #94a3b8;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    color: var(--royal-blue) !important;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent-blue);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.75rem;
+}
+
+.order-id {
+    font-weight: 700;
+    color: var(--accent-blue) !important;
+    font-size: 1.1rem;
+}
+
+.order-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    border-bottom: 1px dashed #f1f5f9;
+    padding-bottom: 0.4rem;
+}
+
+.detail-label {
+    color: #64748b !important;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+.detail-row span:not(.detail-label) {
+    font-weight: 500;
+    text-align: right;
+}
+
+.status-select {
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc !important;
+    color: var(--royal-blue) !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.status-select:focus {
+    border-color: var(--accent-blue);
+}
+
+/* =========================================
+   6. BUTTONS
+   ========================================= */
+.order-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 0.25rem;
+    flex: 1; 
+}
+
+.btn-dark { background-color: var(--royal-blue); color: var(--soft-white); }
+.btn-dark:hover { background-color: var(--luxury-gold); }
+.btn-accent, .btn-primary { background-color: var(--accent-blue); color: var(--soft-white); }
+.btn-accent:hover, .btn-primary:hover { background-color: var(--royal-blue); }
+.btn-danger, .btn-delete { background-color: #ef4444; color: white; }
+.btn-danger:hover, .btn-delete:hover { background-color: #b91c1c; }
+.btn-secondary { background-color: #64748b; color: white; }
+.btn-secondary:hover { background-color: #475569; }
+
+.icon { width: 1.25rem; height: 1.25rem; }
+
+/* =========================================
+   7. FULLSCREEN BLURRED MENU OVERLAY
+   ========================================= */
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(2, 15, 50, 0.85);
+    backdrop-filter: blur(15px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 5rem;
+    overflow-y: auto;
+}
+
+.menu-overlay.hidden { display: none; }
+
+.menu-content {
+    background-color: var(--bg-light);
+    width: 100%;
+    max-width: 60rem;
+    border-radius: 0.25rem;
+    padding: 3rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.menu-header h2 { color: var(--royal-blue); font-size: 2rem; }
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.close-btn:hover { color: #ef4444; }
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .menu-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.menu-card {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    color: var(--royal-blue);
+    cursor: pointer;
+    transition: box-shadow 0.3s, border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.menu-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent-blue);
+}
+
+.menu-card-icon {
+    color: var(--accent-blue);
+    margin-bottom: 1rem;
+    width: 2rem;
+    height: 2rem;
+}
+
+.menu-card h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+}
+
+.menu-card p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Expanding Sub-Menus */
+.sub-menu {
+    margin-top: 1.5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1px dashed #cbd5e1;
+    padding-top: 1rem;
+}
+
+.sub-menu.hidden { display: none; }
+
+.sub-menu a {
+    text-decoration: none;
+    color: #475569;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    background-color: #f8fafc;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sub-menu a:hover {
+    background-color: #eff6ff;
+    color: var(--accent-blue);
+}
+
+/* =========================================
+   8. MODALS (Delete Confirmation)
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(2, 15, 50, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal-content {
+    background-color: var(--soft-white);
+    padding: 2.5rem;
+    max-width: 28rem;
+    width: 100%;
+    text-align: center;
+    border-radius: 0.25rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.modal-content h2, .modal-content h3 {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+    color: var(--royal-blue);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}

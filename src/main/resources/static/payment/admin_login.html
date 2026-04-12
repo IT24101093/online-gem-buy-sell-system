@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login | JayaGems</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-badge"><span>◆</span></div>
+      <div class="brand-text">
+        <div class="brand-name">JayaGems</div>
+        <div class="brand-sub">Secure Administration</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="card accent" style="max-width: 400px; margin: 80px auto; padding: 40px;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Admin Portal</h2>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="adminUser" placeholder="e.g., admin" autocomplete="off">
+    </div>
+    <div class="field" style="margin-top: 20px;">
+      <label>Password</label>
+      <input type="password" id="adminPass" placeholder="••••••••">
+    </div>
+    <div class="actions" style="margin-top: 30px;">
+      <button class="btn wide" onclick="handleLogin()">Login to Dashboard</button>
+      <a href="index.html" class="btn ghost wide" style="margin-top: 10px; text-decoration: none;">Back to Home</a>
+    </div>
+
+    <div style="margin-top: 25px; border-top: 1px solid var(--line); padding-top: 15px; text-align: center;">
+
+      <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 10px; opacity: 0.7;">
+        <img src="https://img.icons8.com/fluency/48/shield.png" width="20" title="Secure Access" />
+        <span style="font-size: 10px; color: var(--muted); align-self: center; letter-spacing: 0.5px;">
+            SECURE 256-BIT ENCRYPTION
+        </span>
+      </div>
+
+      <p style="font-size: 11px; color: var(--danger); opacity: 0.8; margin: 0; font-weight: 600;">
+        WARNING!: AUTHORIZED ACCESS ONLY
+      </p>
+
+      <p style="font-size: 10px; color: var(--muted); margin-top: 5px;">
+        All activities are monitored and logged.
+      </p>
+    </div>
+    <p id="loginErr" class="error" style="text-align: center; margin-top: 15px;"></p>
+  </div>
+</main>
+
+<script>
+  function handleLogin() {
+      const user = document.getElementById('adminUser').value;
+      const pass = document.getElementById('adminPass').value;
+      const err = document.getElementById('loginErr');
+
+      // Check the Username/Password
+      if (user === "admin" && pass === "1234") {
+          localStorage.setItem("userRole", "ADMIN");
+          window.location.href = "admin_analytics.html";
+      } else {
+          err.textContent = "Invalid credentials. Please try again.";
+      }
+  }
+</script>
+</body>
+</html>

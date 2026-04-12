@@ -1,0 +1,67 @@
+/* =========================================
+   Analytics Page Specific Enhancements
+   ========================================= */
+
+/* Utility Colors for Financials */
+.text-danger {
+    color: #ef4444 !important;
+}
+
+.text-success {
+    color: #10b981 !important;
+}
+
+/* Data Group Headers */
+.group-header {
+    background-color: #f1f5f9;
+    padding: 0.75rem !important;
+    border-radius: 0.25rem;
+    color: var(--accent-blue) !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Chart Positioning */
+.chart-container {
+    height: 250px; 
+    margin-bottom: 2rem; 
+    position: relative;
+    width: 100%;
+}
+
+/* =========================================
+   Print & PDF Export Formatting
+   ========================================= */
+@media print {
+    /* Hide navigational and interactive elements */
+    .cart-nav, 
+    .menu-overlay, 
+    .btn,
+    .header button { 
+        display: none !important; 
+    }
+    
+    /* Reset background colors for printer ink saving */
+    body { 
+        background: #ffffff !important; 
+        color: #000000 !important; 
+        padding: 0 !important; 
+    }
+    
+    /* Expand container to full page width */
+    .container { 
+        padding: 0 !important; 
+        max-width: 100% !important; 
+    }
+    
+    /* Flatten cards for paper layout */
+    .order-card,
+    .stat-card { 
+        border: 1px solid #dddddd !important; 
+        box-shadow: none !important; 
+        break-inside: avoid; /* Prevent page breaks inside cards */
+    }
+}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Checkout | JayaGems</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <div class="brand-badge"><span>◆</span></div>
+            <div class="brand-text">
+                <div class="brand-name">JayaGems</div>
+                <div class="brand-sub">Payment Processing • Checkout</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="index.html" class="active">Checkout</a>
+            <a href="payment.html">Pay</a>
+            <a href="receipt.html">Receipt</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <div>
+            <h1>Secure Checkout</h1>
+            <p>Review your order summary, apply promo codes, and add official certifications before proceeding to payment.</p>
+        </div>
+
+        <div class="stepper">
+            <div class="step active"><span class="step-dot"></span> 1. Checkout</div>
+            <div class="step"><span class="step-dot"></span> 2. Payment</div>
+            <div class="step"><span class="step-dot"></span> 3. Receipt</div>
+        </div>
+    </section>
+
+    <section class="grid">
+        <div class="card">
+            <div class="card-head">
+                <h2>Gateway Options</h2>
+                <p class="sub">Apply final add-ons or promotional codes.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="field" style="grid-column: span 2;">
+                        <label for="promo">Promo Code</label>
+                        <input id="promo" type="text" placeholder="Optional (e.g., GEM10)" maxlength="12" />
+                        <small class="hint" id="promoMsg">Try: GEM10 (10% off subtotal)</small>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top:14px;">
+                    <label>Optional Add-ons</label>
+                    <div class="pills">
+                        <label class="pill">
+                            <input id="addonCert" type="checkbox" />
+                            Official Gem Certification (+ LKR 1500)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn" id="btnCalculate">Update Total</button>
+                    <button class="btn ghost" id="btnReset">Reset Options</button>
+                </div>
+            </div>
+        </div>
+
+        <aside class="card accent sticky">
+            <div class="card-head">
+                <h2>Order Summary</h2>
+                <p class="sub">Final breakdown of your charges.</p>
+            </div>
+
+            <div class="card-body">
+                <div class="summary">
+                    <div class="row"><span>Order Subtotal</span><strong id="sumBase">LKR 0.00</strong></div>
+                    <div class="row"><span>Add-ons</span><strong id="sumAddons">LKR 0.00</strong></div>
+                    <div class="row"><span>Discount</span><strong id="sumDisc">- LKR 0.00</strong></div>
+
+                    <div class="divider"></div>
+
+                    <div class="row total"><span>Total Payable</span><strong id="sumTotal">LKR 0.00</strong></div>
+                </div>
+
+                <div class="notice" id="calcNotice">
+                    Click <b>Update Total</b> to confirm your final amount.
+                </div>
+
+                <div class="actions">
+                    <a class="btn wide" href="payment.html" id="goPay" aria-disabled="true">Proceed to Pay</a>
+                </div>
+            </div>
+        </aside>
+    </section>
+</main>
+
+<footer class="footer">
+    <span>© 2026 Online Gem Buy & Selling System</span>
+    <span>Payment Processing</span>
+</footer>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>
