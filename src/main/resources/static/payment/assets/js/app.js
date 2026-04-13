@@ -70,22 +70,23 @@ function initCheckout(){
     const promoInput = byId("promo");
 
     btnCalc.addEventListener("click", () => {
-        
-        // --- MOCK INCOMING DATA FROM ORDER COMPONENT ---
-        // Change this line later to pull the actual amount from your order component
+
+        // 1. Get the base price AND the real Order ID from your database!
         let base = parseFloat(localStorage.getItem('currentOrderTotal')) || 0;
-        
+        let realOrderId = localStorage.getItem('currentOrderId') || 1; // Fallback to 1 if missing
+
         // User inputs
         const promo = (promoInput.value || "").trim().toUpperCase();
         const cert = byId("addonCert") ? byId("addonCert").checked : false;
 
-        // Calculate Add-ons (Certification only)
+        // Calculate Add-ons & Fixed Tax
         const addons = cert ? 1500 : 0;
+        const tax = 500; // 🟢 Your fixed tax amount!
 
         // Promo logic
         let promoDiscount = 0;
         const promoMsg = byId("promoMsg");
-        
+
         if (promo === "GEM10"){
             promoDiscount = base * 0.10;
             if(promoMsg) promoMsg.innerHTML = `<span style="color: var(--success);">Promo applied! 10% off.</span>`;
@@ -95,32 +96,33 @@ function initCheckout(){
             if(promoMsg) promoMsg.textContent = "Try: GEM10 (10% off subtotal)";
         }
 
-        // Final Math
-        const total = Math.max(0, base + addons - promoDiscount);
+        // Final Math: Base + Addons + Tax - Discount
+        const total = Math.max(0, base + addons + tax - promoDiscount);
 
         // Update UI Summary
         byId("sumBase").textContent = money(base);
         byId("sumAddons").textContent = money(addons);
+
+        // 🟢 Update Tax UI (Make sure you added the HTML row for this!)
+        if (byId("sumTax")) {
+            byId("sumTax").textContent = money(tax);
+        }
+
         byId("sumDisc").textContent = `- ${money(promoDiscount)}`;
         byId("sumTotal").textContent = money(total);
 
         byId("calcNotice").innerHTML = `Calculated successfully. <b>Total payable: ${money(total)}</b>`;
 
-        // Save order to pass to payment page
-        // Sending tax and shipping as 0 so your DB fetch doesn't break
-        const orderId = `ORD-${String(Math.floor(Math.random() * 90000) + 10000)}`;
+        // 🟢 Save the REAL Order ID and REAL calculations to pass to the Payment Page
         localStorage.setItem("checkoutData", JSON.stringify({
-            orderId,
-            base,
-            addons,
+            orderId: parseInt(realOrderId), // Real ID from DB!
+            base: base,
+            addons: addons,
             shipping: 0,
-            taxRatePct: 0,
-            tax: 0,
-            discount: 0,
-            promo,
-            promoDiscount,
+            tax: tax, // Real Tax!
+            discount: promoDiscount,
             totalDiscount: promoDiscount,
-            total,
+            total: total,
             createdAt: new Date().toISOString()
         }));
 
@@ -180,23 +182,29 @@ function initPayment(){
         const phone = (byId("phone").value || "").trim();
 
         // 1. Retrieve the real Order ID AND Total we saved during the Order step
-        const realOrderId = parseInt(localStorage.getItem('currentOrderId'));
-        const realOrderTotal = parseFloat(localStorage.getItem('currentOrderTotal')) || 0;
+       // const realOrderId = parseInt(localStorage.getItem('currentOrderId'));
+        //const realOrderTotal = parseFloat(localStorage.getItem('currentOrderTotal')) || 0;
 
-// 2. Prepare the payload
+        // Make sure we are pulling the saved calculations from the Checkout step
+        const dataRaw = localStorage.getItem("checkoutData");
+        const data = dataRaw ? JSON.parse(dataRaw) : {};
+
+        // 2. Prepare the payload
         const payload = {
-            orderId: realOrderId,
-            subtotalLkr: realOrderTotal,    // 🟢 Pulls directly from storage, not 'data.base'
-            addonsLkr: 0,                   // 🟢 Hardcoded to 0 to avoid undefined errors
-            shippingLkr: 0,
-            taxLkr: 0,
-            discountLkr: 0,
-            totalAmountLkr: realOrderTotal, // 🟢 Pulls directly from storage, not 'data.total'
+            orderId: parseInt(data.orderId),
+            subtotalLkr: data.base || 0,
+            addonsLkr: data.addons || 0,          // 🟢 Now captures your LKR 1500 add-on!
+            shippingLkr: data.shipping || 0,
+            taxLkr: data.tax || 0,                // 🟢 Now captures your LKR 500 tax!
+            discountLkr: data.discount || 0,
+            totalAmountLkr: data.total || 0,      // 🟢 The true grand total!
             method: method,
-            gatewayName: method === "CARD" ? "STRIPE" : "CASH",
+            gatewayName: method === "CARD" ? "Stripe" : "Cash On Delivery",
             gatewayReference: "REF-" + Date.now(),
             cardNumber: method === "CARD" ? onlyDigits(number) : null
         };
+
+
 
 // Quick safety check
         if (!payload.orderId) {
