@@ -1,5 +1,6 @@
 package com.gemtrade.onlinegembuysellsystem.payment.service;
 
+import com.gemtrade.onlinegembuysellsystem.order.service.OrderService;
 import com.gemtrade.onlinegembuysellsystem.payment.entity.PaymentTransaction;
 import com.gemtrade.onlinegembuysellsystem.payment.repository.PaymentTransactionRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import java.util.Map;
 public class PaymentService {
 
     private final PaymentTransactionRepository repository;
+    @Autowired
+    private OrderService orderService;
 
     public PaymentService(PaymentTransactionRepository repository) {
         this.repository = repository;
@@ -126,6 +129,9 @@ public class PaymentService {
                     "ON DUPLICATE KEY UPDATE value_lkr = value_lkr + ?";
 
             jdbcTemplate.update(updateAssetSql, amount, amount);
+
+            // 3. 🟢 NEW: Mark the gems as SOLD in the inventory!
+            orderService.markOrderItemsAsSold(orderId);
 
             System.out.println("Financial sync complete: Order #" + orderId + " moved to Assets.");
 

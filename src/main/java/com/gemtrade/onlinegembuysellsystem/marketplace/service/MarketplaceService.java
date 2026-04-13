@@ -368,6 +368,12 @@ public class MarketplaceService {
             imageUrl = "/gem-photos/" + imageUrl;
         }
 
+        // 🟢 NEW: Check if the underlying inventory item was marked as SOLD
+        String currentStatus = "ACTIVE";
+        if (l.getInventoryItem() != null && l.getInventoryItem().getStatus() != null) {
+            currentStatus = l.getInventoryItem().getStatus().name();
+        }
+
         return GemListingDTO.builder()
                 .listingId(l.getListingId())
                 .name(l.getGemstoneName())
@@ -380,6 +386,8 @@ public class MarketplaceService {
                 // Fetch weight from the linked inventory item
                 .caratWeight(l.getInventoryItem() != null ?
                         l.getInventoryItem().getWeightCt().doubleValue() : 0.0)
+                // 🟢 NEW: Send the status to the frontend!
+                .status(currentStatus)
                 .build();
     }
 

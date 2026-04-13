@@ -145,9 +145,15 @@ public class OrderService {
             System.err.println("Non-critical error clearing cart items: " + e.getMessage());
         }
 
+        // 🟢 NEW: ONLY mark as sold instantly if it is Cash on Delivery.
+        // Card payments will be marked as sold later by the PaymentService!
+        if ("CASH".equals(dto.getPaymentMethod())) {
+            markOrderItemsAsSold(savedOrder.getOrderId());
+            System.out.println("CASH order detected. Items instantly marked as SOLD.");
+        }
+
         return savedOrder;
     }
-
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
@@ -173,5 +179,24 @@ public class OrderService {
             throw new RuntimeException("Order not found with id: " + id);
         }
         orderRepository.deleteById(id);
+    }
+
+
+    // Add this to the bottom of OrderService.java
+    @Transactional
+    public void markOrderItemsAsSold(Long orderId) {
+        // 1. Find all gem listing IDs for this specific order
+        String sql = "SELECT listing_id FROM order_item WHERE order_id = ? AND listing_id IS NOT NULL";
+        List<Long> listingIds = jdbcTemplate.queryForList(sql, Long.class, orderId);
+
+        // 2. Loop through every gem in the order and mark it as SOLD
+        for (Long itemId : listingIds) {
+            try {
+                inventoryItemService.updateItemStatus(itemId, "SOLD");
+                System.out.println("Successfully marked Gem ID " + itemId + " as SOLD.");
+            } catch (Exception e) {
+                System.err.println("Could not mark item " + itemId + " as SOLD: " + e.getMessage());
+            }
+        }
     }
 }

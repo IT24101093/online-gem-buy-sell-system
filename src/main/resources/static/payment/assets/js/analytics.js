@@ -99,7 +99,7 @@ async function syncModules(income, loss) {
         const cashAtBank = financeData.totalAssetsValue || 0;
 
         // We haven't linked the real Gem Inventory yet, so set it to 0 for now
-        const gemInventoryValue = 0;
+        const gemInventoryValue = financeData.totalGemValue || 0;
 
         // Total Assets is Cash + Gems
         const totalAssets = cashAtBank + gemInventoryValue;

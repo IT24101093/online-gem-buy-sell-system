@@ -196,8 +196,8 @@
                 </div>`;
           break;
         case 'SOLD':
-          statusDisplayHtml = `<span class="font-bold text-slate-500">Sold</span>`;
-          actionAreaHtml = `<div class="text-xs font-bold text-slate-400 uppercase">Archived</div>`;
+          statusDisplayHtml = `<span class="font-bold text-red-500">Sold</span>`;
+          actionAreaHtml = `<div class="text-xs font-bold text-purple-400 uppercase">Archived</div>`;
           break;
         default: // IN_STOCK
           statusDisplayHtml = `<span class="font-bold text-blue-500">In Stock</span>`;

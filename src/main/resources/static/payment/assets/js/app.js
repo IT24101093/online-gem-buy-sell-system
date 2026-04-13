@@ -199,6 +199,7 @@ function initPayment(){
             discountLkr: data.discount || 0,
             totalAmountLkr: data.total || 0,      // 🟢 The true grand total!
             method: method,
+            paymentMethod: method,
             gatewayName: method === "CARD" ? "Stripe" : "Cash On Delivery",
             gatewayReference: "REF-" + Date.now(),
             cardNumber: method === "CARD" ? onlyDigits(number) : null

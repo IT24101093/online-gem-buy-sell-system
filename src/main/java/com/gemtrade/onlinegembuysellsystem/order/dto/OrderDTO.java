@@ -30,4 +30,6 @@ public class OrderDTO {
     // Use the fields below if you need to store the NAME of the provider.
     private String courierName;
     private String insuranceProvider;
+
+    private String paymentMethod;
 }

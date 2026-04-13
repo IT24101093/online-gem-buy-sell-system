@@ -17,4 +17,5 @@ public class GemListingDTO {
     private Double caratWeight;     // from inventory item weight
     private String origin;          // country of origin
     private List<GemVariantDTO> variants;  // carat-wise pricing options
+    private String status;
 }

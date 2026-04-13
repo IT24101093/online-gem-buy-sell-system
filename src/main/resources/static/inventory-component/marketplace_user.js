@@ -190,19 +190,45 @@ function toImageUrl(gem) {
 function displayGems(items) {
     currentDisplayedGems = items;
     const grid = document.getElementById('gem-market');
-    grid.innerHTML = items.map((gem, i) => `
+
+    // We change this to a full block so we can add our if/else logic inside!
+    grid.innerHTML = items.map((gem, i) => {
+
+        // 1. ADD THE SOLD CHECK HERE
+        let badgeHtml = '';
+        let overlayButtonHtml = '';
+
+        if (gem.status === 'SOLD') {
+            // Show a beautiful "Sold Out" badge over the image
+            badgeHtml = `<div class="absolute top-3 left-3 bg-red-600/95 backdrop-blur text-white text-xs font-black px-3 py-1.5 rounded-sm z-10 shadow-lg tracking-widest uppercase border border-red-500/50">SOLD OUT</div>`;
+
+            // Replace "View Details" with a disabled "Unavailable" button on hover
+            overlayButtonHtml = `<button disabled class="bg-slate-300 px-8 py-3 font-bold text-xs uppercase tracking-widest text-slate-500 cursor-not-allowed">Unavailable</button>`;
+        } else {
+            // Normal View Details button for items still in stock
+            overlayButtonHtml = `<button onclick="openGemDetails(${i})" class="bg-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-amber-500 hover:text-white transition">View Details</button>`;
+        }
+
+        // 2. BUILD THE HTML FOR THE CARD
+        return `
         <div class="gem-card group animate__animated animate__fadeInUp" style="animation-delay: ${i * 0.1}s">
             <div class="relative overflow-hidden bg-slate-100 mb-4 aspect-[4/5] rounded-sm">
+               
+               ${badgeHtml}
+
                <img src="${toImageUrl(gem)}" class="w-full h-full object-cover transition duration-1000" alt="${gem.name}" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';">
                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
-                    <button onclick="openGemDetails(${i})" class="bg-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-amber-500 hover:text-white transition">View Details</button>
+                    
+                    ${overlayButtonHtml}
+
                 </div>
             </div>
             <p class="text-[10px] uppercase tracking-[0.2em] text-amber-600 font-bold mb-1">${gem.category || gem.type || ''}</p>
             <h3 class="font-serif text-lg text-slate-800 mb-2">${gem.name}</h3>
             <p class="font-bold text-blue-900">Rs. ${gem.price.toLocaleString()}</p>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function addToCart(index) {
