@@ -185,18 +185,24 @@ public class OrderService {
     // Add this to the bottom of OrderService.java
     @Transactional
     public void markOrderItemsAsSold(Long orderId) {
-        // 1. Find all gem listing IDs for this specific order
-        String sql = "SELECT listing_id FROM order_item WHERE order_id = ? AND listing_id IS NOT NULL";
-        List<Long> listingIds = jdbcTemplate.queryForList(sql, Long.class, orderId);
+        // 1. Join with marketplace_listing to find the actual INVENTORY ID for these order items
+        String sql = "SELECT ml.inventory_item_id " +
+                "FROM order_item oi " +
+                "JOIN marketplace_listing ml ON oi.listing_id = ml.listing_id " +
+                "WHERE oi.order_id = ? AND oi.listing_id IS NOT NULL";
 
-        // 2. Loop through every gem in the order and mark it as SOLD
-        for (Long itemId : listingIds) {
+        List<Long> inventoryItemIds = jdbcTemplate.queryForList(sql, Long.class, orderId);
+
+        // 2. Loop through and mark the actual gem as SOLD
+        for (Long itemId : inventoryItemIds) {
             try {
                 inventoryItemService.updateItemStatus(itemId, "SOLD");
-                System.out.println("Successfully marked Gem ID " + itemId + " as SOLD.");
+                System.out.println("Successfully marked Gem Inventory ID " + itemId + " as SOLD.");
             } catch (Exception e) {
-                System.err.println("Could not mark item " + itemId + " as SOLD: " + e.getMessage());
+                System.err.println("Failed to update status for Gem ID " + itemId + ": " + e.getMessage());
             }
         }
     }
 }
+
+

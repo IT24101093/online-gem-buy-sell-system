@@ -101,7 +101,7 @@ public class SmartAnalysisService {
         item.setSeller(seller);
 
         // Choose what to store in inventory_item.weightCt:
-        // 1) manualWeightCt if provided, else 2) weightCt if provided, else 3) estimatedCarat
+        // 1) manualWeightCt if provided, else 2) weightCt if provided, else  estimatedCarat
         BigDecimal finalWeightCt = dto.getManualWeightCt() != null
                 ? dto.getManualWeightCt()
                 : (dto.getWeightCt() != null ? dto.getWeightCt() : estimatedCarat);
@@ -134,7 +134,7 @@ public class SmartAnalysisService {
         report.setDetectedGemType(dto.getDetectedGemType());
         report.setConfidenceScore(dto.getConfidenceScore());
 
-        // calculated fields (Day 10)
+        // calculated fields
         report.setSpecificGravity(sgUsed);
         report.setVolumeMm3(volumeMm3);
         report.setEstimatedCarat(estimatedCarat);

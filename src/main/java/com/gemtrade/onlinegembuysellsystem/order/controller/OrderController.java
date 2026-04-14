@@ -73,8 +73,26 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<Order> updateStatus(@PathVariable Long id, @RequestParam String status) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+    public ResponseEntity<OrderResponseDTO> updateStatus(@PathVariable Long id, @RequestParam String status) {
+        Order updatedOrder = orderService.updateOrderStatus(id, status);
+
+        // Map Entity to DTO to avoid recursion
+        OrderResponseDTO dto = new OrderResponseDTO();
+        dto.setOrderId(updatedOrder.getOrderId());
+        dto.setStatus(updatedOrder.getOrderStatus());
+        dto.setAmount(updatedOrder.getTotalAmountLkr().doubleValue());
+
+        if (updatedOrder.getCustomer() != null) {
+            dto.setCustomerName(updatedOrder.getCustomer().getFirstName() + " " + updatedOrder.getCustomer().getLastName());
+        }
+
+        if (updatedOrder.getInventoryItem() != null) {
+            dto.setGemsList(updatedOrder.getInventoryItem().getGemType());
+        }
+
+        dto.setDate(updatedOrder.getCreatedAt() != null ? updatedOrder.getCreatedAt().toLocalDate().toString() : "N/A");
+
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")

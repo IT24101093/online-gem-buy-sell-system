@@ -37,7 +37,7 @@ public class CertifiedGemService {
     public CertifiedGemResponseDto addCertifiedGem(CertifiedGemRequestDto requestDto) {
         if (requestDto.getGemType() == null || requestDto.getGemType().isBlank()) {
             throw new RuntimeException("Gem type is required");
-        }
+        }//check validation before saving database
 
         if (requestDto.getCertificateNo() == null || requestDto.getCertificateNo().isBlank()) {
             throw new RuntimeException("Certificate number is required");
@@ -92,7 +92,7 @@ public class CertifiedGemService {
                 "Certified gem added successfully"
         );
     }
-
+    //crete seller
     private Seller getOrCreateSeller(SellerRequestDto sellerDto) {
         Optional<Seller> existingSeller = sellerRepository.findByNic(sellerDto.getNic());
 
@@ -107,7 +107,7 @@ public class CertifiedGemService {
 
         return sellerRepository.save(seller);
     }
-
+     //genarte invintoy code
     private String generateInventoryCode() {
         long count = inventoryItemRepository.count() + 1;
         return String.format("INV%05d", count);
@@ -199,7 +199,7 @@ public class CertifiedGemService {
                 .toList();
     }
 
-    // find cetificate url
+    // find cetificate url(find it with inventory id and updte the url)
     @org.springframework.transaction.annotation.Transactional
     public void updateReportUrl(Long inventoryItemId, String reportUrl) {
         // Find the certificate by the inventory item ID

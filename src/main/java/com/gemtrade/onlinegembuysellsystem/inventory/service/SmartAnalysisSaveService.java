@@ -43,7 +43,7 @@ public class SmartAnalysisSaveService {
                 .findFirst()
                 .orElse(run.getCutOptions().stream().filter(CutOptionDto::getRecommended).findFirst().orElse(run.getCutOptions().get(0)));
 
-        Seller seller = getOrCreateSeller(req.getSeller());
+        Seller seller = getOrCreateSeller(req.getSeller());  //ensure that a Seller object exists
 
         InventoryItem item = new InventoryItem();
         item.setInventoryCode(generateInventoryCode());
@@ -55,9 +55,7 @@ public class SmartAnalysisSaveService {
         item.setStatus(InventoryItem.Status.IN_STOCK);
         item.setSeller(seller);
 
-        // --- START OF PROFESSIONAL FIX ---
 
-        // --- THE ACTUAL FIX ---
 
         // 1. Force the mode to AUTO
         item.setDescriptionMode(InventoryItem.DescriptionMode.AUTO);
@@ -78,9 +76,9 @@ public class SmartAnalysisSaveService {
         // 4. Save the item
         InventoryItem savedItem = inventoryItemRepository.save(item);
 
-        // --- END OF FIX ---
 
-        // --- END OF PROFESSIONAL FIX ---
+
+
 
         ValidationReport report = new ValidationReport();
         report.setInventoryItem(savedItem);

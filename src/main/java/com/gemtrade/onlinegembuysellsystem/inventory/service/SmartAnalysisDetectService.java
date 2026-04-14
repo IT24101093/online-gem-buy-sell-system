@@ -100,7 +100,7 @@ public class SmartAnalysisDetectService {
      */
     private SmartAnalysisDetectResponseDto mapResponse(Map body) {
         if (body == null) {
-            throw new RuntimeException("AI prediction service returned an empty response");
+            throw new RuntimeException("AI prediction service returned an empty response"); //covert raw da to structured dats
         }
 
         String detectedGemType = (String) body.get("detectedGemType");
@@ -128,7 +128,7 @@ public class SmartAnalysisDetectService {
 
     private BigDecimal toBigDecimal(Object value) {
         if (value == null) {
-            return BigDecimal.ZERO;
+            return BigDecimal.ZERO; //if ai dint sendnumber it return zero
         }
         return new BigDecimal(String.valueOf(value));
     }

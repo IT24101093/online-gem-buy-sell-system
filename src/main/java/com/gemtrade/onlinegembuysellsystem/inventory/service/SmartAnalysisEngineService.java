@@ -49,7 +49,7 @@ public class SmartAnalysisEngineService {
                 .map(ShapeFactor::getFactor)
                 .orElse(DEFAULT_SHAPE_FACTOR);
 
-        // consistent formula
+        // consistent formula n
         BigDecimal estimatedCarat = volumeMm3
                 .multiply(sg)
                 .multiply(shapeFactor)
@@ -72,7 +72,7 @@ public class SmartAnalysisEngineService {
                 warningMessage = "Manual weight differs from estimated weight by " + diffPercent + "% (>= 15%).";
             }
         }
-
+           //looks up the YieldFactor based on the RoughShape
         BigDecimal baseYield = (dto.getRoughShape() == null || dto.getRoughShape().isBlank())
                 ? DEFAULT_YIELD_PERCENT
                 : yieldFactorRepository.findByRoughShapeIgnoreCase(dto.getRoughShape())
@@ -85,7 +85,7 @@ public class SmartAnalysisEngineService {
         BigDecimal mColor = lookupMultiplier(Multiplier.Category.COLOR, dto.getColorGrade());
         BigDecimal mClarity = lookupMultiplier(Multiplier.Category.CLARITY, dto.getClarityGrade());
         BigDecimal mCut = lookupMultiplier(Multiplier.Category.CUT, dto.getCutGrade());
-
+        //find adjest price
         BigDecimal adjustedPricePerCarat = basePricePerCarat
                 .multiply(mColor).multiply(mClarity).multiply(mCut)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -99,6 +99,7 @@ public class SmartAnalysisEngineService {
         String bestCut = null;
         BigDecimal bestValue = new BigDecimal("-1");
 
+        //compare currentvalue agins best value is a loop best value -1
         for (String cut : List.of("Round", "Oval", "Emerald")) {
 
             // Get yield% from DB for THIS cut shape (Round/Oval/Emerald)
@@ -147,7 +148,7 @@ public class SmartAnalysisEngineService {
 
         );
     }
-
+     //check grade code provide vv if not 1
     private BigDecimal lookupMultiplier(Multiplier.Category category, String gradeCode) {
         if (gradeCode == null || gradeCode.isBlank()) return BigDecimal.ONE;
         return multiplierRepository.findByCategoryAndGradeCodeIgnoreCase(category, gradeCode)
@@ -156,7 +157,7 @@ public class SmartAnalysisEngineService {
     }
 
     private BigDecimal pickBasePrice(String gemType, BigDecimal carat) {
-        List<BasePricePerCarat> rows = base_price_rows(gemType);
+        List<BasePricePerCarat> rows = base_price_rows(gemType);//check base price with different weight
         if (rows.isEmpty()) return BigDecimal.ZERO;
 
         for (BasePricePerCarat r : rows) {
@@ -171,5 +172,5 @@ public class SmartAnalysisEngineService {
 
     private List<BasePricePerCarat> base_price_rows(String gemType) {
         return basePricePerCaratRepository.findByGemTypeIgnoreCase(gemType);
-    }
+    }//feth call find all pricing records that match a specific stone type
 }

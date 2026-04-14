@@ -57,10 +57,18 @@ function calculateFee() {
     if (!name || !address) { showToast("Please fill in your name and address."); return; }
     if (isNaN(age) || age <= 0) { showToast("Age must be a valid number."); return; }
 
-    // ✅ FIXED NIC VALIDATION
-    if (!/^[0-9]{11}[vVxX]$/.test(nic)) { 
-        showToast("NIC must be 11 digits + last letter (V or X)."); 
-        return; 
+
+
+    const nicPattern = /^([0-9]{9}[vV]|[0-9]{12})$/;
+
+    if (/^([0-9]{12}[vV]?)$/.test(nic)) {
+
+    }
+    else if (/^([0-9]{9}[vV])$/.test(nic)) {
+    }
+    else {
+        showToast("Invalid NIC: Use 9 digits + V or 12 digits.");
+        return;
     }
 
     if (phone.length !== 10 || isNaN(phone)) { showToast("Contact must be 10 numbers."); return; }

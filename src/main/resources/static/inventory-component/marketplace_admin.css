@@ -1,9 +1,12 @@
-/* Custom Admin Styling */
+/* Custom Admin Styling - Updated to JayaGems Theme */
 
 :root {
-    --gold: #d4af37;
-    --dark-slate: #0f172a;
-    --admin-bg: #f8fafc;
+    --royal-blue: #020f32;
+    --luxury-gold: #03123a;
+    --accent-blue: #062067;
+    --soft-white: #ffffff;
+    --bg-light: #f8fafc;
+    --processing: #f59e0b;
 }
 
 /* Custom Scrollbar for the Inbox */
@@ -15,7 +18,7 @@
     border-radius: 10px;
 }
 
-/* Sidebar Animation */
+/* Sidebar Animation (Kept for safety, though sidebar was replaced by top-nav) */
 .sidebar-link {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -32,7 +35,8 @@
 
 /* The "Pending" Cards pulse slightly to grab attention */
 .gem-card-pending {
-    border-left: 4px solid var(--gold);
+    /* Changed from gold to accent blue to match theme */
+    border-left: 4px solid var(--accent-blue);
     transition: all 0.4s ease;
 }
 
@@ -47,17 +51,24 @@
     transition: background-color 0.2s ease;
 }
 
+#active-listings tr:hover {
+    background-color: #f1f5f9;
+}
+
 /* Modal Blur Effect */
 #price-modal {
     transition: opacity 0.3s ease-in-out;
 }
 
+/* Updated Button to Match New Theme (Kept class name to prevent breaking HTML/JS) */
 .gold-gradient-btn {
-    background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-    transition: opacity 0.3s
+    background: var(--accent-blue);
+    color: var(--soft-white);
+    transition: opacity 0.3s, transform 0.3s, background-color 0.3s;
 }
 
 .gold-gradient-btn:hover {
+    background: var(--royal-blue);
     opacity: 0.9;
     transform: translateY(-1px);
 }

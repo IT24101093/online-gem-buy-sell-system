@@ -12,16 +12,23 @@ import com.gemtrade.onlinegembuysellsystem.marketplace.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+
 @Service
 @RequiredArgsConstructor
 
 public class MarketplaceService {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private final MarketplaceListingRepository listingRepo;
     private final MarketplaceListingDraftRepository draftRepo;
@@ -233,6 +240,7 @@ public class MarketplaceService {
         listing.setUpdatedAt(java.time.LocalDateTime.now());
         listingRepo.save(listing);
     }
+
 
     @Transactional
     public void deleteListing(Long listingId) {

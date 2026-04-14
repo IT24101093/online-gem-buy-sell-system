@@ -1,17 +1,228 @@
-/* ── Gold gradient button (also used inline as .gold-gradient) ─────── */
-.gold-gradient {
-    background: linear-gradient(135deg, #d4af37 0%, #f1d592 100%);
+/* =========================================
+   1. THEME VARIABLES & BASE STYLES
+   ========================================= */
+:root {
+    --royal-blue: #020f32;
+    --luxury-gold: #03123a;
+    --accent-blue: #062067;
+    --soft-white: #ffffff;
+    --bg-light: #f8fafc;
 }
 
-/* ── Sidebar active override ────────────────────────────────────────── */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--royal-blue);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: block; /* Override tailwind flex */
+}
+
+h1, h2, h3, .logo {
+    font-family: 'Playfair Display', serif;
+}
+
+/* =========================================
+   2. TOP NAVIGATION BAR
+   ========================================= */
+.cart-nav {
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--royal-blue);
+    position: sticky;
+    top: 0;
+    background-color: rgba(2, 15, 50, 0.95);
+    backdrop-filter: blur(12px);
+    z-index: 50;
+    color: var(--soft-white);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+.user-info {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #cbd5e1;
+}
+
+/* =========================================
+   3. BUTTONS
+   ========================================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 0.25rem;
+}
+.btn-accent { background-color: var(--accent-blue); color: var(--soft-white); }
+.btn-accent:hover { background-color: var(--royal-blue); }
+.icon { width: 1.25rem; height: 1.25rem; }
+
+/* ── Action gradient (For JS compatibility) ─────── */
+.gold-gradient {
+    background: linear-gradient(135deg, #062067 0%, #020f32 100%);
+}
+
+/* =========================================
+   4. FULLSCREEN MENU OVERLAY
+   ========================================= */
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(2, 15, 50, 0.85);
+    backdrop-filter: blur(15px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 5rem;
+    overflow-y: auto;
+}
+.menu-overlay.hidden { display: none; }
+
+.menu-content {
+    background-color: var(--bg-light);
+    width: 100%;
+    max-width: 60rem;
+    border-radius: 0.25rem;
+    padding: 3rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+.menu-header h2 { color: var(--royal-blue); font-size: 2rem; margin: 0; }
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.close-btn:hover { color: #ef4444; }
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+@media (min-width: 768px) { .menu-grid { grid-template-columns: 1fr 1fr; } }
+
+.menu-card {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    color: var(--royal-blue);
+    cursor: pointer;
+    transition: box-shadow 0.3s, border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-sizing: border-box;
+}
+.menu-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent-blue);
+}
+.menu-card-icon {
+    color: var(--accent-blue);
+    margin-bottom: 1rem;
+    width: 2rem;
+    height: 2rem;
+}
+.menu-card h3 { font-family: 'Inter', sans-serif; font-size: 1.125rem; margin-bottom: 0.25rem; margin-top: 0; }
+.menu-card p { font-size: 0.875rem; color: #64748b; margin: 0; }
+
+.sub-menu {
+    margin-top: 1.5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1px dashed #cbd5e1;
+    padding-top: 1rem;
+}
+.sub-menu.hidden { display: none; }
+.sub-menu a {
+    text-decoration: none;
+    color: #475569;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    background-color: #f8fafc;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+.sub-menu a:hover {
+    background-color: #eff6ff;
+    color: var(--accent-blue);
+}
+
+/* =========================================
+   5. PAGE LAYOUT & CONTAINERS
+   ========================================= */
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem;
+}
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.page-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--royal-blue);
+}
+
+/* =========================================
+   6. JEWELLERY SPECIFIC STYLES
+   ========================================= */
+
+/* ── Sidebar active override (Updated to blue) ── */
 .sidebar-link.active,
 .sidebar-link[data-active="true"] {
-    background: rgba(212, 175, 55, 0.1);
-    border-left: 4px solid #d4af37;
-    color: #fbbf24;
+    background: rgba(6, 32, 103, 0.1);
+    border-left: 4px solid #062067;
+    color: #062067;
 }
 
-/* ── Jewellery table thumbnail ──────────────────────────────────────── */
+/* ── Jewellery table thumbnail ── */
 .jwl-thumb {
     width: 56px;
     height: 56px;
@@ -34,17 +245,17 @@
     border: 1px solid #e2e8f0;
 }
 
-/* ── Multi-select gem categories ────────────────────────────────────── */
+/* ── Multi-select gem categories ── */
 #jwl-gem-categories {
     min-height: 110px;
 }
 
 #jwl-gem-categories option:checked {
-    background: #d4af37;
-    color: #1e293b;
+    background: #062067;
+    color: #ffffff;
 }
 
-/* ── Image upload preview (inside the Add Jewellery modal) ──────────── */
+/* ── Image upload preview ── */
 #jwl-image-preview {
     display: none;
     max-width: 100%;
@@ -55,13 +266,13 @@
     border: 2px solid #e2e8f0;
 }
 
-/* ── Category badge chips (shown per row in the table) ──────────────── */
+/* ── Category badge chips ── */
 .cat-badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 999px;
-    background: rgba(212, 175, 55, 0.15);
-    color: #92721b;
+    background: rgba(6, 32, 103, 0.15);
+    color: #062067;
     font-size: 11px;
     font-weight: 600;
     margin: 2px 2px 0 0;
@@ -69,15 +280,15 @@
 }
 
 .cat-badge:hover {
-    background: rgba(212, 175, 55, 0.30);
+    background: rgba(6, 32, 103, 0.30);
 }
 
-/* ── Add Jewellery modal – smooth entrance ──────────────────────────── */
+/* ── Add Jewellery modal entrance ── */
 #add-jewellery-modal {
     transition: opacity 0.25s ease;
 }
 
-/* ── Metal dot used in JS-rendered table rows ───────────────────────── */
+/* ── Metal dot for JS-rendered table rows ── */
 .metal-dot-admin {
     display: inline-block;
     width: 10px;
@@ -87,11 +298,9 @@
     vertical-align: middle;
 }
 
-/* ── Responsive: stack layout on small screens ──────────────────────── */
+/* ── Responsive adjustments ── */
 @media (max-width: 768px) {
-    /* On mobile the aside sidebar is hidden (md:block), so the
-       main content should take full width - nothing extra needed. */
-    main {
+    .admin-container {
         padding: 1.5rem;
     }
 }

@@ -55,7 +55,7 @@ function populateGemTypeDropdown() {
 
   const currentValue = select.value;
   select.innerHTML = '<option value="">Select gem type</option>';
-
+//convert js array to html
   GEM_TYPES.forEach((type) => {
     const option = document.createElement("option");
     option.value = type;
@@ -92,6 +92,7 @@ function setOptimizationEnabled(enabled) {
   }
 }
 
+//oval cut togel
 function show(el, yes) {
   if (!el) return;
   el.classList.toggle("hidden", !yes);
@@ -135,7 +136,7 @@ function buildAutoDescription({ gemType, roughShape, grades, dimensions, predict
 function setWarnings(list) {
   const box = $("weightWarning");
   if (!box) return;
-  if (!list || list.length === 0) {
+  if (!list || list.length === 0) {  //if list is empty no warning show to user
     box.innerHTML = "";
     show(box, false);
     return;
@@ -144,6 +145,7 @@ function setWarnings(list) {
   show(box, true);
 }
 
+//cut recomandaation text
 function setRecommendation(text) {
   const el = $("recommendationText");
   if (!el) return;
@@ -381,6 +383,18 @@ async function runSmartAnalysis() {
     const data = await response.json();
     Swal.close();
 
+    // Replace your added lines with these:
+    if (data.estimatedValue !== undefined) {
+      // We use fmtMoney for the LKR prefix and thousands separators
+      setText("mainEstimatedValue", fmtMoney(data.estimatedValue));
+    } else {
+      setText("mainEstimatedValue", "LKR 0.00");
+    }
+
+    setText("mainBasePrice", fmtMoney(data.basePricePerCarat));
+    setText("mainAdjustedPrice", fmtMoney(data.adjustedPricePerCarat));
+    setText("mainWeightUsed", fmtCt(data.finalWeightCt));
+
     currentAnalysisResult.predictedRoughWeight = data.finalWeightCt;
     currentAnalysisResult.cuts = data.cutOptions;
 
@@ -415,7 +429,7 @@ async function runSmartAnalysis() {
     }
 
     setOptimizationEnabled(true);
-    Swal.fire({ icon: "success", title: "Analysis Complete", background: "#1e293b", color: "#fff", timer: 1000, showConfirmButton: false });
+    Swal.fire({ icon: "success", title: "Analysis Complete", background: "#ffffff", color: "#0d104a", timer: 1000, showConfirmButton: false });
 
   } catch (error) {
     Swal.fire({ icon: "error", title: "Analysis Failed", text: error.message, background: "#1e293b", color: "#fff" });

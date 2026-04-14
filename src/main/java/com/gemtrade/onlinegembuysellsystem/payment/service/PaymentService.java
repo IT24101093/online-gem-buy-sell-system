@@ -57,6 +57,7 @@ public class PaymentService {
             // Note: We do NOT trigger fulfillFinancialTransaction here
             // because the cash hasn't been collected yet.
             // It stays in 'corporate_liabilities' (the Red Slice).
+            orderService.markOrderItemsAsSold(payment.getOrderId());
         }
 
         payment.setCreatedAt(LocalDateTime.now());
